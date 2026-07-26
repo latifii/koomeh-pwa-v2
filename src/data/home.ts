@@ -1,0 +1,314 @@
+export type DealType = "sale" | "rent";
+
+export type PropertyType = "apartment" | "villa" | "land" | "commercial";
+
+export interface Estate {
+  id: string;
+  title: string;
+  district: string;
+  dealType: DealType;
+  propertyType: PropertyType;
+  price: string;
+  area: number;
+  rooms: number;
+  baths: number;
+  isNew?: boolean;
+  hasTour?: boolean;
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  readTime: string;
+}
+
+export interface Agent {
+  id: string;
+  name: string;
+  branch: string;
+  rank: 1 | 2 | 3;
+  score: string;
+}
+
+export interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+}
+
+export interface AreaGuide {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface Faq {
+  question: string;
+  answer: string;
+}
+
+export const propertyTypeLabels: Record<PropertyType, string> = {
+  apartment: "آپارتمان",
+  villa: "خانه ویلایی",
+  land: "زمین",
+  commercial: "تجاری",
+};
+
+export const saleEstates: Estate[] = [
+  {
+    id: "s1",
+    title: "آپارتمان نوساز سه‌خوابه",
+    district: "پردیسان",
+    dealType: "sale",
+    propertyType: "apartment",
+    price: "۴٬۲۰۰٬۰۰۰٬۰۰۰ تومان",
+    area: 132,
+    rooms: 3,
+    baths: 2,
+    isNew: true,
+  },
+  {
+    id: "s2",
+    title: "خانه ویلایی حیاط‌دار",
+    district: "شهرک قدس",
+    dealType: "sale",
+    propertyType: "villa",
+    price: "۹٬۸۰۰٬۰۰۰٬۰۰۰ تومان",
+    area: 240,
+    rooms: 4,
+    baths: 3,
+    hasTour: true,
+  },
+  {
+    id: "s3",
+    title: "آپارتمان بازسازی‌شده",
+    district: "جمهوری",
+    dealType: "sale",
+    propertyType: "apartment",
+    price: "۲٬۹۵۰٬۰۰۰٬۰۰۰ تومان",
+    area: 95,
+    rooms: 2,
+    baths: 1,
+  },
+  {
+    id: "s4",
+    title: "واحد تجاری خیابان اصلی",
+    district: "صفاشهر",
+    dealType: "sale",
+    propertyType: "commercial",
+    price: "۶٬۱۰۰٬۰۰۰٬۰۰۰ تومان",
+    area: 60,
+    rooms: 1,
+    baths: 1,
+  },
+  {
+    id: "s5",
+    title: "زمین با کاربری مسکونی",
+    district: "زنبیل‌آباد",
+    dealType: "sale",
+    propertyType: "land",
+    price: "۵٬۴۰۰٬۰۰۰٬۰۰۰ تومان",
+    area: 200,
+    rooms: 0,
+    baths: 0,
+  },
+  {
+    id: "s6",
+    title: "آپارتمان دیدار به پارک",
+    district: "کریمی",
+    dealType: "sale",
+    propertyType: "apartment",
+    price: "۳٬۷۵۰٬۰۰۰٬۰۰۰ تومان",
+    area: 110,
+    rooms: 2,
+    baths: 2,
+    isNew: true,
+  },
+  {
+    id: "s7",
+    title: "خانه ویلایی دوبلکس",
+    district: "فردوسی",
+    dealType: "sale",
+    propertyType: "villa",
+    price: "۷٬۲۰۰٬۰۰۰٬۰۰۰ تومان",
+    area: 180,
+    rooms: 3,
+    baths: 2,
+  },
+  {
+    id: "s8",
+    title: "آپارتمان نزدیک حرم",
+    district: "سالاریه",
+    dealType: "sale",
+    propertyType: "apartment",
+    price: "۵٬۱۰۰٬۰۰۰٬۰۰۰ تومان",
+    area: 145,
+    rooms: 3,
+    baths: 2,
+    hasTour: true,
+  },
+];
+
+export const rentEstates: Estate[] = [
+  {
+    id: "r1",
+    title: "آپارتمان مبله تک‌خواب",
+    district: "پردیسان",
+    dealType: "rent",
+    propertyType: "apartment",
+    price: "رهن ۲۰۰ / اجاره ۱۲٬۰۰۰٬۰۰۰ تومان",
+    area: 70,
+    rooms: 1,
+    baths: 1,
+  },
+  {
+    id: "r2",
+    title: "خانه ویلایی حیاط‌دار",
+    district: "شهرک قدس",
+    dealType: "rent",
+    propertyType: "villa",
+    price: "رهن کامل ۱٬۸۰۰٬۰۰۰٬۰۰۰ تومان",
+    area: 200,
+    rooms: 3,
+    baths: 2,
+  },
+  {
+    id: "r3",
+    title: "واحد اداری-تجاری",
+    district: "جمهوری",
+    dealType: "rent",
+    propertyType: "commercial",
+    price: "رهن ۳۰۰ / اجاره ۱۸٬۰۰۰٬۰۰۰ تومان",
+    area: 55,
+    rooms: 1,
+    baths: 1,
+  },
+  {
+    id: "r4",
+    title: "آپارتمان دو‌خوابه دیدارباز",
+    district: "کریمی",
+    dealType: "rent",
+    propertyType: "apartment",
+    price: "رهن ۴۰۰ / اجاره ۲۵٬۰۰۰٬۰۰۰ تومان",
+    area: 105,
+    rooms: 2,
+    baths: 1,
+  },
+];
+
+export const tourEstates: Estate[] = saleEstates.filter((e) => e.hasTour);
+
+export const articles: Article[] = [
+  {
+    id: "a1",
+    title: "راهنمای خرید آپارتمان در قم؛ نکاتی که نباید نادیده بگیرید",
+    excerpt:
+      "پیش از امضای قرارداد، این چک‌لیست را مرور کنید تا از یک خرید مطمئن اطمینان حاصل کنید.",
+    category: "راهنمای خرید",
+    readTime: "۶ دقیقه",
+  },
+  {
+    id: "a2",
+    title: "روند قیمت مسکن در قم در فصل جاری",
+    excerpt:
+      "تحلیلی کوتاه از نوسانات قیمت در مناطق پرتقاضای شهر و پیش‌بینی ماه‌های آینده.",
+    category: "تحلیل بازار",
+    readTime: "۴ دقیقه",
+  },
+  {
+    id: "a3",
+    title: "رهن و اجاره یا خرید؟ کدام برای شما مناسب‌تر است",
+    excerpt:
+      "مقایسه‌ای عملی بین دو مسیر رایج تأمین مسکن، متناسب با بودجه و شرایط زندگی شما.",
+    category: "مشاوره",
+    readTime: "۵ دقیقه",
+  },
+];
+
+export const areaGuides: AreaGuide[] = [
+  { id: "ar1", name: "پردیسان", description: "منطقه‌ای مدرن با دسترسی بالا" },
+  { id: "ar2", name: "سالاریه", description: "نزدیک به حرم و بافت قدیمی" },
+  { id: "ar3", name: "زنبیل‌آباد", description: "مناسب سرمایه‌گذاری" },
+  { id: "ar4", name: "صفاشهر", description: "محله‌ای آرام و مسکونی" },
+  { id: "ar5", name: "شهرک قدس", description: "ویلایی‌نشین و پردرخت" },
+  { id: "ar6", name: "جمهوری", description: "مرکز تجاری و اداری شهر" },
+];
+
+export const branches: Branch[] = [
+  {
+    id: "b1",
+    name: "شعبه پردیسان",
+    address: "قم، پردیسان، بلوار پژوهش",
+    phone: "۰۲۵-۳۳۱۲۳۴۵۶",
+  },
+  {
+    id: "b2",
+    name: "شعبه جمهوری",
+    address: "قم، خیابان جمهوری اسلامی",
+    phone: "۰۲۵-۳۷۱۲۳۴۵۶",
+  },
+  {
+    id: "b3",
+    name: "شعبه صدوقی",
+    address: "قم، بلوار صدوقی",
+    phone: "۰۲۵-۳۸۱۲۳۴۵۶",
+  },
+  {
+    id: "b4",
+    name: "شعبه زمرد",
+    address: "قم، شهرک زمرد",
+    phone: "۰۲۵-۳۹۱۲۳۴۵۶",
+  },
+];
+
+export const topAgents: Agent[] = [
+  { id: "ag1", name: "علی محمدی", branch: "پردیسان", rank: 1, score: "۹۸" },
+  { id: "ag2", name: "زهرا احمدی", branch: "جمهوری", rank: 2, score: "۹۲" },
+  { id: "ag3", name: "حسین رضایی", branch: "صدوقی", rank: 3, score: "۸۷" },
+];
+
+export const homeFaqs: Faq[] = [
+  {
+    question: "گروه املاک کومه چه خدماتی در قم ارائه می‌دهد؟",
+    answer:
+      "گروه املاک کومه در قم خدمات خرید، فروش و اجاره انواع ملک از جمله آپارتمان، خانه ویلایی و زمین را به صورت تخصصی و با پشتیبانی کامل ارائه می‌دهد.",
+  },
+  {
+    question: "چگونه می‌توانم ملکی در قم پیدا کنم؟",
+    answer:
+      "شما می‌توانید از طریق وب‌سایت گروه املاک کومه یا مراجعه حضوری به دفتر، ملک مورد نظر خود را جستجو و با مشاوران ما ارتباط برقرار کنید.",
+  },
+  {
+    question: "آیا گروه املاک کومه به مشاوران حرفه‌ای مجهز است؟",
+    answer:
+      "بله، گروه املاک کومه دارای تیمی از مشاوران آموزش‌دیده و باتجربه در بازار املاک قم است تا شما را در خرید، فروش و اجاره ملک راهنمایی کنند.",
+  },
+  {
+    question: "آیا امکان بازدید حضوری از املاک وجود دارد؟",
+    answer:
+      "بله، پس از انتخاب ملک مورد نظر، مشاوران گروه املاک کومه در قم برنامه بازدید حضوری برای شما ترتیب می‌دهند.",
+  },
+  {
+    question: "آیا گروه املاک کومه خدمات حقوقی هم ارائه می‌دهد؟",
+    answer:
+      "بله، گروه املاک کومه با وکلای مجرب همکاری می‌کند تا خرید، فروش و اجاره ملک در قم با امنیت و شفافیت کامل انجام شود.",
+  },
+  {
+    question: "قیمت املاک در قم چگونه مشخص می‌شود؟",
+    answer:
+      "قیمت‌ها بر اساس منطقه، متراژ، نوع ملک و وضعیت بازار تعیین می‌شود. مشاوران گروه املاک کومه به شما در تعیین قیمت مناسب کمک می‌کنند.",
+  },
+  {
+    question: "چگونه می‌توانم با گروه املاک کومه تماس بگیرم؟",
+    answer:
+      "می‌توانید از طریق شماره‌تماس‌های موجود در وب‌سایت، فرم تماس آنلاین یا مراجعه حضوری با گروه املاک کومه ارتباط برقرار کنید.",
+  },
+  {
+    question: "آیا امکان ثبت ملک برای فروش یا اجاره در سایت وجود دارد؟",
+    answer:
+      "بله، مالکین می‌توانند ملک خود را در وب‌سایت گروه املاک کومه ثبت کنند تا در کوتاه‌ترین زمان به مشتریان واقعی معرفی شود.",
+  },
+];

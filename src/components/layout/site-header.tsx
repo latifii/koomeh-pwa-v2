@@ -1,0 +1,211 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, Phone, PlusCircle, Search, User } from "lucide-react";
+
+import { ModeToggle } from "@/components/shared/mode-toggle";
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+
+const navLinks = [
+  { href: "/", label: "جستجوی ملک" },
+  { href: "/#", label: "مجله حقوقی" },
+  { href: "/#1", label: "محاسبه کمیسیون" },
+  // { href: "/blogs/3", label: "مجله املاک" },
+  // { href: "/#branches", label: "شعب کومه" },
+];
+
+export function SiteHeader() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!isHome) return;
+
+    const handleScroll = () => setIsScrolled(window.scrollY > 80);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHome]);
+
+  const transparent = isHome && !isScrolled;
+
+  return (
+    <header
+      className={cn(
+        "z-40 w-full transition-colors duration-300",
+        transparent
+          ? "absolute top-0 bg-transparent"
+          : "sticky top-0 border-b bg-background/80 backdrop-blur-md",
+        isHome && !transparent && "fixed",
+      )}
+    >
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <span
+            className={cn(
+              "flex size-9 items-center justify-center rounded-xl font-heading text-base font-bold",
+              transparent
+                ? "bg-white/15 text-white backdrop-blur-sm"
+                : "bg-primary text-primary-foreground",
+            )}
+          >
+            ک
+          </span>
+          <span
+            className={cn(
+              "font-heading text-lg font-bold transition-colors",
+              transparent ? "text-white" : "text-foreground",
+            )}
+          >
+            املاک{" "}
+            <span
+              className={
+                transparent
+                  ? "text-secondary"
+                  : "text-primary dark:text-primary"
+              }
+            >
+              کومه
+            </span>
+          </span>
+        </Link>
+
+        <nav className="hidden items-center gap-6 lg:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "rounded-full px-1 py-1.5 text-sm font-medium transition-colors",
+                transparent
+                  ? "text-white/85 hover:bg-white/10 hover:text-white"
+                  : "text-foreground/80 hover:bg-primary/10 hover:text-primary dark:text-foreground/85 dark:hover:text-primary",
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <ModeToggle
+            className={cn(
+              transparent &&
+                "border-white/30 bg-white/10 text-white hover:bg-white/20",
+            )}
+          />
+
+          <Button
+            size="default"
+            variant="secondary"
+            className="hidden sm:inline-flex"
+          >
+            <PlusCircle />
+            ثبت ملک
+          </Button>
+          <Button
+            variant="outline"
+            size="default"
+            className={cn(
+              "hidden sm:inline-flex",
+              transparent &&
+                "border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white",
+            )}
+          >
+            <User className="hidden md:block" />
+            ورود
+          </Button>
+          <Drawer swipeDirection="left">
+            <DrawerTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={cn(
+                    "lg:hidden",
+                    transparent &&
+                      "border-white/30 bg-white/10 text-white hover:bg-white/20",
+                  )}
+                  aria-label="باز کردن منو"
+                >
+                  <Menu />
+                </Button>
+              }
+            />
+            <DrawerContent className="p-4">
+              <DrawerHeader className="px-0">
+                <DrawerTitle>منوی کومه</DrawerTitle>
+              </DrawerHeader>
+              <nav className="mt-4 flex flex-1 flex-col gap-1">
+                {navLinks.map((link) => (
+                  <DrawerClose
+                    key={link.href}
+                    render={
+                      <Link
+                        href={link.href}
+                        className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
+                      >
+                        {link.label}
+                      </Link>
+                    }
+                  />
+                ))}
+              </nav>
+              <Separator className="my-3" />
+              <div className="flex flex-col gap-2">
+                <DrawerClose
+                  render={
+                    <Button variant="secondary">
+                      <PlusCircle />
+                      ثبت ملک
+                    </Button>
+                  }
+                />
+                <DrawerClose
+                  render={
+                    <Button variant="outline">
+                      <User />
+                      ورود / ثبت‌نام
+                    </Button>
+                  }
+                />
+                <a
+                  href="tel:02533123456"
+                  className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground"
+                >
+                  <Phone className="size-4" />
+                  ۰۲۵-۳۳۱۲۳۴۵۶
+                </a>
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </div>
+      </div>
+
+      {!isHome && !transparent && (
+        <div className="border-t px-4 py-2 sm:px-6 lg:hidden">
+          <Link
+            href="/c/qom"
+            className="flex items-center gap-2 rounded-lg border border-input px-3 py-2 text-sm text-muted-foreground"
+          >
+            <Search className="size-4" />
+            جستجوی ملک در قم...
+          </Link>
+        </div>
+      )}
+    </header>
+  );
+}
