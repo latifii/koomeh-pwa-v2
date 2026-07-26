@@ -104,6 +104,7 @@ export const saleEstates: Estate[] = [
     baths: 1,
     agentName: "حسین رضایی",
     agentGender: "male",
+    hasTour: true,
   },
   {
     id: "s4",

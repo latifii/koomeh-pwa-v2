@@ -9,7 +9,7 @@ import { SectionHeader } from "./section-header";
 
 export function SaleSection({ estates }: { estates: Estate[] }) {
   return (
-    <Section id="sale-estates">
+    <Section id="sale-estates" tone="muted">
       <SectionHeader
         eyebrow="تازه‌ترین فایل‌ها"
         title="املاک خرید و فروش"
