@@ -1,11 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Expand,
-  MousePointerClick,
-  Smartphone,
-  Sparkles,
-} from "lucide-react";
+import { Expand, Smartphone, Sparkles } from "lucide-react";
 
 import tourCover from "@/assets/images/card/360.webp";
 import { Icon360 } from "@/components/icons/icon-360";
