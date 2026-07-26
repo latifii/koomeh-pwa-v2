@@ -20,12 +20,13 @@ export function AreasSection({ areas }: { areas: AreaGuide[] }) {
         className="mb-8"
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {/* Mobile: horizontal snap carousel; grid from `sm` up */}
+      <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6">
         {areas.map((area) => (
           <Link
             key={area.id}
             href={`/blog/area-${area.id}`}
-            className="group overflow-hidden rounded-2xl border bg-card"
+            className="group w-[38%] shrink-0 snap-start overflow-hidden rounded-2xl border bg-card sm:w-auto"
           >
             <CoverPlaceholder
               icon={MapPinned}

@@ -18,12 +18,13 @@ export function BranchesSection({ branches }: { branches: Branch[] }) {
         className="mb-8"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Mobile: horizontal snap carousel; grid from `sm` up */}
+      <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
         {branches.map((branch) => (
           <a
             key={branch.id}
             href={`tel:${branch.phone}`}
-            className="group overflow-hidden rounded-2xl border bg-card"
+            className="group w-[70%] shrink-0 snap-start overflow-hidden rounded-2xl border bg-card sm:w-auto"
           >
             <CoverPlaceholder
               icon={Building2}
