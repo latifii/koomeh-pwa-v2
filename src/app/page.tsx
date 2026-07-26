@@ -3,7 +3,7 @@ import { AreasSection } from "@/app/_home/components/areas-section";
 import { ArticlesSection } from "@/app/_home/components/articles-section";
 import { BranchesSection } from "@/app/_home/components/branches-section";
 import { FaqSection } from "@/app/_home/components/faq-section";
-import { FinalCtaSection } from "@/app/_home/components/final-cta-section";
+// import { FinalCtaSection } from "@/app/_home/components/final-cta-section";
 import { Hero } from "@/app/_home/components/hero";
 import { MapCtaSection } from "@/app/_home/components/map-cta-section";
 
@@ -40,7 +40,7 @@ export default function Home() {
       <MapCtaSection />
       <BranchesSection branches={branches} />
       <FaqSection faqs={homeFaqs} />
-      <FinalCtaSection />
+      {/* <FinalCtaSection /> */}
     </div>
   );
 }

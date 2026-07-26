@@ -1,3 +1,5 @@
+import type { Gender } from "./avatars";
+
 export type DealType = "sale" | "rent";
 
 export type PropertyType = "apartment" | "villa" | "land" | "commercial";
@@ -35,7 +37,11 @@ export interface Agent {
   name: string;
   branch: string;
   rank: 1 | 2 | 3;
+  /** Display score (Persian digits) plus its numeric twin for the ranking bar. */
   score: string;
+  scoreValue: number;
+  deals: string;
+  gender: Gender;
 }
 
 export interface Branch {
@@ -304,9 +310,36 @@ export const branches: Branch[] = [
 ];
 
 export const topAgents: Agent[] = [
-  { id: "ag1", name: "علی محمدی", branch: "پردیسان", rank: 1, score: "۹۸" },
-  { id: "ag2", name: "زهرا احمدی", branch: "جمهوری", rank: 2, score: "۹۲" },
-  { id: "ag3", name: "حسین رضایی", branch: "صدوقی", rank: 3, score: "۸۷" },
+  {
+    id: "ag1",
+    name: "علی محمدی",
+    branch: "پردیسان",
+    rank: 1,
+    score: "۹۸",
+    scoreValue: 98,
+    deals: "۴۸",
+    gender: "male",
+  },
+  {
+    id: "ag2",
+    name: "زهرا احمدی",
+    branch: "جمهوری",
+    rank: 2,
+    score: "۹۲",
+    scoreValue: 92,
+    deals: "۴۱",
+    gender: "female",
+  },
+  {
+    id: "ag3",
+    name: "حسین رضایی",
+    branch: "صدوقی",
+    rank: 3,
+    score: "۸۷",
+    scoreValue: 87,
+    deals: "۳۶",
+    gender: "male",
+  },
 ];
 
 export const homeFaqs: Faq[] = [

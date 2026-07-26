@@ -10,8 +10,6 @@ import {
   Ruler,
 } from "lucide-react";
 
-import femaleAvatar from "@/assets/images/avatar/avatar-female.webp";
-import maleAvatar from "@/assets/images/avatar/avatar-male.webp";
 import apartmentImage from "@/assets/images/card/apartman.webp";
 import businessImage from "@/assets/images/card/business.webp";
 import plotImage from "@/assets/images/card/plot.webp";
@@ -20,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { defaultAvatars } from "@/data/avatars";
 import { type Estate, propertyTypeLabels } from "@/data/home";
 
 const propertyImages: Record<Estate["propertyType"], StaticImageData> = {
@@ -27,12 +26,6 @@ const propertyImages: Record<Estate["propertyType"], StaticImageData> = {
   villa: villaImage,
   land: plotImage,
   commercial: businessImage,
-};
-
-/** Default agent portraits, used until real agent photos come from the API. */
-const defaultAvatars: Record<Estate["agentGender"], StaticImageData> = {
-  male: maleAvatar,
-  female: femaleAvatar,
 };
 
 export function PropertyCard({
