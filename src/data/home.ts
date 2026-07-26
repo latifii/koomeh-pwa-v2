@@ -12,6 +12,7 @@ export interface Estate {
   area: number;
   rooms: number;
   baths: number;
+  agentName: string;
   isNew?: boolean;
   hasTour?: boolean;
 }
@@ -68,6 +69,7 @@ export const saleEstates: Estate[] = [
     area: 132,
     rooms: 3,
     baths: 2,
+    agentName: "علی محمدی",
     isNew: true,
   },
   {
@@ -80,6 +82,7 @@ export const saleEstates: Estate[] = [
     area: 240,
     rooms: 4,
     baths: 3,
+    agentName: "زهرا احمدی",
     hasTour: true,
   },
   {
@@ -92,6 +95,7 @@ export const saleEstates: Estate[] = [
     area: 95,
     rooms: 2,
     baths: 1,
+    agentName: "حسین رضایی",
   },
   {
     id: "s4",
@@ -103,6 +107,7 @@ export const saleEstates: Estate[] = [
     area: 60,
     rooms: 1,
     baths: 1,
+    agentName: "مریم کریمی",
   },
   {
     id: "s5",
@@ -114,6 +119,7 @@ export const saleEstates: Estate[] = [
     area: 200,
     rooms: 0,
     baths: 0,
+    agentName: "امیر حسینی",
   },
   {
     id: "s6",
@@ -125,6 +131,7 @@ export const saleEstates: Estate[] = [
     area: 110,
     rooms: 2,
     baths: 2,
+    agentName: "سارا نوری",
     isNew: true,
   },
   {
@@ -137,6 +144,7 @@ export const saleEstates: Estate[] = [
     area: 180,
     rooms: 3,
     baths: 2,
+    agentName: "علی محمدی",
   },
   {
     id: "s8",
@@ -148,6 +156,7 @@ export const saleEstates: Estate[] = [
     area: 145,
     rooms: 3,
     baths: 2,
+    agentName: "زهرا احمدی",
     hasTour: true,
   },
 ];
@@ -163,6 +172,7 @@ export const rentEstates: Estate[] = [
     area: 70,
     rooms: 1,
     baths: 1,
+    agentName: "حسین رضایی",
   },
   {
     id: "r2",
@@ -174,6 +184,7 @@ export const rentEstates: Estate[] = [
     area: 200,
     rooms: 3,
     baths: 2,
+    agentName: "مریم کریمی",
   },
   {
     id: "r3",
@@ -185,6 +196,7 @@ export const rentEstates: Estate[] = [
     area: 55,
     rooms: 1,
     baths: 1,
+    agentName: "امیر حسینی",
   },
   {
     id: "r4",
@@ -196,6 +208,7 @@ export const rentEstates: Estate[] = [
     area: 105,
     rooms: 2,
     baths: 1,
+    agentName: "سارا نوری",
   },
 ];
 

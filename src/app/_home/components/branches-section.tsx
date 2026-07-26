@@ -1,5 +1,6 @@
 import { Building2, MapPin, Phone } from "lucide-react";
 
+import { Section } from "@/components/layout/section";
 import type { Branch } from "@/data/home";
 
 import { CoverPlaceholder } from "./cover-placeholder";
@@ -9,7 +10,7 @@ export function BranchesSection({ branches }: { branches: Branch[] }) {
   if (branches.length === 0) return null;
 
   return (
-    <section id="branches" className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+    <Section id="branches">
       <SectionHeader
         eyebrow="نزدیک شما"
         title="شعب املاک کومه در قم"
@@ -46,6 +47,6 @@ export function BranchesSection({ branches }: { branches: Branch[] }) {
           </a>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }

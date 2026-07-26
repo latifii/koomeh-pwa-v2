@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
+import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 export function SectionHeader({
@@ -28,31 +29,16 @@ export function SectionHeader({
       )}
     >
       <div className="flex flex-col gap-2">
-        <span
-          className={cn(
-            "text-sm font-medium text-secondary-foreground",
-            light ? "text-secondary" : "text-primary dark:text-primary"
-          )}
-        >
+        <Typography variant="eyebrow" light={light}>
           {eyebrow}
-        </span>
-        <h2
-          className={cn(
-            "font-heading text-2xl font-bold sm:text-3xl",
-            light ? "text-white" : "text-foreground"
-          )}
-        >
+        </Typography>
+        <Typography variant="h2" light={light}>
           {title}
-        </h2>
+        </Typography>
         {description && (
-          <p
-            className={cn(
-              "max-w-xl text-sm",
-              light ? "text-white/70" : "text-muted-foreground"
-            )}
-          >
+          <Typography variant="muted" light={light} className="max-w-xl">
             {description}
-          </p>
+          </Typography>
         )}
       </div>
       {href && (

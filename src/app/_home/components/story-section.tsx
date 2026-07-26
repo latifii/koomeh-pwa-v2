@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { ArrowLeft, Landmark } from "lucide-react";
 
+import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 
 import { CoverPlaceholder } from "./cover-placeholder";
 
 export function StorySection() {
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+    <Section>
       <div className="grid items-center gap-8 overflow-hidden rounded-3xl border bg-card lg:grid-cols-2">
         <div className="relative">
           <CoverPlaceholder
@@ -22,28 +24,24 @@ export function StorySection() {
         </div>
 
         <div className="flex flex-col gap-4 p-6 sm:p-10">
-          <span className="text-sm font-medium text-primary dark:text-primary">
-            کومه یعنی چه؟
-          </span>
-          <h2 className="font-heading text-2xl font-bold sm:text-3xl">
-            نامی از دل تاریخ قم
-          </h2>
-          <p className="text-sm text-muted-foreground">
+          <Typography variant="eyebrow">کومه یعنی چه؟</Typography>
+          <Typography variant="h2">نامی از دل تاریخ قم</Typography>
+          <Typography variant="muted">
             <strong className="text-foreground">کومه</strong> به معنی اتاقک
             کلبه‌مانندی است که در کنار مراتع و مزارع برای استراحت ساخته
             می‌شود.
-          </p>
-          <p className="text-sm text-muted-foreground">
+          </Typography>
+          <Typography variant="muted">
             در گذشته در محدوده فعلی شهر قم، به دلیل آبگیر بودن منطقه
             علف‌زارها و گیاهان فراوانی رشد می‌کرد و محل مناسبی برای چَرا دادن
             گوسفندان بود و چوپانان در این منطقه کومه‌های متعددی بنا کرده
             بودند.
-          </p>
-          <p className="text-sm text-muted-foreground">
+          </Typography>
+          <Typography variant="muted">
             ریشه نام شهر قم با الهام از واژه{" "}
             <strong className="text-foreground">کومه</strong> (به دلیل تراکم
             کومه‌ها) به نام کُم خوانده شد و سپس معرب گردید و به قم تغییر یافت.
-          </p>
+          </Typography>
 
           <Button
             variant="outline"
@@ -56,6 +54,6 @@ export function StorySection() {
           </Button>
         </div>
       </div>
-    </section>
+    </Section>
   );
 }

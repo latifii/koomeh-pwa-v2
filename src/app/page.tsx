@@ -10,7 +10,7 @@ import { MapCtaSection } from "@/app/_home/components/map-cta-section";
 import { RentSection } from "@/app/_home/components/rent-section";
 import { SaleSection } from "@/app/_home/components/sale-section";
 import { StorySection } from "@/app/_home/components/story-section";
-import { TrustStrip } from "@/app/_home/components/trust-strip";
+// import { TrustStrip } from "@/app/_home/components/trust-strip";
 import { VirtualTourSection } from "@/app/_home/components/virtual-tour-section";
 import {
   areaGuides,
@@ -22,13 +22,14 @@ import {
   topAgents,
   tourEstates,
 } from "@/data/home";
+import { QuickPaths } from "./_home/components/quick-paths";
 
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col" id="top">
       <Hero />
-      {/* <QuickPaths /> */}
-      <TrustStrip />
+      <QuickPaths />
+      {/* <TrustStrip /> */}
       <SaleSection estates={saleEstates.slice(0, 8)} />
       <VirtualTourSection estates={tourEstates} />
       <StorySection />

@@ -1,5 +1,7 @@
 import { CheckCircle2, ShieldCheck, Users } from "lucide-react";
 
+import { Section } from "@/components/layout/section";
+
 const items = [
   {
     icon: CheckCircle2,
@@ -20,10 +22,7 @@ const items = [
 
 export function TrustStrip() {
   return (
-    <section
-      aria-label="دلایل اعتماد به کومه"
-      className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6"
-    >
+    <Section aria-label="دلایل اعتماد به کومه" spacing="sm">
       <div className="grid gap-4 sm:grid-cols-3">
         {items.map((item) => (
           <div
@@ -42,6 +41,6 @@ export function TrustStrip() {
           </div>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }

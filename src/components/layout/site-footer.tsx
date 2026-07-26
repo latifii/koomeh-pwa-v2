@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Camera, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
+import { Container } from "@/components/layout/container";
 import { Separator } from "@/components/ui/separator";
 
 const linkGroups = [
@@ -35,7 +36,7 @@ const linkGroups = [
 export function SiteFooter() {
   return (
     <footer className="border-t bg-card pb-24 lg:pb-0">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.4fr_2fr]">
+      <Container className="grid gap-10 py-12 lg:grid-cols-[1.4fr_2fr]">
         <div className="flex flex-col gap-4">
           <Link href="/" className="flex items-center gap-2">
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary font-heading text-base font-bold text-primary-foreground">
@@ -78,11 +79,11 @@ export function SiteFooter() {
             </div>
           ))}
         </div>
-      </div>
+      </Container>
 
       <Separator />
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <Container className="flex flex-col gap-3 py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>© {new Date().getFullYear()} گروه املاک کومه. تمامی حقوق محفوظ است.</p>
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
@@ -92,7 +93,7 @@ export function SiteFooter() {
             <MapPin className="size-3.5" /> قم، بلوار پژوهش
           </span>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

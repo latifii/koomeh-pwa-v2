@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Clock, Newspaper } from "lucide-react";
 
+import { Section } from "@/components/layout/section";
 import type { Article } from "@/data/home";
 
 import { CoverPlaceholder } from "./cover-placeholder";
@@ -10,7 +11,7 @@ export function ArticlesSection({ articles }: { articles: Article[] }) {
   if (articles.length === 0) return null;
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+    <Section>
       <SectionHeader
         eyebrow="دانش بازار ملک"
         title="مجله املاک کومه"
@@ -65,6 +66,6 @@ export function ArticlesSection({ articles }: { articles: Article[] }) {
           </article>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }

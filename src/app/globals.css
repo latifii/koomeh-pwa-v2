@@ -5,6 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /*
+   * Reset Tailwind's built-in color palette (slate, red, blue, ...). Every
+   * color usable in the project must be declared below and kept in sync
+   * with :root/.dark, so the UI can only ever draw from one intentional
+   * palette instead of arbitrary Tailwind swatches.
+   */
+  --color-*: initial;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-vazirmatn);
@@ -39,6 +47,19 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /*
+   * Fixed tones that never switch between light/dark — for content that
+   * always sits on the same kind of surface no matter the site theme:
+   * white text over a photo, dark "ink" text over a pastel illustration,
+   * or a deep-navy gradient endpoint over an image.
+   */
+  --color-white: oklch(1 0 0);
+  --color-black: oklch(0 0 0);
+  --color-ink: oklch(0.22 0.03 260.8);
+  --color-ink-muted: oklch(0.48 0.02 260.8);
+  --color-primary-deep: oklch(0.167 0.05 265.266);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -46,6 +67,23 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /*
+   * Layout rhythm — the single source of truth for page/section spacing.
+   * Use `px-page` for page-container padding and `py-section` (or
+   * `py-section-sm` for tighter blocks) between homepage sections, via
+   * the <Container>/<Section> components in src/components/layout.
+   *
+   * NOTE: `--container-content` must NOT share its key name with any
+   * `--spacing-*` entry — Tailwind resolves sizing utilities (`max-w-*`,
+   * `w-*`, ...) against `--spacing-<key>` before `--container-<key>`, so a
+   * shared name (e.g. both called "page") silently makes `max-w-content`
+   * resolve to the spacing value instead of the container width.
+   */
+  --spacing-page: clamp(1rem, 4vw, 1.5rem);
+  --spacing-section: clamp(2.5rem, 6vw, 4rem);
+  --spacing-section-sm: clamp(1.5rem, 4vw, 2.5rem);
+  --container-content: var(--container-6xl);
 }
 
 :root {

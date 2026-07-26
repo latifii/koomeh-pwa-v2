@@ -22,7 +22,7 @@ export function MobileBottomNav() {
       aria-label="ناوبری سریع"
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-md lg:hidden"
     >
-      <div className="mx-auto flex max-w-6xl items-stretch justify-between px-2">
+      <div className="mx-auto flex max-w-content items-stretch justify-between px-2">
         {items.map((item) => {
           const active = pathname === item.href;
 

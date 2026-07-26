@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Phone, PlusCircle, Search, User } from "lucide-react";
 
+import logoDark from "@/assets/images/logo/logo-new-dark.png";
+import logoLight from "@/assets/images/logo/logo-new-light.png";
+import { Container } from "@/components/layout/container";
 import { ModeToggle } from "@/components/shared/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,35 +56,26 @@ export function SiteHeader() {
         isHome && !transparent && "fixed",
       )}
     >
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span
+      <Container className="flex h-16 items-center justify-between">
+        <Link href="/" className="flex shrink-0 items-center">
+          <Image
+            src={logoLight}
+            alt="گروه املاک کومه"
+            priority
             className={cn(
-              "flex size-9 items-center justify-center rounded-xl font-heading text-base font-bold",
-              transparent
-                ? "bg-white/15 text-white backdrop-blur-sm"
-                : "bg-primary text-primary-foreground",
+              "h-6.5 w-auto object-contain sm:h-7.5",
+              transparent ? "block" : "hidden dark:block",
             )}
-          >
-            ک
-          </span>
-          <span
+          />
+          <Image
+            src={logoDark}
+            alt="گروه املاک کومه"
+            priority
             className={cn(
-              "font-heading text-lg font-bold transition-colors",
-              transparent ? "text-white" : "text-foreground",
+              "h-6.5 w-auto object-contain sm:h-7.5",
+              transparent ? "hidden" : "block dark:hidden",
             )}
-          >
-            املاک{" "}
-            <span
-              className={
-                transparent
-                  ? "text-secondary"
-                  : "text-primary dark:text-primary"
-              }
-            >
-              کومه
-            </span>
-          </span>
+          />
         </Link>
 
         <nav className="hidden items-center gap-6 lg:flex">
@@ -153,6 +148,7 @@ export function SiteHeader() {
                 {navLinks.map((link) => (
                   <DrawerClose
                     key={link.href}
+                    nativeButton={false}
                     render={
                       <Link
                         href={link.href}
@@ -193,10 +189,10 @@ export function SiteHeader() {
             </DrawerContent>
           </Drawer>
         </div>
-      </div>
+      </Container>
 
       {!isHome && !transparent && (
-        <div className="border-t px-4 py-2 sm:px-6 lg:hidden">
+        <div className="border-t px-page py-2 lg:hidden">
           <Link
             href="/c/qom"
             className="flex items-center gap-2 rounded-lg border border-input px-3 py-2 text-sm text-muted-foreground"

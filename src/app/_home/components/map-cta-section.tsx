@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { Map } from "lucide-react";
 
+import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 
 export function MapCtaSection() {
   return (
-    <section id="map-search" className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
+    <Section id="map-search">
       <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-12 text-center text-primary-foreground sm:px-16 sm:py-16">
         <div
           aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] opacity-[0.05] [background-size:22px_22px]"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,var(--color-white)_1px,transparent_0)] opacity-[0.05] [background-size:22px_22px]"
         />
         <div
           aria-hidden
@@ -20,15 +22,15 @@ export function MapCtaSection() {
           <span className="flex size-12 items-center justify-center rounded-full bg-white/10">
             <Map className="size-6 text-secondary" />
           </span>
-          <span className="text-sm font-medium text-secondary">
+          <Typography variant="eyebrow" light>
             جستجو بر اساس موقعیت
-          </span>
-          <h2 className="font-heading text-2xl font-bold sm:text-3xl">
+          </Typography>
+          <Typography variant="h2" light>
             جستجوی دقیق در نقشه
-          </h2>
-          <p className="max-w-md text-sm text-primary-foreground/70">
+          </Typography>
+          <Typography variant="muted" light className="max-w-md">
             ملک‌های اطراف محله موردنظر خود را روی نقشه پیدا کنید.
-          </p>
+          </Typography>
           <Button
             variant="secondary"
             size="lg"
@@ -41,6 +43,6 @@ export function MapCtaSection() {
           </Button>
         </div>
       </div>
-    </section>
+    </Section>
   );
 }

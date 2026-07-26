@@ -3,7 +3,7 @@ import { type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const toneClasses = {
-  primary: "from-primary/90 via-primary to-[#050d24]",
+  primary: "from-primary/90 via-primary to-primary-deep",
   secondary: "from-secondary via-secondary/80 to-primary/60",
   muted: "from-muted via-muted to-accent",
 } as const;
@@ -22,7 +22,7 @@ export function CoverPlaceholder({
   return (
     <div
       className={cn(
-        "relative flex items-center justify-center overflow-hidden bg-gradient-to-br",
+        "relative flex items-center justify-center overflow-hidden bg-linear-to-br",
         toneClasses[tone],
         className
       )}
