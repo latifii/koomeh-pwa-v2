@@ -8,11 +8,16 @@ export interface Estate {
   district: string;
   dealType: DealType;
   propertyType: PropertyType;
+  /** Total price — shown for sale files. */
   price: string;
+  /** Rent files only: deposit ("ودیعه") and monthly rent, shown side by side. */
+  deposit?: string;
+  monthlyRent?: string;
   area: number;
   rooms: number;
   baths: number;
   agentName: string;
+  agentGender: "male" | "female";
   isNew?: boolean;
   hasTour?: boolean;
 }
@@ -70,6 +75,7 @@ export const saleEstates: Estate[] = [
     rooms: 3,
     baths: 2,
     agentName: "علی محمدی",
+    agentGender: "male",
     isNew: true,
   },
   {
@@ -83,6 +89,7 @@ export const saleEstates: Estate[] = [
     rooms: 4,
     baths: 3,
     agentName: "زهرا احمدی",
+    agentGender: "female",
     hasTour: true,
   },
   {
@@ -96,6 +103,7 @@ export const saleEstates: Estate[] = [
     rooms: 2,
     baths: 1,
     agentName: "حسین رضایی",
+    agentGender: "male",
   },
   {
     id: "s4",
@@ -108,6 +116,7 @@ export const saleEstates: Estate[] = [
     rooms: 1,
     baths: 1,
     agentName: "مریم کریمی",
+    agentGender: "female",
   },
   {
     id: "s5",
@@ -120,6 +129,7 @@ export const saleEstates: Estate[] = [
     rooms: 0,
     baths: 0,
     agentName: "امیر حسینی",
+    agentGender: "male",
   },
   {
     id: "s6",
@@ -132,6 +142,7 @@ export const saleEstates: Estate[] = [
     rooms: 2,
     baths: 2,
     agentName: "سارا نوری",
+    agentGender: "female",
     isNew: true,
   },
   {
@@ -145,6 +156,7 @@ export const saleEstates: Estate[] = [
     rooms: 3,
     baths: 2,
     agentName: "علی محمدی",
+    agentGender: "male",
   },
   {
     id: "s8",
@@ -157,6 +169,7 @@ export const saleEstates: Estate[] = [
     rooms: 3,
     baths: 2,
     agentName: "زهرا احمدی",
+    agentGender: "female",
     hasTour: true,
   },
 ];
@@ -169,10 +182,13 @@ export const rentEstates: Estate[] = [
     dealType: "rent",
     propertyType: "apartment",
     price: "رهن ۲۰۰ / اجاره ۱۲٬۰۰۰٬۰۰۰ تومان",
+    deposit: "۲۰۰ میلیون",
+    monthlyRent: "۱۲ میلیون",
     area: 70,
     rooms: 1,
     baths: 1,
     agentName: "حسین رضایی",
+    agentGender: "male",
   },
   {
     id: "r2",
@@ -181,10 +197,13 @@ export const rentEstates: Estate[] = [
     dealType: "rent",
     propertyType: "villa",
     price: "رهن کامل ۱٬۸۰۰٬۰۰۰٬۰۰۰ تومان",
+    deposit: "۱٫۸ میلیارد",
+    monthlyRent: "رهن کامل",
     area: 200,
     rooms: 3,
     baths: 2,
     agentName: "مریم کریمی",
+    agentGender: "female",
   },
   {
     id: "r3",
@@ -193,10 +212,13 @@ export const rentEstates: Estate[] = [
     dealType: "rent",
     propertyType: "commercial",
     price: "رهن ۳۰۰ / اجاره ۱۸٬۰۰۰٬۰۰۰ تومان",
+    deposit: "۳۰۰ میلیون",
+    monthlyRent: "۱۸ میلیون",
     area: 55,
     rooms: 1,
     baths: 1,
     agentName: "امیر حسینی",
+    agentGender: "male",
   },
   {
     id: "r4",
@@ -205,10 +227,13 @@ export const rentEstates: Estate[] = [
     dealType: "rent",
     propertyType: "apartment",
     price: "رهن ۴۰۰ / اجاره ۲۵٬۰۰۰٬۰۰۰ تومان",
+    deposit: "۴۰۰ میلیون",
+    monthlyRent: "۲۵ میلیون",
     area: 105,
     rooms: 2,
     baths: 1,
     agentName: "سارا نوری",
+    agentGender: "female",
   },
 ];
 
