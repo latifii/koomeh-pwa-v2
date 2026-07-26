@@ -48,7 +48,7 @@ export function SectionHeader({
             "group flex shrink-0 items-center gap-1.5 text-sm font-medium transition-colors",
             light
               ? "text-white hover:text-secondary"
-              : "text-primary hover:text-primary/70 dark:text-primary"
+              : "text-brand hover:text-brand/70 "
           )}
         >
           {linkLabel}

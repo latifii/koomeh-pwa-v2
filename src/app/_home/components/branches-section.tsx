@@ -30,7 +30,7 @@ export function BranchesSection({ branches }: { branches: Branch[] }) {
               icon={Building2}
               tone="muted"
               className="aspect-4/3 w-full"
-              iconClassName="text-primary/50 dark:text-primary/40"
+              iconClassName="text-brand/50"
             />
             <div className="flex flex-col gap-2 p-4">
               <h3 className="font-heading text-sm font-semibold">
@@ -40,7 +40,7 @@ export function BranchesSection({ branches }: { branches: Branch[] }) {
                 <MapPin className="mt-0.5 size-3.5 shrink-0" />
                 {branch.address}
               </p>
-              <span className="flex items-center gap-1.5 text-xs font-medium text-primary dark:text-primary">
+              <span className="flex items-center gap-1.5 text-xs font-medium text-brand dark:text-white">
                 <Phone className="size-3.5" />
                 {branch.phone}
               </span>

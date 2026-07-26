@@ -10,7 +10,7 @@ const typographyVariants = cva("", {
       h2: "font-heading text-2xl font-bold sm:text-3xl",
       h3: "font-heading text-lg font-semibold sm:text-xl",
       h4: "font-heading text-sm font-semibold sm:text-base",
-      eyebrow: "text-sm font-medium text-primary dark:text-primary",
+      eyebrow: "text-sm font-medium text-brand ",
       lead: "text-sm text-muted-foreground sm:text-base",
       body: "text-sm leading-relaxed",
       muted: "text-sm text-muted-foreground",

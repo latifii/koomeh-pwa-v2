@@ -32,7 +32,7 @@ export function AreasSection({ areas }: { areas: AreaGuide[] }) {
               icon={MapPinned}
               tone="muted"
               className="aspect-square w-full"
-              iconClassName="size-7 text-primary/50 dark:text-primary/40"
+              iconClassName="size-7 text-brand/50"
             />
             <div className="flex flex-col gap-0.5 p-3">
               <span className="text-[11px] text-muted-foreground">

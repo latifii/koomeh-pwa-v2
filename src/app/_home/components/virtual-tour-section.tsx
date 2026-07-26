@@ -171,7 +171,7 @@ function TourCard({
             {estate.district}، قم · {estate.area} متر
           </span>
         </span>
-        <span className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-[11px] font-semibold text-secondary-foreground transition-transform duration-300 group-hover:scale-105">
+        <span className="shrink-0 rounded-lg bg-secondary px-3 py-1.5 text-[11px] font-semibold text-secondary-foreground transition-transform duration-300 group-hover:scale-105">
           شروع بازدید
         </span>
       </div>

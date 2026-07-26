@@ -87,7 +87,7 @@ export function SiteHeader() {
                 "rounded-full px-1 py-1.5 text-sm font-medium transition-colors",
                 transparent
                   ? "text-white/85 hover:bg-white/10 hover:text-white"
-                  : "text-foreground/80 hover:bg-primary/10 hover:text-primary dark:text-foreground/85 dark:hover:text-primary",
+                  : "text-foreground/80 hover:bg-brand/10 hover:text-brand dark:text-foreground/85 ",
               )}
             >
               {link.label}
@@ -104,7 +104,7 @@ export function SiteHeader() {
           />
 
           <Button
-            size="default"
+            size="lg"
             variant="secondary"
             className="hidden sm:inline-flex"
           >
@@ -113,7 +113,7 @@ export function SiteHeader() {
           </Button>
           <Button
             variant="outline"
-            size="default"
+            size="lg"
             className={cn(
               "hidden sm:inline-flex",
               transparent &&
@@ -128,7 +128,7 @@ export function SiteHeader() {
               render={
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="icon-lg"
                   className={cn(
                     "lg:hidden",
                     transparent &&

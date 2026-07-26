@@ -44,7 +44,7 @@ export function MapCtaSection() {
                 "relative flex size-8 items-center justify-center rounded-full shadow-lg",
                 marker.pulse
                   ? "bg-secondary text-secondary-foreground"
-                  : "bg-white/90 text-primary"
+                  : "bg-white/90 text-primary-deep"
               )}
             >
               <MapPin className="size-4" />
@@ -69,7 +69,7 @@ export function MapCtaSection() {
 
           <Link
             href="/c/qom"
-            className="group mt-1 flex w-fit items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground transition-transform hover:scale-105"
+            className="group mt-1 flex w-fit items-center gap-2 rounded-lg bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground transition-transform hover:scale-105"
           >
             <Map className="size-4" />
             باز کردن نقشه

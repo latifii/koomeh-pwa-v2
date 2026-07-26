@@ -28,7 +28,7 @@ const rankStyles: Record<
     glow: "shadow-[0_0_50px_-12px_var(--secondary)]",
   },
   2: {
-    chip: "bg-white/85 text-primary",
+    chip: "bg-white/85 text-primary-deep",
     ring: "ring-white/70",
     bar: "bg-white/70",
     glow: "",

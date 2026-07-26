@@ -111,9 +111,9 @@ export function StorySection() {
             {guarantees.map((item) => (
               <li
                 key={item.title}
-                className="flex flex-col items-center gap-1.5 rounded-2xl border bg-background/60 p-2.5 text-center transition-colors hover:border-primary/30 sm:flex-row sm:items-start sm:gap-2.5 sm:p-3 sm:text-start"
+                className="flex flex-col items-center gap-1.5 rounded-2xl border bg-background/60 p-2.5 text-center transition-colors hover:border-brand/30 sm:flex-row sm:items-start sm:gap-2.5 sm:p-3 sm:text-start"
               >
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
                   <item.icon className="size-4" />
                 </span>
                 <span className="flex flex-col gap-0.5">
@@ -130,7 +130,7 @@ export function StorySection() {
 
           <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between sm:pt-5 mt-auto">
             <span className="flex items-center gap-2 text-[11px] text-muted-foreground sm:text-xs">
-              <ShieldCheck className="size-4 shrink-0 text-primary" />
+              <ShieldCheck className="size-4 shrink-0 text-brand" />
               دارای پروانه اتحادیه مشاوران املاک قم و نماد اعتماد الکترونیکی
             </span>
             <Button

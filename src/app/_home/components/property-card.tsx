@@ -104,7 +104,7 @@ export function PropertyCard({
 
       <div className="flex flex-col gap-2.5 p-3.5">
         <div className="flex flex-col gap-1">
-          <h3 className="line-clamp-1 font-heading text-sm font-semibold transition-colors group-hover:text-primary">
+          <h3 className="line-clamp-1 font-heading text-sm font-semibold transition-colors group-hover:text-brand">
             {estate.title}
           </h3>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -179,7 +179,7 @@ function PriceItem({
       <span className="truncate text-[10px] text-muted-foreground">
         {label}
       </span>
-      <span className="truncate font-heading text-[13px] font-bold text-primary">
+      <span className="truncate font-heading text-[13px] font-bold text-brand dark:text-white">
         {value}
       </span>
     </span>
@@ -189,7 +189,7 @@ function PriceItem({
 function Spec({ icon: Icon, value }: { icon: typeof Ruler; value: string }) {
   return (
     <span className="flex items-center gap-1 whitespace-nowrap">
-      <Icon className="size-3.5 shrink-0 text-primary/70" />
+      <Icon className="size-3.5 shrink-0 text-brand/70" />
       {value}
     </span>
   );

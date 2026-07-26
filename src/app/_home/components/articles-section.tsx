@@ -64,7 +64,7 @@ function FeaturedArticle({ article }: { article: Article }) {
         <p className="line-clamp-2 hidden text-xs leading-relaxed text-white/70 sm:block sm:text-sm">
           {article.excerpt}
         </p>
-        <span className="flex w-fit items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-secondary-foreground transition-transform group-hover:scale-105 sm:mt-1 sm:px-3.5 sm:py-1.5 sm:text-xs">
+        <span className="flex w-fit items-center gap-1.5 rounded-lg bg-secondary px-3 py-1 text-[11px] font-semibold text-secondary-foreground transition-transform group-hover:scale-105 sm:mt-1 sm:px-3.5 sm:py-1.5 sm:text-xs">
           مطالعه مقاله
           <ArrowLeft className="size-3.5" />
         </span>
@@ -77,7 +77,7 @@ function CompactArticle({ article }: { article: Article }) {
   return (
     <Link
       href={`/blog/${article.id}`}
-      className="group flex h-full items-center gap-2.5 overflow-hidden rounded-2xl border bg-card p-2 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md sm:gap-4 sm:p-4"
+      className="group flex h-full items-center gap-2.5 overflow-hidden rounded-2xl border bg-card p-2 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md sm:gap-4 sm:p-4"
     >
       <span className="relative size-20 shrink-0 overflow-hidden rounded-xl sm:size-32">
         <Image
@@ -91,14 +91,14 @@ function CompactArticle({ article }: { article: Article }) {
 
       <span className="flex min-w-0 flex-col gap-1 sm:gap-1.5">
         <Meta article={article} />
-        <h3 className="line-clamp-2 font-heading text-[13px] leading-snug font-semibold transition-colors group-hover:text-primary sm:text-sm">
+        <h3 className="line-clamp-2 font-heading text-[13px] leading-snug font-semibold transition-colors group-hover:text-brand sm:text-sm">
           {article.title}
         </h3>
         <span className="line-clamp-2 hidden text-xs leading-relaxed text-muted-foreground sm:block">
           {article.excerpt}
         </span>
         {/* On phones the whole row is the tap target, so the text link is redundant */}
-        <span className="hidden items-center gap-1 text-xs font-medium text-primary sm:flex">
+        <span className="hidden items-center gap-1 text-xs font-medium text-brand sm:flex">
           مطالعه مقاله
           <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-1" />
         </span>

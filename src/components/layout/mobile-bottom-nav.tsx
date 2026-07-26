@@ -33,7 +33,7 @@ export function MobileBottomNav() {
                 href={item.href}
                 className="flex flex-1 flex-col items-center justify-center gap-1 py-2"
               >
-                <span className="-mt-6 flex size-11 items-center justify-center rounded-full bg-secondary text-primary shadow-md ring-4 ring-background">
+                <span className="-mt-6 flex size-11 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-md ring-4 ring-background">
                   <item.icon className="size-5" />
                 </span>
                 <span className="text-[11px] font-medium text-muted-foreground">
@@ -49,7 +49,7 @@ export function MobileBottomNav() {
               href={item.href}
               className={cn(
                 "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium",
-                active ? "text-primary" : "text-muted-foreground"
+                active ? "text-brand" : "text-muted-foreground"
               )}
             >
               <item.icon className="size-5" />

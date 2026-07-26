@@ -34,7 +34,7 @@ export function RentSection({ estates }: { estates: Estate[] }) {
             key={filter.label + i}
             href={filter.href}
             className={cn(
-              "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+              "rounded-lg border px-3.5 py-1.5 text-xs font-medium transition-colors",
               i === 0
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-input bg-background text-muted-foreground hover:text-foreground"

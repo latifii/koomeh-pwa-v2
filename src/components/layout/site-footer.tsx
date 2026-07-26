@@ -82,7 +82,7 @@ export function SiteFooter() {
           </div>
           <Link
             href="/add"
-            className="group flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground transition-transform hover:scale-105"
+            className="group flex w-fit shrink-0 items-center gap-1.5 rounded-lg bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground transition-transform hover:scale-105"
           >
             ثبت رایگان ملک
             <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />

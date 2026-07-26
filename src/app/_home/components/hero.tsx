@@ -152,8 +152,13 @@ export function Hero() {
 const fieldTrigger =
   "flex h-6 w-full items-center border-none bg-transparent p-0 text-sm font-semibold shadow-none focus-visible:ring-0 data-[size=default]:h-6 data-[size=sm]:h-6";
 
+/*
+ * Input and SelectTrigger must be pinned to the same explicit height: the
+ * trigger carries its own `data-[size=*]:h-8` rule that would otherwise win
+ * over a plain height class and leave the two fields misaligned.
+ */
 const compactFieldTrigger =
-  "flex h-5 w-full items-center border-none bg-transparent p-0 text-xs font-semibold shadow-none focus-visible:ring-0 data-[size=default]:h-5 data-[size=sm]:h-5";
+  "flex h-8 w-full items-center border-none bg-transparent p-0 text-sm font-semibold shadow-none focus-visible:ring-0 data-[size=default]:h-8 data-[size=sm]:h-8";
 
 function SearchForm({
   dealType,
@@ -172,7 +177,9 @@ function SearchForm({
         "w-full text-foreground",
         compact
           ? "rounded-2xl bg-card p-2  ring-1 ring-border"
-          : "rounded-3xl bg-white/95 p-2 shadow-2xl ring-1 ring-black/5 backdrop-blur-sm md:rounded-full",
+          : // `theme-light` pins the light palette inside this panel so the
+            // sheet stays white — and its labels/inputs stay dark — in dark mode
+            "theme-light rounded-3xl bg-white/95 p-2 shadow-2xl ring-1 ring-black/5 backdrop-blur-sm md:rounded-full",
       )}
     >
       <input type="hidden" name="type" value={dealType} />
@@ -320,12 +327,12 @@ function SearchForm({
             compact ? "hidden" : "hidden size-12 md:inline-flex",
           )}
         >
-          <Search className="size-5" />
+          <Search className="size-5 text-white" />
         </Button>
 
         <Button
           type="submit"
-          size={compact ? "sm" : "default"}
+          size={"lg"}
           className={cn(
             "w-full gap-2 font-semibold",
             compact
@@ -359,7 +366,7 @@ function Field({
       className={cn(
         "flex min-w-0 flex-col text-start transition-colors hover:bg-muted/50",
         compact
-          ? "gap-0 rounded-lg px-2 py-1"
+          ? "gap-0  px-2.5 py-1.5"
           : "gap-0.5 rounded-xl px-3 py-2 md:rounded-none",
         className,
       )}
@@ -367,10 +374,10 @@ function Field({
       <span
         className={cn(
           "flex items-center gap-1 font-medium text-muted-foreground",
-          compact ? "text-[10px]" : "text-[11px]",
+          "text-[11px]",
         )}
       >
-        <Icon className={compact ? "size-2.5" : "size-3"} />
+        <Icon className="size-3" />
         {label}
       </span>
       {children}

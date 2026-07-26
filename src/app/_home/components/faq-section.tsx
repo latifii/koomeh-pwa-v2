@@ -31,7 +31,7 @@ export function FaqSection({ faqs }: { faqs: Faq[] }) {
         </Typography>
         <Link
           href="/customers/create"
-          className="text-xs font-medium text-primary underline-offset-4 hover:underline sm:mt-1 sm:text-sm dark:text-primary"
+          className="text-xs font-medium text-brand underline-offset-4 hover:underline sm:mt-1 sm:text-sm "
         >
           پاسخ خود را پیدا نکردید؟ با ما در میان بگذارید.
         </Link>

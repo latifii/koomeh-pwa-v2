@@ -38,7 +38,7 @@ export function CoverPlaceholder({
       <Icon
         className={cn(
           "relative size-10 text-white/70",
-          tone === "secondary" && "text-primary/60",
+          tone === "secondary" && "text-brand/60",
           iconClassName
         )}
         strokeWidth={1.5}
