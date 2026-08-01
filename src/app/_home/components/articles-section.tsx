@@ -25,11 +25,22 @@ export function ArticlesSection({ articles }: { articles: Article[] }) {
         className="mb-6 sm:mb-8"
       />
 
-      {/* Editorial split: one lead story, the rest as compact rows beside it */}
-      <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
+      {/* Mobile: horizontal snap carousel, same pattern as the property sections */}
+      <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] lg:hidden">
+        {articles.map((article) => (
+          <ArticleCard
+            key={article.id}
+            article={article}
+            className="w-[78%] shrink-0 snap-start"
+          />
+        ))}
+      </div>
+
+      {/* Desktop: editorial split — one lead story, the rest as compact rows beside it */}
+      <div className="hidden gap-4 lg:grid lg:grid-cols-2">
         <FeaturedArticle article={featured} />
 
-        <ul className="flex flex-col gap-3 sm:gap-4">
+        <ul className="flex flex-col gap-4">
           {rest.map((article) => (
             <li key={article.id} className="flex-1">
               <CompactArticle article={article} />
@@ -38,6 +49,45 @@ export function ArticlesSection({ articles }: { articles: Article[] }) {
         </ul>
       </div>
     </Section>
+  );
+}
+
+function ArticleCard({
+  article,
+  className,
+}: {
+  article: Article;
+  className?: string;
+}) {
+  return (
+    <Link
+      href={`/blog/${article.id}`}
+      className={cn(
+        "group flex flex-col overflow-hidden rounded-2xl border bg-card",
+        className
+      )}
+    >
+      <span className="relative aspect-video w-full shrink-0 overflow-hidden">
+        <Image
+          src={blogCover}
+          alt={article.title}
+          fill
+          sizes="80vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+      </span>
+
+      <span className="flex flex-col gap-1.5 p-3">
+        <Meta article={article} />
+        <h3 className="line-clamp-2 font-heading text-[13px] leading-snug font-semibold">
+          {article.title}
+        </h3>
+        <span className="flex items-center gap-1 text-xs font-medium text-brand">
+          مطالعه مقاله
+          <ArrowLeft className="size-3.5" />
+        </span>
+      </span>
+    </Link>
   );
 }
 

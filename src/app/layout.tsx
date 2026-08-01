@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import localFont from "next/font/local";
 import "./globals.css";
 import { DirectionProvider } from "@/components/ui/direction";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/provider/theme-provider";
+import { THEME_COOKIE } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
@@ -65,26 +68,29 @@ export const metadata: Metadata = {
     "املاک قم؛ خرید، فروش و اجاره انواع ملک در قم با پوشش کامل مناطق پردیسان، سالاریه، زنبیل‌آباد، صفاشهر، شهرک قدس، جمهوری، کریمی و فردوسی.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read the saved theme on the server so `dark` is already on <html> in the
+  // very first byte of HTML — no theme flash and no blocking inline script.
+  const theme =
+    (await cookies()).get(THEME_COOKIE)?.value === "dark" ? "dark" : "light";
+
   return (
     <html
       lang="fa"
       dir="rtl"
-      className={`${vazirmatn.variable} h-full antialiased`}
-      suppressHydrationWarning
+      className={cn(
+        vazirmatn.variable,
+        "h-full antialiased",
+        theme === "dark" && "dark"
+      )}
     >
       <DirectionProvider direction="rtl">
         <body className="min-h-full flex flex-col">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
+          <ThemeProvider initialTheme={theme}>
             <TooltipProvider>
               <SiteHeader />
               <main className="flex flex-1 flex-col">{children}</main>

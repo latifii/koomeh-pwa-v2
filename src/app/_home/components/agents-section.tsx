@@ -131,25 +131,7 @@ function PodiumCard({ agent }: { agent: Agent }) {
         {rankLabels[agent.rank]}
       </span>
 
-      <span className="relative">
-        <Image
-          src={defaultAvatars[agent.gender]}
-          alt={agent.name}
-          className={cn(
-            "size-20 rounded-full object-cover ring-2 ring-offset-2 ring-offset-primary transition-transform duration-300 group-hover:scale-105",
-            isChampion && "size-24",
-            style.ring
-          )}
-        />
-        <span
-          className={cn(
-            "absolute -bottom-1 inset-s-0 flex size-6 items-center justify-center rounded-full font-heading text-[11px] font-bold ring-2 ring-primary",
-            style.chip
-          )}
-        >
-          {agent.rank}
-        </span>
-      </span>
+      <RankedAvatar agent={agent} size={isChampion ? "xl" : "lg"} />
 
       <span className="flex flex-col gap-0.5">
         <h3
@@ -163,17 +145,7 @@ function PodiumCard({ agent }: { agent: Agent }) {
         <span className="text-xs text-white/55">شعبه {agent.branch}</span>
       </span>
 
-      <span className="flex w-full items-center justify-center gap-4 text-xs text-white/70">
-        <span className="flex items-center gap-1">
-          <Handshake className="size-3.5 text-secondary" />
-          {agent.deals} معامله
-        </span>
-        <span className="h-3.5 w-px bg-white/20" />
-        <span className="flex items-center gap-1">
-          <TrendingUp className="size-3.5 text-secondary" />
-          امتیاز {agent.score}
-        </span>
-      </span>
+      <AgentMetrics agent={agent} className="w-full justify-center text-xs" />
 
       <ScoreBar value={agent.scoreValue} className={style.bar} />
 
@@ -205,14 +177,7 @@ function LeaderRow({ agent }: { agent: Agent }) {
         {agent.rank}
       </span>
 
-      <Image
-        src={defaultAvatars[agent.gender]}
-        alt={agent.name}
-        className={cn(
-          "size-12 shrink-0 rounded-full object-cover ring-2",
-          style.ring
-        )}
-      />
+      <RankedAvatar agent={agent} size="sm" showRankBadge={false} />
 
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex items-baseline justify-between gap-2">
@@ -224,20 +189,75 @@ function LeaderRow({ agent }: { agent: Agent }) {
           </span>
         </span>
         <ScoreBar value={agent.scoreValue} className={style.bar} />
-        <span className="flex items-center gap-2.5 text-[11px] text-white/60">
-          <span className="flex items-center gap-1">
-            <Handshake className="size-3 text-secondary" />
-            {agent.deals} معامله
-          </span>
-          <span className="flex items-center gap-1">
-            <TrendingUp className="size-3 text-secondary" />
-            امتیاز {agent.score}
-          </span>
-        </span>
+        <AgentMetrics agent={agent} className="text-[11px]" />
       </span>
 
       <ArrowLeft className="size-4 shrink-0 text-white/40" />
     </Link>
+  );
+}
+
+const avatarSizes = { sm: "size-12", lg: "size-20", xl: "size-24" };
+
+/** The agent's photo, ringed in their rank color, with an optional rank-number badge (podium only). */
+function RankedAvatar({
+  agent,
+  size,
+  showRankBadge = true,
+}: {
+  agent: Agent;
+  size: keyof typeof avatarSizes;
+  showRankBadge?: boolean;
+}) {
+  const style = rankStyles[agent.rank];
+
+  return (
+    <span className="relative shrink-0">
+      <Image
+        src={defaultAvatars[agent.gender]}
+        alt={agent.name}
+        className={cn(
+          "rounded-full object-cover ring-2",
+          avatarSizes[size],
+          size !== "sm" &&
+            "ring-offset-2 ring-offset-primary transition-transform duration-300 group-hover:scale-105",
+          style.ring
+        )}
+      />
+      {showRankBadge && (
+        <span
+          className={cn(
+            "absolute -bottom-1 inset-s-0 flex size-6 items-center justify-center rounded-full font-heading text-[11px] font-bold ring-2 ring-primary",
+            style.chip
+          )}
+        >
+          {agent.rank}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** Deals-and-score line shared by the podium card and the mobile row. */
+function AgentMetrics({
+  agent,
+  className,
+}: {
+  agent: Agent;
+  className?: string;
+}) {
+  return (
+    <span className={cn("flex items-center gap-2.5 text-white/70", className)}>
+      <span className="flex items-center gap-1">
+        <Handshake className="size-3.5 text-secondary" />
+        {agent.deals} معامله
+      </span>
+      <span className="h-3.5 w-px bg-white/20" />
+      <span className="flex items-center gap-1">
+        <TrendingUp className="size-3.5 text-secondary" />
+        امتیاز {agent.score}
+      </span>
+    </span>
   );
 }
 

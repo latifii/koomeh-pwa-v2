@@ -1,55 +1,125 @@
+import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  BadgeCheck,
-  Building2,
-  Handshake,
-  ShieldCheck,
-  Star,
-} from "lucide-react";
+import { ArrowLeft, BadgeCheck, ShieldCheck } from "lucide-react";
 
 import qomImage from "@/assets/images/city/qom.webp";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
+import { cn } from "@/lib/utils";
 
-/** Mock credibility figures — replace with real numbers from the API. */
-const stats = [
-  { icon: Handshake, value: "۴٬۵۰۰+", label: "معامله موفق" },
-  { icon: Building2, value: "۴", label: "شعبه در قم" },
-  { icon: Star, value: "٪۹۸", label: "رضایت مشتریان" },
+/**
+ * The etymology told as three beats instead of three paragraphs — a reader can
+ * follow the story by its headings alone and stop wherever they lose interest.
+ */
+const storyBeats = [
+  {
+    step: "۱",
+    title: "معنای واژه",
+    text: "کومه اتاقک کلبه‌مانندی‌ست که در کنار مراتع و مزارع برای استراحت ساخته می‌شود.",
+  },
+  {
+    step: "۲",
+    title: "قمِ آن روزها",
+    text: "این منطقه آبگیر بود؛ علف‌زار فراوان داشت و چوپانان برای چَرای گوسفندان، کومه‌های متعددی در آن بنا کرده بودند.",
+  },
+  {
+    step: "۳",
+    title: "تولد یک نام",
+    text: "به دلیل تراکم همین کومه‌ها، شهر «کُم» خوانده شد و سپس معرب گردید و به «قم» تغییر یافت.",
+  },
 ];
 
-// const guarantees = [
-//   {
-//     icon: UserCheck,
-//     title: "احراز هویت مالک",
-//     description: "هر فایل پیش از انتشار با مالک راستی‌آزمایی می‌شود.",
-//   },
-//   {
-//     icon: FileCheck2,
-//     title: "بررسی اسناد ملک",
-//     description: "وضعیت سند و مجوزها توسط کارشناس کنترل می‌شود.",
-//   },
-//   {
-//     icon: Scale,
-//     title: "پشتیبانی حقوقی",
-//     description: "تنظیم قرارداد با همراهی وکلای مجرب.",
-//   },
-// ];
+/** The name's journey — the visual hook of the whole section. */
+const nameChain = ["کومه", "کُم", "قم"];
 
 export function StorySection() {
   return (
     <Section>
-      <div className="grid overflow-hidden rounded-3xl border bg-card lg:grid-cols-2">
+      <MobileStory />
+      <DesktopStory />
+    </Section>
+  );
+}
+
+/**
+ * Phones get a poster: the headline and the name chain sit *on* the photo, and
+ * the three beats swipe sideways — together that removes most of the vertical
+ * scroll the stacked layout used to cost.
+ */
+function MobileStory() {
+  return (
+    <div className="flex flex-col gap-4 lg:hidden">
+      <div className="relative min-h-80 overflow-hidden rounded-3xl">
+        <Image
+          src={qomImage}
+          alt="نمایی از شهر قم"
+          fill
+          sizes="100vw"
+          quality={90}
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-primary-deep via-primary-deep/75 to-primary-deep/20" />
+
+        <span className="absolute top-4 inset-s-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md">
+          <BadgeCheck className="size-3.5 text-secondary" />
+          ریشه‌دار در قم
+        </span>
+
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5">
+          <div className="flex flex-col gap-1">
+            <Typography variant="eyebrow" light>
+              کومه یعنی چه؟
+            </Typography>
+            <Typography variant="h2" light>
+              نامی از دل تاریخ قم
+            </Typography>
+          </div>
+          <NameChain light />
+        </div>
+      </div>
+
+      {/* Swipeable beats — same carousel pattern as the property sections */}
+      <ol className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none]">
+        {storyBeats.map((beat) => (
+          <li
+            key={beat.step}
+            className="w-[76%] shrink-0 snap-start rounded-2xl border bg-card p-4"
+          >
+            <StoryBeat beat={beat} />
+          </li>
+        ))}
+      </ol>
+
+      <StoryFooter />
+    </div>
+  );
+}
+
+function DesktopStory() {
+  return (
+    <div className="relative hidden overflow-hidden rounded-3xl border bg-card lg:block">
+      {/* Oversized watermark of the brand word, sitting behind the story */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-10 inset-e-8 font-heading text-[12rem] leading-none font-black text-brand/5 select-none"
+      >
+        کومه
+      </span>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-24 start-1/4 size-72 rounded-full bg-secondary/10 blur-[100px]"
+      />
+
+      <div className="relative grid grid-cols-[1fr_1.15fr]">
         {/*
           The panorama is cropped into a much taller box than its own aspect
           ratio, so the browser needs a source far wider than the box itself —
           hence sizes="100vw" instead of the column's actual 50vw, plus a
           higher quality so the upscaled crop stays sharp.
         */}
-        <div className="relative min-h-56 sm:min-h-64 lg:min-h-[420px]">
+        <div className="relative min-h-[560px]">
           <Image
             src={qomImage}
             alt="نمایی از شهر قم"
@@ -58,94 +128,107 @@ export function StorySection() {
             quality={90}
             className="object-cover"
           />
-          {/* Deep-navy wash keeps the overlaid chips readable and ties the photo to the brand */}
-          {/* <div className="absolute inset-0 bg-linear-to-t from-primary-deep/90 via-primary-deep/25 to-primary-deep/40" /> */}
+          {/* RTL: the image sits in the right column, so the fade starts at its
+              left edge (`to-r`), melting the photo into the card surface. */}
+          <div className="absolute inset-0 bg-linear-to-r from-card via-card/10 to-transparent" />
 
-          <span className="absolute top-5 inset-s-5 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/30 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+          <span className="absolute top-5 inset-s-5 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
             <BadgeCheck className="size-4 text-secondary" />
-            ریشه‌دار در قم، از سال ۱۳۸۹
+            ریشه‌دار در قم
           </span>
-
-          {/* Proof numbers sit on the photo so the claim and the place are seen together */}
-          <ul className="absolute inset-x-5 bottom-2 grid grid-cols-3 gap-2 rounded-2xl border border-white/15 bg-black/30 p-2 backdrop-blur-md">
-            {stats.map((item) => (
-              <li
-                key={item.label}
-                className="flex flex-col items-center text-center"
-              >
-                <item.icon className="size-4 text-secondary" />
-                <span className="font-heading text-base font-bold text-white sm:text-lg">
-                  {item.value}
-                </span>
-                <span className="text-[11px] text-white/70">{item.label}</span>
-              </li>
-            ))}
-          </ul>
         </div>
 
-        <div className="flex flex-col gap-4 p-5 sm:gap-5 sm:p-10">
+        <div className="flex flex-col gap-6 p-10">
           <div className="flex flex-col gap-2.5">
             <Typography variant="eyebrow">کومه یعنی چه؟</Typography>
             <Typography variant="h2">نامی از دل تاریخ قم</Typography>
-            <Typography variant="muted">
-              <strong className="text-foreground">کومه</strong> به معنی اتاقک
-              کلبه‌مانندی‌ست که در کنار مراتع و مزارع برای استراحت ساخته می‌شود.
-            </Typography>
-            <Typography variant="muted">
-              در گذشته در محدوده فعلی شهر قم، به دلیل آبگیر بودن منطقه علف‌زارها
-              و گیاهان فراوانی رشد می‌کرد و محل مناسبی برای چَرا دادن گوسفندان
-              بود و چوپانان در این منطقه کومه‌های متعددی بنا کرده بودند.
-            </Typography>
-            <Typography variant="muted">
-              ریشه نام شهر قم با الهام از واژه{" "}
-              <strong className="text-foreground">کومه</strong> (به دلیل تراکم
-              کومه‌ها) به نام کُم خوانده شد و سپس معرب گردید و به قم تغییر یافت.
-            </Typography>
           </div>
 
-          {/*
-            Mobile keeps these as three tight icon+title tiles so the block
-            stays short; the explanatory line only appears from `sm` up.
-          */}
-          {/* <ul className="grid grid-cols-3 gap-2 sm:gap-3">
-            {guarantees.map((item) => (
-              <li
-                key={item.title}
-                className="flex flex-col items-center gap-1.5 rounded-2xl border bg-background/60 p-2.5 text-center transition-colors hover:border-brand/30 sm:flex-row sm:items-start sm:gap-2.5 sm:p-3 sm:text-start"
-              >
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
-                  <item.icon className="size-4" />
-                </span>
-                <span className="flex flex-col gap-0.5">
-                  <span className="font-heading text-[11px] font-semibold sm:text-[13px]">
-                    {item.title}
-                  </span>
-                  <span className="hidden text-xs leading-relaxed text-muted-foreground sm:block">
-                    {item.description}
-                  </span>
-                </span>
+          <NameChain />
+
+          <ol className="flex flex-col gap-4">
+            {storyBeats.map((beat) => (
+              <li key={beat.step}>
+                <StoryBeat beat={beat} />
               </li>
             ))}
-          </ul> */}
+          </ol>
 
-          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between sm:pt-5 mt-auto">
-            <span className="flex items-center gap-2 text-[11px] text-muted-foreground sm:text-xs">
-              <ShieldCheck className="size-4 shrink-0 text-brand" />
-              دارای پروانه اتحادیه مشاوران املاک قم و نماد اعتماد الکترونیکی
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-fit shrink-0"
-              nativeButton={false}
-              render={<Link href="/blog/346" />}
-            >
-              داستان کامل کومه
-              <ArrowLeft className="size-4" />
-            </Button>
-          </div>
+          <StoryFooter className="mt-auto" />
         </div>
       </div>
-    </Section>
+    </div>
+  );
+}
+
+/** کومه ← کُم ← قم: the whole section's story in one glance. */
+function NameChain({ light }: { light?: boolean }) {
+  return (
+    <div className="flex items-center gap-2 sm:gap-3">
+      {nameChain.map((word, index) => (
+        <Fragment key={word}>
+          <span
+            className={cn(
+              "rounded-2xl px-4 py-2 font-heading text-lg font-bold sm:text-xl",
+              index === nameChain.length - 1
+                ? "bg-secondary text-secondary-foreground shadow-sm"
+                : light
+                  ? "border border-white/25 bg-white/10 text-white backdrop-blur-md"
+                  : "border border-secondary/40 bg-secondary/10"
+            )}
+          >
+            {word}
+          </span>
+          {index < nameChain.length - 1 && (
+            <ArrowLeft className="size-4 shrink-0 text-secondary" />
+          )}
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
+function StoryBeat({ beat }: { beat: (typeof storyBeats)[number] }) {
+  return (
+    <div className="flex gap-3">
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 font-heading text-xs font-bold text-brand">
+        {beat.step}
+      </span>
+      <span className="flex flex-col gap-1">
+        <span className="font-heading text-sm font-semibold">{beat.title}</span>
+        <Typography variant="muted" className="text-[13px]">
+          {beat.text}
+        </Typography>
+      </span>
+    </div>
+  );
+}
+
+function StoryFooter({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between gap-3 border-t pt-4 lg:pt-5",
+        className
+      )}
+    >
+      <span className="flex items-center gap-2 text-[11px] text-muted-foreground lg:text-xs">
+        <ShieldCheck className="size-4 shrink-0 text-brand" />
+        <span className="lg:hidden">دارای پروانه اتحادیه مشاوران املاک قم</span>
+        <span className="hidden lg:inline">
+          دارای پروانه اتحادیه مشاوران املاک قم و نماد اعتماد الکترونیکی
+        </span>
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-fit shrink-0"
+        nativeButton={false}
+        render={<Link href="/blog/346" />}
+      >
+        داستان کامل
+        <ArrowLeft className="size-4" />
+      </Button>
+    </div>
   );
 }
