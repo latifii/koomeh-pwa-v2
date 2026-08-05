@@ -28,8 +28,8 @@ const linkGroups = [
   {
     title: "خدمات",
     links: [
-      { href: "/c/qom?type=1", label: "خرید ملک" },
-      { href: "/c/qom?type=2", label: "رهن و اجاره" },
+      { href: "/search/qom?deal=sale", label: "خرید ملک" },
+      { href: "/search/qom?deal=rent", label: "رهن و اجاره" },
       { href: "/add", label: "ثبت ملک" },
       { href: "/customers/create", label: "ثبت درخواست" },
     ],

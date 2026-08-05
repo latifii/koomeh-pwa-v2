@@ -1,3 +1,7 @@
+"use client";
+
+import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Building2, Home, Key, MapPin, Ruler, Search, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,16 +16,26 @@ import {
 import { cn } from "@/lib/utils";
 
 const dealTypes = [
-  { value: "1", label: "خرید", icon: Home },
-  { value: "2", label: "رهن و اجاره", icon: Key },
+  { value: "sale", label: "خرید", icon: Home },
+  { value: "rent", label: "رهن و اجاره", icon: Key },
 ];
 
+// Values match `PropertyType` in `@/data/home` directly, so they can be sent
+// straight through to the search page's `propertyTypes` filter.
 const estateTypeItems: Record<string, string> = {
   "": "همه املاک",
-  "1": "آپارتمان",
-  "2": "خانه ویلایی",
-  "3": "زمین",
-  "4": "تجاری",
+  apartment: "آپارتمان",
+  villa: "خانه ویلایی",
+  land: "زمین",
+  commercial: "تجاری",
+};
+
+// The search page filters on a min/max range, not a named bucket, so each
+// option here carries the bounds it stands for.
+const priceRangeBuckets: Record<string, { min?: number; max?: number }> = {
+  "1": { max: 3_000_000_000 },
+  "2": { min: 3_000_000_000, max: 6_000_000_000 },
+  "3": { min: 6_000_000_000 },
 };
 
 const priceRangeItems: Record<string, string> = {
@@ -52,9 +66,35 @@ export function HeroSearchForm({
   compact?: boolean;
 }) {
   const trigger = compact ? compactFieldTrigger : fieldTrigger;
+  const router = useRouter();
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const data = new FormData(event.currentTarget);
+    const params = new URLSearchParams({ deal: dealType });
+
+    const q = data.get("q");
+    if (q) params.set("q", String(q));
+
+    const propertyType = data.get("estateTypes");
+    if (propertyType) params.set("propertyTypes", String(propertyType));
+
+    const bucket = priceRangeBuckets[String(data.get("priceRange") ?? "")];
+    if (bucket?.min) params.set("minPrice", String(bucket.min));
+    if (bucket?.max) params.set("maxPrice", String(bucket.max));
+
+    const minArea = data.get("minArea");
+    if (minArea) params.set("minArea", String(minArea));
+    const maxArea = data.get("maxArea");
+    if (maxArea) params.set("maxArea", String(maxArea));
+
+    router.push(`/search/qom?${params.toString()}`);
+  }
 
   return (
     <form
+      onSubmit={handleSubmit}
       className={cn(
         "w-full text-foreground",
         compact
@@ -64,7 +104,6 @@ export function HeroSearchForm({
             "theme-light rounded-3xl bg-white/95 p-2 shadow-2xl ring-1 ring-black/5 backdrop-blur-sm md:rounded-full"
       )}
     >
-      <input type="hidden" name="type" value={dealType} />
 
       <div
         className={cn(
@@ -121,7 +160,7 @@ export function HeroSearchForm({
             )}
           >
             <Input
-              name="keyword"
+              name="q"
               type="search"
               placeholder="مثلاً پردیسان، سالاریه..."
               autoComplete="off"
@@ -143,10 +182,10 @@ export function HeroSearchForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">همه املاک</SelectItem>
-                <SelectItem value="1">آپارتمان</SelectItem>
-                <SelectItem value="2">خانه ویلایی</SelectItem>
-                <SelectItem value="3">زمین</SelectItem>
-                <SelectItem value="4">تجاری</SelectItem>
+                <SelectItem value="apartment">آپارتمان</SelectItem>
+                <SelectItem value="villa">خانه ویلایی</SelectItem>
+                <SelectItem value="land">زمین</SelectItem>
+                <SelectItem value="commercial">تجاری</SelectItem>
               </SelectContent>
             </Select>
           </Field>

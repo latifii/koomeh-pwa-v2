@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", label: "خانه", icon: Home },
-  { href: "/c/qom", label: "جستجو", icon: Search },
+  { href: "/search/qom", label: "جستجو", icon: Search },
   { href: "/add", label: "ثبت ملک", icon: PlusCircle, accent: true },
   { href: "/favorite", label: "علاقه‌مندی", icon: Heart },
   { href: "/login", label: "حساب", icon: User },

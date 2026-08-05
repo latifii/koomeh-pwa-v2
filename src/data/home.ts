@@ -2,7 +2,13 @@ import type { Gender } from "./avatars";
 
 export type DealType = "sale" | "rent";
 
-export type PropertyType = "apartment" | "villa" | "land" | "commercial";
+export type PropertyType =
+  | "apartment"
+  | "villa"
+  | "land"
+  | "commercial"
+  | "office"
+  | "industrial";
 
 export interface Estate {
   id: string;
@@ -65,8 +71,10 @@ export interface Faq {
 export const propertyTypeLabels: Record<PropertyType, string> = {
   apartment: "آپارتمان",
   villa: "خانه ویلایی",
-  land: "زمین",
+  land: "زمین و باغ",
   commercial: "تجاری",
+  office: "دفتر کار",
+  industrial: "صنعتی",
 };
 
 export const saleEstates: Estate[] = [

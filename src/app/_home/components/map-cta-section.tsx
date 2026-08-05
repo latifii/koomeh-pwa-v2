@@ -68,7 +68,7 @@ export function MapCtaSection() {
           </Typography>
 
           <Link
-            href="/c/qom"
+            href="/search/qom"
             className="group mt-1 flex w-fit items-center gap-2 rounded-lg bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground transition-transform hover:scale-105"
           >
             <Map className="size-4" />

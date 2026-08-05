@@ -10,7 +10,7 @@ import { HeroSearchForm } from "./hero-search-form";
 import { HeroStats } from "./hero-stats";
 
 export function Hero() {
-  const [dealType, setDealType] = useState("1");
+  const [dealType, setDealType] = useState("sale");
 
   return (
     <section className="relative overflow-hidden text-white">

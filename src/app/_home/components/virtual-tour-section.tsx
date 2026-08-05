@@ -55,7 +55,7 @@ export function VirtualTourSection({ estates }: { estates: Estate[] }) {
           eyebrow="بازدید آنلاین و بدون محدودیت"
           title="املاک دارای تور مجازی"
           description="پیش از بازدید حضوری، تمام فضای ملک را به‌صورت ۳۶۰ درجه بررسی کنید."
-          href="/c/qom?vr=1"
+          href="/search/qom"
           light
           className="mb-6"
         />

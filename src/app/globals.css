@@ -92,7 +92,7 @@
   --spacing-page: clamp(1rem, 4vw, 1.5rem);
   --spacing-section: clamp(2.5rem, 6vw, 4rem);
   --spacing-section-sm: clamp(1.5rem, 4vw, 2.5rem);
-  --container-content: var(--container-6xl);
+  --container-content: var(--container-7xl);
 }
 
 :root {

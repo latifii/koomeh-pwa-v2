@@ -99,9 +99,16 @@ function DrawerSwipeHandle({
 
 function DrawerContent({
   className,
+  viewportClassName,
   children,
   ...props
-}: DrawerPrimitive.Popup.Props) {
+}: DrawerPrimitive.Popup.Props & {
+  /**
+   * Classes for the fixed viewport that hosts the popup. Mainly an escape hatch
+   * for stacking: a non-modal drawer may need to sit below fixed page chrome.
+   */
+  viewportClassName?: string;
+}) {
   const { hasSnapPoints, modal, showSwipeHandle, swipeDirection } = useDrawer();
   const swipeAxis =
     swipeDirection === "down" || swipeDirection === "up" ? "y" : "x";
@@ -114,7 +121,10 @@ function DrawerContent({
       <DrawerPrimitive.Viewport
         data-slot="drawer-viewport"
         data-modal={modal}
-        className="pointer-events-none fixed inset-0 z-50 select-none data-[modal=true]:pointer-events-auto"
+        className={cn(
+          "pointer-events-none fixed inset-0 z-50 select-none data-[modal=true]:pointer-events-auto",
+          viewportClassName,
+        )}
       >
         <DrawerPrimitive.Popup
           data-slot="drawer-popup"

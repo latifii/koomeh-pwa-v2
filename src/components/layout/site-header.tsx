@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Phone, PlusCircle, Search, User } from "lucide-react";
+import { Menu, Phone, PlusCircle, User } from "lucide-react";
 
 import logoDark from "@/assets/images/logo/logo-new-dark.png";
 import logoLight from "@/assets/images/logo/logo-new-light.png";
@@ -23,7 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "/", label: "جستجوی ملک" },
+  { href: "/search/qom", label: "جستجوی ملک" },
   { href: "/#", label: "مجله حقوقی" },
   { href: "/#1", label: "محاسبه کمیسیون" },
   // { href: "/blogs/3", label: "مجله املاک" },
@@ -190,18 +190,6 @@ export function SiteHeader() {
           </Drawer>
         </div>
       </Container>
-
-      {!isHome && !transparent && (
-        <div className="border-t px-page py-2 lg:hidden">
-          <Link
-            href="/c/qom"
-            className="flex items-center gap-2 rounded-lg border border-input px-3 py-2 text-sm text-muted-foreground"
-          >
-            <Search className="size-4" />
-            جستجوی ملک در قم...
-          </Link>
-        </div>
-      )}
     </header>
   );
 }

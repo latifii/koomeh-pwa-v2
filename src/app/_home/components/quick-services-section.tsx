@@ -12,14 +12,14 @@ import iconSocial from "@/assets/images/card/quick/social.png";
 import { Section } from "@/components/layout/section";
 
 const services: { href: string; icon: StaticImageData; label: string }[] = [
-  { href: "/blogs/9", icon: iconKomision, label: "املاک فروشی" },
-  { href: "/blogs/9", icon: iconKomision, label: "املاک اجاره" },
-  { href: "/blogs/9", icon: iconKomision, label: "جستجو ملک" },
+  { href: "/search/qom?deal=sale", icon: iconKomision, label: "املاک فروشی" },
+  { href: "/search/qom?deal=rent", icon: iconKomision, label: "املاک اجاره" },
+  { href: "/search/qom", icon: iconKomision, label: "جستجو ملک" },
   { href: "/blogs/9", icon: iconKomision, label: "محاسبه کمیسیون" },
   { href: "/#areas", icon: iconMohalat, label: "محلات" },
   { href: "/blogs/3", icon: iconBlog, label: "مجله کومه" },
   { href: "/#branches", icon: iconBranch, label: "معرفی شعب" },
-  { href: "/c/qom", icon: iconMaps, label: "جستجو نقشه" },
+  { href: "/search/qom", icon: iconMaps, label: "جستجو نقشه" },
   { href: "/#virtual-tour-title", icon: icon360, label: "تور مجازی" },
   { href: "https://instagram.com", icon: iconSocial, label: "شبکه اجتماعی" },
   { href: "/customers/create", icon: iconGoftino, label: "پشتیبانی" },

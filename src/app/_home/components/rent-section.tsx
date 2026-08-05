@@ -4,15 +4,15 @@ import { Section } from "@/components/layout/section";
 import type { Estate } from "@/data/home";
 import { cn } from "@/lib/utils";
 
-import { PropertyCard } from "./property-card";
+import { PropertyCard } from "@/components/property/property-card";
 import { SectionHeader } from "./section-header";
 
 const filters = [
-  { label: "آپارتمان", href: "/c/qom?type=2&estateTypes=1" },
-  { label: "خانه ویلایی", href: "/c/qom?type=2&estateTypes=2" },
-  { label: "تجاری", href: "/c/qom?type=2&estateTypes=4" },
-  { label: "رهن کامل", href: "/c/qom?type=2" },
-  { label: "اجاره ماهانه", href: "/c/qom?type=2" },
+  { label: "آپارتمان", href: "/search/qom?deal=rent&propertyTypes=apartment" },
+  { label: "خانه ویلایی", href: "/search/qom?deal=rent&propertyTypes=villa" },
+  { label: "تجاری", href: "/search/qom?deal=rent&propertyTypes=commercial" },
+  { label: "رهن کامل", href: "/search/qom?deal=rent" },
+  { label: "اجاره ماهانه", href: "/search/qom?deal=rent" },
 ];
 
 export function RentSection({ estates }: { estates: Estate[] }) {
@@ -24,7 +24,7 @@ export function RentSection({ estates }: { estates: Estate[] }) {
         eyebrow="برای یک شروع تازه"
         title="املاک رهن و اجاره"
         description="فایل‌های مناسب اجاره را بدون شلوغی مرور کنید."
-        href="/c/qom?type=2"
+        href="/search/qom?deal=rent"
         className="mb-6"
       />
 

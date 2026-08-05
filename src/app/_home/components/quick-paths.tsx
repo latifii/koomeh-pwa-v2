@@ -15,13 +15,13 @@ const paths: {
   description: string;
 }[] = [
   {
-    href: "/c/qom?type=1",
+    href: "/search/qom?deal=sale",
     image: introBuy,
     title: "خرید ملک",
     description: "فایل‌های فروش در محله‌های قم",
   },
   {
-    href: "/c/qom?type=2",
+    href: "/search/qom?deal=rent",
     image: introRent,
     title: "رهن و اجاره",
     description: "خانه مناسب با بودجه شما",

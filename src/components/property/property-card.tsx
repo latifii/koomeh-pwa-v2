@@ -26,6 +26,8 @@ const propertyImages: Record<Estate["propertyType"], StaticImageData> = {
   villa: villaImage,
   land: plotImage,
   commercial: businessImage,
+  office: businessImage,
+  industrial: businessImage,
 };
 
 export function PropertyCard({

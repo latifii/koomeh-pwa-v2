@@ -1,0 +1,169 @@
+"use client";
+
+import type { ReactNode } from "react";
+
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Typography } from "@/components/ui/typography";
+import type { Listing, SearchFilters } from "@/data/search";
+
+import { ListingCard } from "./listing-card";
+import { MapSearchBar } from "./map-search-bar";
+import { MapToggleButton } from "./map-toggle-button";
+import { EmptyState, ErrorState, ResultsSkeleton } from "./result-states";
+
+/**
+ * Three states, all reached by dragging the same handle:
+ * `PEEK` — the map with just the result count docked at the bottom.
+ * `SPLIT` — half map, half results.
+ * `FULL` — the sheet owns the screen: search, filters and results scroll
+ * together as one ordinary page, and the map is unmounted behind it.
+ */
+export const SHEET_PEEK = "4rem";
+export const SHEET_SPLIT = 0.5;
+export const SHEET_FULL = 1;
+
+export type SheetSnap = string | number;
+
+const snapPoints: SheetSnap[] = [SHEET_PEEK, SHEET_SPLIT, SHEET_FULL];
+
+/** Site header above, fixed bottom navigation below — neither may be covered. */
+const NAV_HEIGHT = "4rem";
+const SHEET_MAX_HEIGHT = "calc(100dvh - 5rem - 4rem)";
+
+export function MobileMapView({
+  filters,
+  onChange,
+  activeCount,
+  onOpenFilters,
+  onReset,
+  onRetry,
+  status,
+  results,
+  snap,
+  onSnapChange,
+  map,
+}: {
+  filters: SearchFilters;
+  onChange: (patch: Partial<SearchFilters>) => void;
+  activeCount: number;
+  onOpenFilters: () => void;
+  onReset: () => void;
+  onRetry: () => void;
+  status: "loading" | "ready" | "error";
+  results: Listing[];
+  snap: SheetSnap;
+  onSnapChange: (snap: SheetSnap) => void;
+  map: ReactNode;
+}) {
+  const expanded = snap === SHEET_FULL;
+
+  const searchBar = (
+    <MapSearchBar
+      filters={filters}
+      onChange={onChange}
+      activeCount={activeCount}
+      onOpenFilters={onOpenFilters}
+      onReset={onReset}
+    />
+  );
+
+  const countLabel =
+    status === "ready"
+      ? `${results.length.toLocaleString("fa-IR")} آگهی در این محدوده`
+      : "در حال جستجو…";
+
+  return (
+    <div className="relative h-[calc(100dvh-5rem)] w-full overflow-hidden lg:hidden">
+      {/* While the map is on screen the bar floats above it; once the sheet
+          takes over, the bar moves inside and scrolls with the results. */}
+      {!expanded && (
+        <>
+          <div className="absolute inset-x-0 top-0 z-20">{searchBar}</div>
+
+          {status === "error" ? (
+            <div className="flex size-full items-center justify-center p-6">
+              <ErrorState onRetry={onRetry} />
+            </div>
+          ) : (
+            map
+          )}
+        </>
+      )}
+
+      <Drawer
+        open
+        modal={false}
+        disablePointerDismissal
+        showSwipeHandle
+        snapPoints={snapPoints}
+        snapPoint={snap}
+        onSnapPointChange={(next) => onSnapChange(next ?? SHEET_PEEK)}
+      >
+        {/* `z-30` and the bottom margin keep the fixed navigation visible; the
+            max height spans exactly from under the site header down to it. */}
+        <DrawerContent
+          viewportClassName="z-30"
+          style={
+            {
+              marginBottom: NAV_HEIGHT,
+              "--drawer-content-max-height": SHEET_MAX_HEIGHT,
+            } as React.CSSProperties
+          }
+          className="rounded-b-none [--drawer-inset:0px] lg:hidden"
+        >
+          {!expanded && (
+            <DrawerHeader className="pb-2">
+              <DrawerTitle>{countLabel}</DrawerTitle>
+            </DrawerHeader>
+          )}
+
+          {/*
+           * The scroller is a plain block. Making it the flex column instead
+           * would let every card shrink to fit its fixed height, which is what
+           * collapsed them into empty slivers.
+           */}
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            {expanded && (
+              <>
+                {searchBar}
+                <Typography as="h2" variant="h4" className="px-4 pt-3">
+                  {countLabel}
+                </Typography>
+              </>
+            )}
+
+            <div className="flex flex-col gap-4 px-4 pt-3 pb-6">
+              {status === "loading" && (
+                <ResultsSkeleton count={3} className="sm:grid-cols-1" />
+              )}
+              {status === "error" && expanded && (
+                <ErrorState onRetry={onRetry} />
+              )}
+              {status === "ready" && results.length === 0 && (
+                <EmptyState onReset={onReset} />
+              )}
+              {status === "ready" &&
+                results.map((listing) => (
+                  <ListingCard key={listing.id} listing={listing} />
+                ))}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* The only state without a map on screen is the only one that needs an
+          explicit way back to it. */}
+      {expanded && (
+        <MapToggleButton
+          active={false}
+          onClick={() => onSnapChange(SHEET_SPLIT)}
+        />
+      )}
+    </div>
+  );
+}
