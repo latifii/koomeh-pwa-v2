@@ -20,7 +20,7 @@ export function ArticlesSection({ articles }: { articles: Article[] }) {
         eyebrow="دانش بازار ملک"
         title="مجله املاک کومه"
         description="پیش از تصمیم‌گیری، بازار قم را از زبان کارشناسان ما بخوانید."
-        href="/blogs/3"
+        href="/blogs"
         linkLabel="مقالات بیشتر"
         className="mb-6 sm:mb-8"
       />

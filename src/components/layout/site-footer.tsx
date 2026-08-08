@@ -37,7 +37,7 @@ const linkGroups = [
   {
     title: "منابع",
     links: [
-      { href: "/blogs/3", label: "مجله املاک" },
+      { href: "/blogs", label: "مجله املاک" },
       { href: "/#areas", label: "راهنمای محلات" },
       { href: "/#faq", label: "پرسش‌های متداول" },
     ],

@@ -17,7 +17,7 @@ const services: { href: string; icon: StaticImageData; label: string }[] = [
   { href: "/search/qom", icon: iconKomision, label: "جستجو ملک" },
   { href: "/blogs/9", icon: iconKomision, label: "محاسبه کمیسیون" },
   { href: "/#areas", icon: iconMohalat, label: "محلات" },
-  { href: "/blogs/3", icon: iconBlog, label: "مجله کومه" },
+  { href: "/blogs", icon: iconBlog, label: "مجله کومه" },
   { href: "/#branches", icon: iconBranch, label: "معرفی شعب" },
   { href: "/search/qom", icon: iconMaps, label: "جستجو نقشه" },
   { href: "/#virtual-tour-title", icon: icon360, label: "تور مجازی" },
