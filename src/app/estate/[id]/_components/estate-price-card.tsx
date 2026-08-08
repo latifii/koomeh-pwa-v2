@@ -1,8 +1,10 @@
 import { Calculator, TrendingUp } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
+import { Typography } from "@/components/ui/typography";
 import type { EstateDetail } from "@/data/estate-detail";
 import { formatToman } from "@/data/search";
+import { cn } from "@/lib/utils";
 
 /**
  * The single most-scanned block on the page, so it leads the sidebar: headline
@@ -12,7 +14,7 @@ export function EstatePriceCard({ detail }: { detail: EstateDetail }) {
   const isRent = detail.dealType === "rent";
 
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm">
+    <div className="rounded-2xl border bg-card p-4">
       {isRent ? (
         <div className="grid grid-cols-2 gap-3">
           <PriceFigure label="ودیعه" value={detail.deposit ?? "—"} />
@@ -28,32 +30,43 @@ export function EstatePriceCard({ detail }: { detail: EstateDetail }) {
 
       <Separator className="my-3.5" />
 
-      <dl className="grid gap-2 text-xs">
+      <dl className="grid gap-2">
         <div className="flex items-center justify-between gap-2">
-          <dt className="flex items-center gap-1.5 text-muted-foreground">
+          <Typography
+            as="dt"
+            variant="small"
+            className="flex items-center gap-1.5"
+          >
             <Calculator className="size-3.5 text-brand/70" />
             قیمت هر متر
-          </dt>
-          <dd className="font-heading font-semibold">
+          </Typography>
+          <Typography as="dd" variant="h4" className="sm:text-xs">
             {formatToman(detail.pricePerMeterValue)} تومان
-          </dd>
+          </Typography>
         </div>
         <div className="flex items-center justify-between gap-2">
-          <dt className="flex items-center gap-1.5 text-muted-foreground">
+          <Typography
+            as="dt"
+            variant="small"
+            className="flex items-center gap-1.5"
+          >
             <TrendingUp className="size-3.5 text-brand/70" />
             میانگین محله {detail.district}
-          </dt>
-          <dd className="font-heading font-semibold">
+          </Typography>
+          <Typography as="dd" variant="h4" className="sm:text-xs">
             {formatToman(Math.round(detail.pricePerMeterValue * 1.06))} تومان
-          </dd>
+          </Typography>
         </div>
       </dl>
 
-      <p className="mt-3 rounded-xl bg-muted/60 px-3 py-2 text-[11px] leading-5 text-muted-foreground">
+      <Typography
+        variant="small"
+        className="mt-3 rounded-xl bg-muted/60 px-3 py-2 text-[11px] leading-5"
+      >
         قیمت این فایل نسبت به میانگین محله{" "}
         <span className="font-semibold text-brand">حدود ۶٪ پایین‌تر</span> است.
         ارقام میانگین بر پایه معاملات ثبت‌شده کومه در سه ماه گذشته محاسبه شده‌اند.
-      </p>
+      </Typography>
     </div>
   );
 }
@@ -71,16 +84,19 @@ function PriceFigure({
 }) {
   return (
     <div className={className}>
-      <span className="text-[11px] text-muted-foreground">{label}</span>
-      <p
-        className={
-          large
-            ? "font-heading text-xl font-bold text-brand dark:text-white"
-            : "font-heading text-base font-bold text-brand dark:text-white"
-        }
+      <Typography as="span" variant="small" className="text-[11px]">
+        {label}
+      </Typography>
+      <Typography
+        as="p"
+        variant={large ? "h2" : "h4"}
+        className={cn(
+          "font-bold text-brand dark:text-white",
+          large ? "text-xl sm:text-xl" : "text-base sm:text-base"
+        )}
       >
         {value}
-      </p>
+      </Typography>
     </div>
   );
 }

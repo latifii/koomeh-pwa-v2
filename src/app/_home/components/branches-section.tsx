@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Building2, MapPin, Phone } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
@@ -21,10 +22,9 @@ export function BranchesSection({ branches }: { branches: Branch[] }) {
       {/* Mobile: horizontal snap carousel; grid from `sm` up */}
       <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
         {branches.map((branch) => (
-          <a
+          <div
             key={branch.id}
-            href={`tel:${branch.phone}`}
-            className="group w-[70%] shrink-0 snap-start overflow-hidden rounded-2xl border bg-card sm:w-auto"
+            className="group relative w-[70%] shrink-0 snap-start overflow-hidden rounded-2xl border bg-card transition-colors hover:border-brand/30 sm:w-auto"
           >
             <CoverPlaceholder
               icon={Building2}
@@ -33,19 +33,28 @@ export function BranchesSection({ branches }: { branches: Branch[] }) {
               iconClassName="text-brand/50"
             />
             <div className="flex flex-col gap-2 p-4">
-              <h3 className="font-heading text-sm font-semibold">
+              <h3 className="font-heading text-sm font-semibold transition-colors group-hover:text-brand">
                 {branch.name}
               </h3>
               <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
                 <MapPin className="mt-0.5 size-3.5 shrink-0" />
                 {branch.address}
               </p>
-              <span className="flex items-center gap-1.5 text-xs font-medium text-brand dark:text-white">
+              <a
+                href={`tel:${branch.phone}`}
+                className="relative z-20 flex w-fit items-center gap-1.5 text-xs font-medium text-brand dark:text-white"
+              >
                 <Phone className="size-3.5" />
                 {branch.phone}
-              </span>
+              </a>
             </div>
-          </a>
+
+            <Link
+              href={`/branch/${branch.id}`}
+              aria-label={branch.name}
+              className="absolute inset-0 z-10"
+            />
+          </div>
         ))}
       </div>
     </Section>

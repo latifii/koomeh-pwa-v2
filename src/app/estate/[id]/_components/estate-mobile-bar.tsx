@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CalendarDays, Phone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 import type { EstateDetail } from "@/data/estate-detail";
 
 /**
@@ -19,14 +20,18 @@ export function EstateMobileBar({ detail }: { detail: EstateDetail }) {
     <div className="fixed inset-x-0 bottom-[60px] z-30 border-t bg-background/95 px-page py-2.5 backdrop-blur-md lg:hidden">
       <div className="mx-auto flex max-w-content items-center gap-3">
         <div className="min-w-0 flex-1">
-          <span className="text-[10px] text-muted-foreground">
+          <Typography as="span" variant="small" className="text-[10px]">
             {isRent ? "ودیعه / اجاره" : "قیمت کل"}
-          </span>
-          <p className="truncate font-heading text-sm font-bold text-brand dark:text-white">
+          </Typography>
+          <Typography
+            variant="h4"
+            as="p"
+            className="truncate text-brand dark:text-white sm:text-sm"
+          >
             {isRent
               ? `${detail.deposit} / ${detail.monthlyRent}`
               : detail.price}
-          </p>
+          </Typography>
         </div>
 
         <Button variant="outline" size="icon-lg" aria-label="درخواست بازدید">

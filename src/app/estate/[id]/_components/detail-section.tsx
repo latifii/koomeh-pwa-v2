@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
+import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 /**
@@ -28,17 +29,21 @@ export function DetailSection({
     <section
       id={id}
       className={cn(
-        "scroll-mt-24 rounded-2xl border bg-card p-4 shadow-sm sm:p-5",
+        "scroll-mt-24 rounded-2xl border bg-card p-4 sm:p-5",
         className
       )}
     >
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 font-heading text-base font-semibold">
+        <Typography
+          variant="h4"
+          as="h2"
+          className="flex items-center gap-2 sm:text-base"
+        >
           <span className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
             <Icon className="size-4" />
           </span>
           {title}
-        </h2>
+        </Typography>
         {action}
       </div>
 

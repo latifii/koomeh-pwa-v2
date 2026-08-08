@@ -6,6 +6,7 @@ import { BadgeCheck, CalendarDays, MessageCircle, Phone, Send } from "lucide-rea
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Typography } from "@/components/ui/typography";
 import { defaultAvatars } from "@/data/avatars";
 import type { EstateDetail } from "@/data/estate-detail";
 
@@ -18,7 +19,7 @@ export function EstateContactCard({ agent }: { agent: EstateDetail["agent"] }) {
   const [revealed, setRevealed] = useState(false);
 
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm">
+    <div className="rounded-2xl border bg-card p-4">
       <div className="flex items-center gap-3">
         <Avatar className="size-12 ring-2 ring-secondary/40">
           <AvatarImage src={defaultAvatars[agent.gender].src} alt={agent.name} />
@@ -28,13 +29,17 @@ export function EstateContactCard({ agent }: { agent: EstateDetail["agent"] }) {
         </Avatar>
 
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1 font-heading text-sm font-semibold">
+          <Typography
+            variant="h4"
+            as="p"
+            className="flex items-center gap-1 sm:text-sm"
+          >
             {agent.name}
             <BadgeCheck className="size-4 shrink-0 text-brand" />
-          </p>
-          <p className="truncate text-xs text-muted-foreground">
+          </Typography>
+          <Typography variant="small" className="truncate">
             کارشناس شعبه {agent.branch}
-          </p>
+          </Typography>
         </div>
       </div>
 
@@ -87,9 +92,12 @@ export function EstateContactCard({ agent }: { agent: EstateDetail["agent"] }) {
         </div>
       </div>
 
-      <p className="mt-3 text-center text-[11px] leading-5 text-muted-foreground">
+      <Typography
+        variant="small"
+        className="mt-3 text-center text-[11px] leading-5"
+      >
         هنگام تماس اعلام کنید ملک را در کومه دیده‌اید.
-      </p>
+      </Typography>
     </div>
   );
 }
@@ -97,8 +105,12 @@ export function EstateContactCard({ agent }: { agent: EstateDetail["agent"] }) {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-xl bg-muted/60 px-2 py-2">
-      <p className="font-heading text-sm font-bold">{value}</p>
-      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <Typography variant="h4" as="p" className="sm:text-sm">
+        {value}
+      </Typography>
+      <Typography variant="small" className="text-[11px]">
+        {label}
+      </Typography>
     </div>
   );
 }

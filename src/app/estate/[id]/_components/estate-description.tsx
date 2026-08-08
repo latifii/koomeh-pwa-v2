@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,15 +22,17 @@ export function EstateDescription({ text }: { text: string }) {
   return (
     <div>
       {expanded ? (
-        <div className="space-y-3 text-sm leading-7 text-muted-foreground">
+        <div className="space-y-3">
           {paragraphs.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
+            <Typography key={index} variant="muted" className="leading-7">
+              {paragraph}
+            </Typography>
           ))}
         </div>
       ) : (
-        <p className="line-clamp-4 text-sm leading-7 text-muted-foreground">
+        <Typography variant="muted" className="line-clamp-4 leading-7">
           {flattened}
-        </p>
+        </Typography>
       )}
 
       <Button

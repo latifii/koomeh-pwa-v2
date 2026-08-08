@@ -17,6 +17,7 @@ import {
 import { Container } from "@/components/layout/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 import { propertyTypeLabels } from "@/data/home";
 import {
   formatPublished,
@@ -105,9 +106,13 @@ export default async function EstatePage({
             {detail.district}
           </Link>
           <ChevronLeft className="size-3.5 shrink-0" />
-          <span className="shrink-0 truncate font-medium text-foreground">
+          <Typography
+            as="span"
+            variant="small"
+            className="shrink-0 truncate font-medium text-foreground"
+          >
             {detail.title}
-          </span>
+          </Typography>
         </nav>
       </Container>
 
@@ -124,27 +129,27 @@ export default async function EstatePage({
       <Container className="mt-5">
         <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h1 className="font-heading text-xl font-bold sm:text-2xl">
+            <Typography variant="h3" as="h1" className="text-xl font-bold sm:text-2xl">
               {detail.title}
-            </h1>
+            </Typography>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
+              <Typography as="span" variant="small" className="flex items-center gap-1">
                 <MapPin className="size-3.5 text-brand/70" />
                 {detail.district}، {detail.city}
-              </span>
-              <span className="flex items-center gap-1">
+              </Typography>
+              <Typography as="span" variant="small" className="flex items-center gap-1">
                 <Hash className="size-3.5 text-brand/70" />
                 کد آگهی {Number(detail.code).toLocaleString("fa-IR")}
-              </span>
-              <span className="flex items-center gap-1">
+              </Typography>
+              <Typography as="span" variant="small" className="flex items-center gap-1">
                 <Clock className="size-3.5 text-brand/70" />
                 {formatPublished(detail.publishedDaysAgo)}
-              </span>
-              <span className="flex items-center gap-1">
+              </Typography>
+              <Typography as="span" variant="small" className="flex items-center gap-1">
                 <Eye className="size-3.5 text-brand/70" />
                 {detail.views.toLocaleString("fa-IR")} بازدید
-              </span>
+              </Typography>
             </div>
           </div>
 
@@ -189,9 +194,9 @@ export default async function EstatePage({
                 title="پلان واحد"
                 icon={LayoutPanelTop}
                 action={
-                  <span className="text-xs text-muted-foreground">
+                  <Typography as="span" variant="small">
                     {detail.area.toLocaleString("fa-IR")} مترمربع
-                  </span>
+                  </Typography>
                 }
               >
                 <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-muted/40 px-4 py-10 text-center">
@@ -199,13 +204,13 @@ export default async function EstatePage({
                     className="size-8 text-brand/50"
                     strokeWidth={1.5}
                   />
-                  <p className="font-heading text-sm font-semibold">
+                  <Typography variant="h4" as="p" className="sm:text-sm">
                     پلان این واحد در دفتر شعبه موجود است
-                  </p>
-                  <p className="max-w-sm text-xs leading-5 text-muted-foreground">
+                  </Typography>
+                  <Typography variant="small" className="max-w-sm leading-5">
                     برای دریافت فایل پلان و ابعاد دقیق فضاها با کارشناس پرونده
                     هماهنگ کنید.
-                  </p>
+                  </Typography>
                 </div>
               </DetailSection>
             )}
@@ -214,16 +219,16 @@ export default async function EstatePage({
               title="موقعیت روی نقشه"
               icon={MapPin}
               action={
-                <span className="text-xs text-muted-foreground">
+                <Typography as="span" variant="small">
                   موقعیت تقریبی
-                </span>
+                </Typography>
               }
             >
               <EstateMapPanel lat={detail.lat} lng={detail.lng} />
-              <p className="mt-3 text-xs leading-6 text-muted-foreground">
+              <Typography variant="small" className="mt-3 leading-6">
                 به منظور حفظ حریم مالک، محدوده تقریبی ملک نمایش داده می‌شود.
                 نشانی دقیق هنگام هماهنگی بازدید در اختیار شما قرار می‌گیرد.
-              </p>
+              </Typography>
             </DetailSection>
           </div>
 

@@ -17,9 +17,11 @@ import {
   Sun,
 } from "lucide-react";
 
+import { Typography } from "@/components/ui/typography";
 import { propertyTypeLabels } from "@/data/home";
 import type { EstateDetail } from "@/data/estate-detail";
 import { type Amenity, amenityLabels, orientationLabels } from "@/data/search";
+import { cn } from "@/lib/utils";
 
 const amenityIcons: Record<Amenity, LucideIcon> = {
   elevator: ArrowUpDown,
@@ -70,13 +72,17 @@ export function EstateHighlights({ detail }: { detail: EstateDetail }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-card px-3.5 py-3 shadow-sm">
+    <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-card px-3.5 py-3">
       {items.map((item, index) => (
         <span key={item.label} className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-muted/60 px-2.5 py-1.5 text-xs">
             <item.icon className="size-3.5 shrink-0 text-brand" />
-            <span className="font-heading font-semibold">{item.value}</span>
-            <span className="text-muted-foreground">{item.label}</span>
+            <Typography as="span" variant="h4" className="sm:text-xs">
+              {item.value}
+            </Typography>
+            <Typography as="span" variant="small" className="text-xs">
+              {item.label}
+            </Typography>
           </span>
           {index < items.length - 1 && (
             <span
@@ -129,10 +135,14 @@ export function EstateSpecs({ detail }: { detail: EstateDetail }) {
       {rows.map((row) => (
         <div
           key={row.label}
-          className="flex items-center justify-between gap-3 border-b border-dashed py-2.5 text-sm last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0"
+          className="flex items-center justify-between gap-3 border-b border-dashed py-2.5 last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0"
         >
-          <dt className="text-muted-foreground">{row.label}</dt>
-          <dd className="font-medium">{row.value}</dd>
+          <Typography as="dt" variant="muted">
+            {row.label}
+          </Typography>
+          <Typography as="dd" variant="body" className="font-medium">
+            {row.value}
+          </Typography>
         </div>
       ))}
     </dl>
@@ -149,17 +159,20 @@ export function EstateAmenities({ detail }: { detail: EstateDetail }) {
         const has = detail.amenities.includes(amenity);
         const Icon = amenityIcons[amenity];
         return (
-          <li
+          <Typography
+            as="li"
+            variant="body"
             key={amenity}
-            className={
+            className={cn(
+              "flex items-center gap-2 rounded-xl px-3 py-2 font-medium",
               has
-                ? "flex items-center gap-2 rounded-xl border border-brand/25 bg-brand/5 px-3 py-2 text-sm font-medium"
-                : "flex items-center gap-2 rounded-xl border border-dashed px-3 py-2 text-sm text-muted-foreground/70 line-through decoration-1"
-            }
+                ? "border border-brand/25 bg-brand/5"
+                : "border border-dashed text-muted-foreground/70 line-through decoration-1"
+            )}
           >
             <Icon className={has ? "size-4 shrink-0 text-brand" : "size-4 shrink-0"} />
             {amenityLabels[amenity]}
-          </li>
+          </Typography>
         );
       })}
     </ul>
@@ -171,13 +184,15 @@ export function EstateConditions({ conditions }: { conditions: string[] }) {
   return (
     <ul className="grid gap-2 sm:grid-cols-2">
       {conditions.map((condition) => (
-        <li
+        <Typography
+          as="li"
+          variant="body"
           key={condition}
-          className="flex items-start gap-2 rounded-xl bg-muted/50 px-3 py-2.5 text-sm"
+          className="flex items-start gap-2 rounded-xl bg-muted/50 px-3 py-2.5"
         >
           <CircleCheck className="mt-0.5 size-4 shrink-0 text-brand" />
           {condition}
-        </li>
+        </Typography>
       ))}
     </ul>
   );
@@ -207,13 +222,17 @@ export function EstateTrustNotes() {
     <ul className="grid gap-2 sm:grid-cols-3">
       {notes.map((note) => (
         <li key={note.title} className="rounded-xl border bg-card/60 p-3">
-          <p className="flex items-center gap-1.5 font-heading text-[13px] font-semibold">
+          <Typography
+            variant="h4"
+            as="p"
+            className="flex items-center gap-1.5 text-[13px] sm:text-[13px]"
+          >
             <note.icon className="size-4 text-brand" />
             {note.title}
-          </p>
-          <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+          </Typography>
+          <Typography variant="small" className="mt-1 text-[11px] leading-5">
             {note.text}
-          </p>
+          </Typography>
         </li>
       ))}
     </ul>

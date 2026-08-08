@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { PropertyCard } from "@/components/property/property-card";
 import { Button } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 import type { Listing } from "@/data/search";
 
 /**
@@ -22,10 +23,12 @@ export function SimilarEstates({
     <section className="mt-8">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <h2 className="font-heading text-lg font-bold">ملک‌های مشابه</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <Typography variant="h3" as="h2" className="text-lg font-bold sm:text-lg">
+            ملک‌های مشابه
+          </Typography>
+          <Typography variant="small" className="mt-0.5">
             فایل‌هایی با متراژ و موقعیت نزدیک به این ملک
-          </p>
+          </Typography>
         </div>
         <Button
           variant="ghost"

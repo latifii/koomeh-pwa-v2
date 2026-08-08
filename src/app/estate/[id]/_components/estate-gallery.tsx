@@ -20,6 +20,7 @@ import intro2 from "@/assets/images/intro/intro2.webp";
 import intro3 from "@/assets/images/intro/intro3.webp";
 import intro4 from "@/assets/images/intro/intro4.webp";
 import { Badge } from "@/components/ui/badge";
+import { Typography } from "@/components/ui/typography";
 import type { PropertyType } from "@/data/home";
 import { cn } from "@/lib/utils";
 
@@ -111,7 +112,7 @@ export function EstateGallery({
             {badges.map((badge) => (
               <Badge
                 key={badge}
-                className="border-white/25 bg-white/20 text-white shadow-sm backdrop-blur-md"
+                className="border-white/25 bg-white/20 text-white backdrop-blur-md"
               >
                 {badge}
               </Badge>
@@ -124,11 +125,15 @@ export function EstateGallery({
           )}
         </div>
 
-        <span className="pointer-events-none absolute bottom-3 inset-s-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 font-heading text-[11px] font-medium text-white backdrop-blur-md">
+        <Typography
+          as="span"
+          variant="small"
+          className="pointer-events-none absolute bottom-3 inset-s-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 font-heading text-[11px] font-medium text-white backdrop-blur-md"
+        >
           <Images className="size-3.5" />
           {(current + 1).toLocaleString("fa-IR")} /{" "}
           {images.length.toLocaleString("fa-IR")}
-        </span>
+        </Typography>
       </div>
 
       {/* Desktop: hero mosaic — one large frame plus a 2×2 thumbnail block */}
@@ -152,17 +157,21 @@ export function EstateGallery({
             {badges.map((badge) => (
               <Badge
                 key={badge}
-                className="border-white/25 bg-white/20 text-white shadow-sm backdrop-blur-md"
+                className="border-white/25 bg-white/20 text-white backdrop-blur-md"
               >
                 {badge}
               </Badge>
             ))}
           </span>
 
-          <span className="absolute bottom-4 inset-s-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-3 py-1.5 font-heading text-xs font-medium text-white backdrop-blur-md transition-colors group-hover:bg-black/60">
+          <Typography
+            as="span"
+            variant="small"
+            className="absolute bottom-4 inset-s-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-3 py-1.5 font-heading text-xs font-medium text-white backdrop-blur-md transition-colors group-hover:bg-black/60"
+          >
             <Expand className="size-3.5" />
             مشاهده تمام‌صفحه
-          </span>
+          </Typography>
         </button>
 
         <div className="col-span-1 grid grid-rows-2 gap-2 lg:col-span-2 lg:grid-cols-2">
@@ -188,10 +197,14 @@ export function EstateGallery({
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
                 {isLast && (
-                  <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 font-heading text-xs font-semibold text-white backdrop-blur-[2px] transition-colors group-hover:bg-black/65">
+                  <Typography
+                    as="span"
+                    variant="small"
+                    className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 font-heading text-xs font-semibold text-white backdrop-blur-[2px] transition-colors group-hover:bg-black/65"
+                  >
                     <Images className="size-5" />
                     {images.length.toLocaleString("fa-IR")} تصویر
-                  </span>
+                  </Typography>
                 )}
               </button>
             );
@@ -199,10 +212,14 @@ export function EstateGallery({
         </div>
 
         {hasTour && (
-          <span className="pointer-events-none absolute bottom-4 inset-e-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3 py-1.5 font-heading text-xs font-medium text-white backdrop-blur-md">
+          <Typography
+            as="span"
+            variant="small"
+            className="pointer-events-none absolute bottom-4 inset-e-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3 py-1.5 font-heading text-xs font-medium text-white backdrop-blur-md"
+          >
             <Rotate3d className="size-4" />
             تور مجازی ۳۶۰ درجه
-          </span>
+          </Typography>
         )}
       </div>
 
