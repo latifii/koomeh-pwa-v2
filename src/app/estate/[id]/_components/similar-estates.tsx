@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { PropertyCard } from "@/components/property/property-card";
+import { PropertyCard } from "@/components/features/property/property-card";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import type { Listing } from "@/data/search";

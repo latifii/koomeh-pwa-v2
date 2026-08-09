@@ -25,6 +25,7 @@ import {
   getEstateDetail,
   getSimilarListings,
 } from "@/data/estate-detail";
+import { getEstateTour } from "@/data/virtual-tour";
 
 import { DetailSection } from "./_components/detail-section";
 import { EstateActions } from "./_components/estate-actions";
@@ -41,6 +42,7 @@ import { EstateGallery } from "./_components/estate-gallery";
 import { EstateMapPanel } from "./_components/estate-map-panel";
 import { EstateMobileBar } from "./_components/estate-mobile-bar";
 import { EstatePriceCard } from "./_components/estate-price-card";
+import { EstateTourCard } from "./_components/estate-tour-card";
 import { SimilarEstates } from "./_components/similar-estates";
 
 export function generateStaticParams() {
@@ -74,6 +76,7 @@ export default async function EstatePage({
   if (!detail) notFound();
 
   const similar = getSimilarListings(detail, 4);
+  const tour = getEstateTour(id);
 
   const badges = [
     propertyTypeLabels[detail.propertyType],
@@ -119,6 +122,7 @@ export default async function EstatePage({
       {/* Full-bleed on phones, inset from `md` where the mosaic takes over. */}
       <Container className="max-md:px-0">
         <EstateGallery
+          estateId={detail.id}
           propertyType={detail.propertyType}
           title={detail.title}
           badges={badges}
@@ -159,6 +163,16 @@ export default async function EstatePage({
         <div className="mt-4">
           <EstateHighlights detail={detail} />
         </div>
+
+        {tour && (
+          <div className="mt-4">
+            <EstateTourCard
+              estateId={detail.id}
+              title={detail.title}
+              sceneCount={tour.scenes.length}
+            />
+          </div>
+        )}
 
         <div className="mt-5 grid items-start gap-5 lg:grid-cols-3">
           <div className="grid gap-4 lg:col-span-2">

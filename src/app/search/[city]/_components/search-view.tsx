@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, RotateCcw, SlidersHorizontal } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
-import { PropertyCard } from "@/components/property/property-card";
+import { PropertyCard } from "@/components/features/property/property-card";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,

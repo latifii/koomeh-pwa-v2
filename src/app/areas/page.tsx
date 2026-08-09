@@ -4,7 +4,7 @@ import { ChevronLeft, MapPinned } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { Typography } from "@/components/ui/typography";
-import { AreaCard } from "@/components/area/area-card";
+import { AreaCard } from "./_components/area-card";
 import { getAreaSummaries } from "@/data/area-detail";
 
 export const metadata: Metadata = {

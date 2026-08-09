@@ -18,11 +18,11 @@ import {
   Star,
 } from "lucide-react";
 
-import { PropertyCard } from "@/components/property/property-card";
+import { PropertyCard } from "@/components/features/property/property-card";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import { AgentCard, TopRatedBadge } from "@/components/agent/agent-card";
+import { AgentCard, TopRatedBadge } from "../_components/agent-card";
 import { defaultAvatars } from "@/data/avatars";
 import {
   type Agent,

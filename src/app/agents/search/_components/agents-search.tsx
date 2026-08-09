@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, Users } from "lucide-react";
 
-import { AgentCard } from "@/components/agent/agent-card";
+import { AgentCard } from "../../_components/agent-card";
 import { Typography } from "@/components/ui/typography";
 import {
   type Agent,

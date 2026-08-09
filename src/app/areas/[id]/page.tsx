@@ -15,7 +15,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { PropertyCard } from "@/components/property/property-card";
+import { PropertyCard } from "@/components/features/property/property-card";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";

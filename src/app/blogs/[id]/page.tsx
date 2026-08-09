@@ -16,7 +16,7 @@ import { Container } from "@/components/layout/container";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import { BlogCard, BlogRow, CategoryChip } from "@/components/blog/blog-card";
+import { BlogCard, BlogRow, CategoryChip } from "../_components/blog-card";
 import { defaultAvatars } from "@/data/avatars";
 import {
   coverFor,

@@ -4,7 +4,7 @@ import { Section } from "@/components/layout/section";
 import { Typography } from "@/components/ui/typography";
 import type { Estate } from "@/data/home";
 
-import { PropertyCard } from "@/components/property/property-card";
+import { PropertyCard } from "@/components/features/property/property-card";
 import { SectionHeader } from "./section-header";
 
 export function SaleSection({ estates }: { estates: Estate[] }) {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image, { type StaticImageData } from "next/image";
+import Link from "next/link";
 import Lightbox from "yet-another-react-lightbox";
 import Counter from "yet-another-react-lightbox/plugins/counter";
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
@@ -42,11 +43,13 @@ export function galleryImages(propertyType: PropertyType): StaticImageData[] {
 }
 
 export function EstateGallery({
+  estateId,
   propertyType,
   title,
   badges,
   hasTour,
 }: {
+  estateId: string;
   propertyType: PropertyType;
   title: string;
   badges: string[];
@@ -119,9 +122,13 @@ export function EstateGallery({
             ))}
           </div>
           {hasTour && (
-            <span className="flex size-8 items-center justify-center rounded-full border border-white/25 bg-black/30 text-white backdrop-blur-md">
+            <Link
+              href={`/estate/${estateId}/tour`}
+              aria-label="ورود به تور مجازی ۳۶۰ درجه"
+              className="flex size-8 items-center justify-center rounded-full border border-white/25 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-secondary hover:text-secondary-foreground"
+            >
               <Rotate3d className="size-4" />
-            </span>
+            </Link>
           )}
         </div>
 
@@ -212,14 +219,13 @@ export function EstateGallery({
         </div>
 
         {hasTour && (
-          <Typography
-            as="span"
-            variant="small"
-            className="pointer-events-none absolute bottom-4 inset-e-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3 py-1.5 font-heading text-xs font-medium text-white backdrop-blur-md"
+          <Link
+            href={`/estate/${estateId}/tour`}
+            className="absolute bottom-4 inset-e-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3 py-1.5 font-heading text-xs font-medium text-white backdrop-blur-md transition-colors hover:bg-secondary hover:text-secondary-foreground"
           >
             <Rotate3d className="size-4" />
             تور مجازی ۳۶۰ درجه
-          </Typography>
+          </Link>
         )}
       </div>
 

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Newspaper, Search } from "lucide-react";
 
-import { BlogCard } from "@/components/blog/blog-card";
+import { BlogCard } from "./blog-card";
 import { Typography } from "@/components/ui/typography";
 import {
   type BlogCategory,

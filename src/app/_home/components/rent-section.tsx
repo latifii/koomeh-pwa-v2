@@ -4,7 +4,7 @@ import { Section } from "@/components/layout/section";
 import type { Estate } from "@/data/home";
 import { cn } from "@/lib/utils";
 
-import { PropertyCard } from "@/components/property/property-card";
+import { PropertyCard } from "@/components/features/property/property-card";
 import { SectionHeader } from "./section-header";
 
 const filters = [

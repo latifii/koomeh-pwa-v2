@@ -4,7 +4,7 @@ import { ArrowLeft, CalendarDays, Clock } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Typography } from "@/components/ui/typography";
-import { CategoryChip } from "@/components/blog/blog-card";
+import { CategoryChip } from "./blog-card";
 import { defaultAvatars } from "@/data/avatars";
 import {
   type BlogPost,
