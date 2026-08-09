@@ -21,7 +21,7 @@ import {
 export function FeaturedPost({ post }: { post: BlogPost }) {
   return (
     <Link
-      href={`/blog/${post.id}`}
+      href={`/blogs/${post.id}`}
       className="group relative flex min-h-72 flex-col justify-end overflow-hidden rounded-3xl border p-5 sm:min-h-96 sm:p-8"
     >
       <Image

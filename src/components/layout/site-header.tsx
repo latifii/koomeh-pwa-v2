@@ -24,9 +24,9 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/search/qom", label: "جستجوی ملک" },
-  { href: "/#", label: "مجله حقوقی" },
+  { href: "/agents/search", label: "کارشناسان" },
+  { href: "/blogs", label: "مجله املاک" },
   { href: "/#1", label: "محاسبه کمیسیون" },
-  // { href: "/blogs/3", label: "مجله املاک" },
   // { href: "/#branches", label: "شعب کومه" },
 ];
 

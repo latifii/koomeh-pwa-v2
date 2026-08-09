@@ -224,7 +224,7 @@ function StoryFooter({ className }: { className?: string }) {
         size="sm"
         className="w-fit shrink-0"
         nativeButton={false}
-        render={<Link href="/blog/346" />}
+        render={<Link href="/blogs/346" />}
       >
         داستان کامل
         <ArrowLeft className="size-4" />

@@ -64,7 +64,7 @@ export function BranchExperts({ experts }: { experts: BranchExpert[] }) {
           </div>
 
           <Link
-            href={`/agents/${expert.id}`}
+            href={`/agents/${expert.agentId}`}
             aria-label={expert.name}
             className="absolute inset-0"
           />

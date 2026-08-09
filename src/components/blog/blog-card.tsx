@@ -49,7 +49,7 @@ export function BlogCard({
 }) {
   return (
     <Link
-      href={`/blog/${post.id}`}
+      href={`/blogs/${post.id}`}
       className={cn(
         "group flex flex-col overflow-hidden rounded-2xl border bg-card transition-colors hover:border-brand/30",
         className
@@ -110,7 +110,7 @@ export function BlogCard({
 export function BlogRow({ post }: { post: BlogPost }) {
   return (
     <Link
-      href={`/blog/${post.id}`}
+      href={`/blogs/${post.id}`}
       className="group flex items-center gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-border hover:bg-muted/50"
     >
       <span className="relative size-16 shrink-0 overflow-hidden rounded-lg">

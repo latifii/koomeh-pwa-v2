@@ -16,7 +16,7 @@ const services: { href: string; icon: StaticImageData; label: string }[] = [
   { href: "/search/qom?deal=rent", icon: iconKomision, label: "املاک اجاره" },
   { href: "/search/qom", icon: iconKomision, label: "جستجو ملک" },
   { href: "/blogs/9", icon: iconKomision, label: "محاسبه کمیسیون" },
-  { href: "/#areas", icon: iconMohalat, label: "محلات" },
+  { href: "/areas", icon: iconMohalat, label: "محلات" },
   { href: "/blogs", icon: iconBlog, label: "مجله کومه" },
   { href: "/#branches", icon: iconBranch, label: "معرفی شعب" },
   { href: "/search/qom", icon: iconMaps, label: "جستجو نقشه" },

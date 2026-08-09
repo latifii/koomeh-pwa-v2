@@ -77,7 +77,7 @@ export function AgentsSection({ agents }: { agents: Agent[] }) {
           eyebrow="تیم حرفه‌ای کومه"
           title="مشاوران برتر این ماه"
           description="رتبه‌بندی بر اساس عملکرد ۳۰ روز گذشته؛ هر ماه بازنشانی می‌شود."
-          href="/agents"
+          href="/agents/search"
           linkLabel="جدول کامل"
           light
           className="mb-8"

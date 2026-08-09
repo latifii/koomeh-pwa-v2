@@ -6,6 +6,8 @@ import type { Listing } from "./search";
 /** A single advisor working out of a branch. */
 export interface BranchExpert {
   id: string;
+  /** Canonical agent id, so the card links to the advisor's profile. */
+  agentId: string;
   name: string;
   gender: Gender;
   /** "مشاور فروش" / "مشاور اجاره" / "مشاور فروش و اجاره". */
@@ -48,17 +50,14 @@ const managerNames: Record<string, string> = {
   b4: "مریم کریمی",
 };
 
-const expertPool: { name: string; gender: Gender }[] = [
-  { name: "علی محمدی", gender: "male" },
-  { name: "زهرا احمدی", gender: "female" },
-  { name: "حسین رضایی", gender: "male" },
-  { name: "مریم کریمی", gender: "female" },
-  { name: "امیر حسینی", gender: "male" },
-  { name: "سارا نوری", gender: "female" },
-  { name: "محمد قاسمی", gender: "male" },
-  { name: "فاطمه صادقی", gender: "female" },
-  { name: "رضا کاظمی", gender: "male" },
-  { name: "نرگس موسوی", gender: "female" },
+// The canonical roster, so every branch advisor links to a real profile.
+const expertPool: { name: string; gender: Gender; agentId: string }[] = [
+  { name: "علی محمدی", gender: "male", agentId: "a1" },
+  { name: "زهرا احمدی", gender: "female", agentId: "a2" },
+  { name: "حسین رضایی", gender: "male", agentId: "a3" },
+  { name: "مریم کریمی", gender: "female", agentId: "a4" },
+  { name: "امیر حسینی", gender: "male", agentId: "a5" },
+  { name: "سارا نوری", gender: "female", agentId: "a6" },
 ];
 
 const roles = ["مشاور فروش", "مشاور اجاره", "مشاور فروش و اجاره"];
@@ -113,6 +112,7 @@ export function getBranchDetail(id: string): BranchDetail | null {
   const experts: BranchExpert[] = [
     {
       id: `${branch.id}-e1`,
+      agentId: managerPerson.agentId,
       name: managerPerson.name,
       gender: managerPerson.gender,
       role: "مدیر شعبه",
@@ -123,6 +123,7 @@ export function getBranchDetail(id: string): BranchDetail | null {
       const person = rest[(start + i) % rest.length];
       return {
         id: `${branch.id}-e${i + 2}`,
+        agentId: person.agentId,
         name: person.name,
         gender: person.gender,
         role: roles[between(0, roles.length - 1)],

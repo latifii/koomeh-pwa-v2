@@ -282,12 +282,12 @@ export const articles: Article[] = [
 ];
 
 export const areaGuides: AreaGuide[] = [
-  { id: "ar1", name: "پردیسان", description: "منطقه‌ای مدرن با دسترسی بالا" },
-  { id: "ar2", name: "سالاریه", description: "نزدیک به حرم و بافت قدیمی" },
-  { id: "ar3", name: "زنبیل‌آباد", description: "مناسب سرمایه‌گذاری" },
-  { id: "ar4", name: "صفاشهر", description: "محله‌ای آرام و مسکونی" },
-  { id: "ar5", name: "شهرک قدس", description: "ویلایی‌نشین و پردرخت" },
-  { id: "ar6", name: "جمهوری", description: "مرکز تجاری و اداری شهر" },
+  { id: "pardisan", name: "پردیسان", description: "منطقه‌ای مدرن با دسترسی بالا" },
+  { id: "salariyeh", name: "سالاریه", description: "نزدیک به حرم و بافت قدیمی" },
+  { id: "zanbil-abad", name: "زنبیل‌آباد", description: "مناسب سرمایه‌گذاری" },
+  { id: "safashahr", name: "صفاشهر", description: "محله‌ای آرام و مسکونی" },
+  { id: "shahrak-qods", name: "شهرک قدس", description: "ویلایی‌نشین و پردرخت" },
+  { id: "jomhouri", name: "جمهوری", description: "مرکز تجاری و اداری شهر" },
 ];
 
 export const branches: Branch[] = [
@@ -319,7 +319,7 @@ export const branches: Branch[] = [
 
 export const topAgents: Agent[] = [
   {
-    id: "ag1",
+    id: "a1",
     name: "علی محمدی",
     branch: "پردیسان",
     rank: 1,
@@ -329,7 +329,7 @@ export const topAgents: Agent[] = [
     gender: "male",
   },
   {
-    id: "ag2",
+    id: "a2",
     name: "زهرا احمدی",
     branch: "جمهوری",
     rank: 2,
@@ -339,7 +339,7 @@ export const topAgents: Agent[] = [
     gender: "female",
   },
   {
-    id: "ag3",
+    id: "a3",
     name: "حسین رضایی",
     branch: "صدوقی",
     rank: 3,

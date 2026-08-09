@@ -20,7 +20,7 @@ const linkGroups = [
     title: "کومه",
     links: [
       { href: "/#top", label: "خانه" },
-      { href: "/blog/346", label: "داستان کومه" },
+      { href: "/blogs/346", label: "داستان کومه" },
       { href: "/#branches", label: "شعب" },
       { href: "/customers/create", label: "همکاری با ما" },
     ],
@@ -38,7 +38,7 @@ const linkGroups = [
     title: "منابع",
     links: [
       { href: "/blogs", label: "مجله املاک" },
-      { href: "/#areas", label: "راهنمای محلات" },
+      { href: "/areas", label: "راهنمای محلات" },
       { href: "/#faq", label: "پرسش‌های متداول" },
     ],
   },
