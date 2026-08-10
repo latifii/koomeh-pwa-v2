@@ -9,6 +9,7 @@ import { Menu, Phone, PlusCircle, User } from "lucide-react";
 import logoDark from "@/assets/images/logo/logo-new-dark.png";
 import logoLight from "@/assets/images/logo/logo-new-light.png";
 import { Container } from "@/components/layout/container";
+import { PanelNav, PanelProfile } from "@/components/layout/panel-sidebar";
 import { ModeToggle } from "@/components/shared/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,19 +21,21 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
+import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/search/qom", label: "جستجوی ملک" },
   { href: "/agents/search", label: "کارشناسان" },
   { href: "/blogs", label: "مجله املاک" },
-  { href: "/#1", label: "محاسبه کمیسیون" },
+  { href: "/commission", label: "محاسبه کمیسیون" },
   // { href: "/#branches", label: "شعب کومه" },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isPanel = pathname.startsWith("/panel");
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -160,6 +163,18 @@ export function SiteHeader() {
                   />
                 ))}
               </nav>
+              {isPanel && (
+                <>
+                  <Separator className="my-4" />
+                  <div className="space-y-3">
+                    <div className="px-1">
+                      <Typography variant="eyebrow">پنل کاربری</Typography>
+                    </div>
+                    <PanelProfile />
+                    <PanelNav closeOnNavigate />
+                  </div>
+                </>
+              )}
               <Separator className="my-3" />
               <div className="flex flex-col gap-2">
                 <DrawerClose
