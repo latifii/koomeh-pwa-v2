@@ -25,12 +25,12 @@ import {
   getOtherBranches,
 } from "@/data/branch-detail";
 
-import { BranchContactCard } from "./_components/branch-contact-card";
-import { BranchExperts } from "./_components/branch-experts";
-import { BranchMapPanel } from "./_components/branch-map-panel";
-import { BranchSection } from "./_components/branch-section";
-import { BranchShareButton } from "./_components/branch-actions";
-import { BranchStrengths } from "./_components/branch-strengths";
+import { BranchContactCard } from "../_components/branch-contact-card";
+import { BranchExperts } from "../_components/branch-experts";
+import { BranchMapPanel } from "../_components/branch-map-panel";
+import { BranchSection } from "../_components/branch-section";
+import { BranchShareButton } from "../_components/branch-actions";
+import { BranchStrengths } from "../_components/branch-strengths";
 
 export function generateStaticParams() {
   return getAllBranchIds().map((id) => ({ id }));
@@ -103,7 +103,11 @@ export default async function BranchPage({
             شعب کومه
           </Link>
           <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography as="span" variant="small" className="shrink-0 font-medium text-foreground">
+          <Typography
+            as="span"
+            variant="small"
+            className="shrink-0 font-medium text-foreground"
+          >
             {branch.name}
           </Typography>
         </nav>
@@ -144,7 +148,12 @@ export default async function BranchPage({
                 </Typography>
               </div>
 
-              <Typography variant="h2" as="h1" light className="text-2xl sm:text-3xl">
+              <Typography
+                variant="h2"
+                as="h1"
+                light
+                className="text-2xl sm:text-3xl"
+              >
                 {branch.name}
               </Typography>
 
@@ -235,10 +244,7 @@ export default async function BranchPage({
       <Container className="mt-5">
         <div className="grid items-start gap-5 lg:grid-cols-3">
           <div className="grid min-w-0 gap-4 lg:col-span-2">
-            <BranchSection
-              title="درباره این شعبه"
-              icon={Building2}
-            >
+            <BranchSection title="درباره این شعبه" icon={Building2}>
               <div className="space-y-3">
                 {branch.description.split("\n\n").map((paragraph, index) => (
                   <Typography key={index} variant="muted" className="leading-7">

@@ -6,6 +6,7 @@ import {
   Bell,
   Building2,
   ChevronLeft,
+  ClipboardList,
   Heart,
   LayoutDashboard,
   Menu,
@@ -42,10 +43,16 @@ const panelLinks = [
     enabled: true,
   },
   {
-    href: "/panel/properties",
+    href: "/panel/properties/new",
     label: "ملک‌های من",
     icon: Building2,
-    enabled: false,
+    enabled: true,
+  },
+  {
+    href: "/panel/customers/new",
+    label: "ثبت تقاضا",
+    icon: ClipboardList,
+    enabled: true,
   },
   {
     href: "/panel/favorites",
@@ -95,7 +102,11 @@ export function PanelProfile() {
   );
 }
 
-export function PanelNav({ closeOnNavigate = false }: { closeOnNavigate?: boolean }) {
+export function PanelNav({
+  closeOnNavigate = false,
+}: {
+  closeOnNavigate?: boolean;
+}) {
   const pathname = usePathname();
 
   return (

@@ -8,7 +8,7 @@ import {
   defaultFilters,
 } from "@/data/search";
 
-import { SearchView } from "./_components/search-view";
+import { SearchView } from "../_components/search-view";
 
 /** Slug → display name. Extend as more cities go live. */
 const citySlugs: Record<string, string> = {
@@ -42,7 +42,7 @@ const single = (value: string | string[] | undefined): string =>
  */
 function parseFilters(
   searchParams: SearchParams,
-  cityName: string
+  cityName: string,
 ): SearchFilters {
   const types = single(searchParams.propertyTypes)
     .split(",")

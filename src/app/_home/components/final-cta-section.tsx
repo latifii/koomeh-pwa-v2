@@ -24,7 +24,7 @@ export function FinalCtaSection() {
             variant="secondary"
             className="w-full sm:w-fit"
             nativeButton={false}
-            render={<Link href="/customers/create" />}
+            render={<Link href="/panel/requests/new" />}
           >
             <ClipboardList />
             ثبت تقاضا

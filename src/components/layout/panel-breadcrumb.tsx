@@ -8,6 +8,8 @@ import { Typography } from "@/components/ui/typography";
 
 const routeLabels: Record<string, string> = {
   "/panel/dashboard": "داشبورد",
+  "/panel/properties/new": "ثبت ملک",
+  "/panel/customers/new": "ثبت تقاضا",
   "/panel/properties": "ملک‌های من",
   "/panel/favorites": "علاقه‌مندی‌ها",
   "/panel/notifications": "اعلان‌ها",
@@ -39,7 +41,11 @@ export function PanelBreadcrumb() {
         </Typography>
       </Link>
       <ChevronLeft className="size-3.5 text-muted-foreground/60" />
-      <Typography as="span" variant="small" className="font-medium text-foreground">
+      <Typography
+        as="span"
+        variant="small"
+        className="font-medium text-foreground"
+      >
         {currentLabel}
       </Typography>
     </nav>

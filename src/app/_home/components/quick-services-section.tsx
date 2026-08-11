@@ -22,7 +22,7 @@ const services: { href: string; icon: StaticImageData; label: string }[] = [
   { href: "/search/qom", icon: iconMaps, label: "جستجو نقشه" },
   { href: "/#virtual-tour-title", icon: icon360, label: "تور مجازی" },
   { href: "https://instagram.com", icon: iconSocial, label: "شبکه اجتماعی" },
-  { href: "/customers/create", icon: iconGoftino, label: "پشتیبانی" },
+  { href: "/contact", icon: iconGoftino, label: "پشتیبانی" },
 ];
 
 export function QuickServicesSection() {

@@ -27,23 +27,23 @@ import {
 } from "@/data/estate-detail";
 import { getEstateTour } from "@/data/virtual-tour";
 
-import { DetailSection } from "./_components/detail-section";
-import { EstateActions } from "./_components/estate-actions";
-import { EstateContactCard } from "./_components/estate-contact-card";
-import { EstateDescription } from "./_components/estate-description";
+import { DetailSection } from "../_components/detail-section";
+import { EstateActions } from "../_components/estate-actions";
+import { EstateContactCard } from "../_components/estate-contact-card";
+import { EstateDescription } from "../_components/estate-description";
 import {
   EstateAmenities,
   EstateConditions,
   EstateHighlights,
   EstateSpecs,
   EstateTrustNotes,
-} from "./_components/estate-facts";
-import { EstateGallery } from "./_components/estate-gallery";
-import { EstateMapPanel } from "./_components/estate-map-panel";
-import { EstateMobileBar } from "./_components/estate-mobile-bar";
-import { EstatePriceCard } from "./_components/estate-price-card";
-import { EstateTourCard } from "./_components/estate-tour-card";
-import { SimilarEstates } from "./_components/similar-estates";
+} from "../_components/estate-facts";
+import { EstateGallery } from "../_components/estate-gallery";
+import { EstateMapPanel } from "../_components/estate-map-panel";
+import { EstateMobileBar } from "../_components/estate-mobile-bar";
+import { EstatePriceCard } from "../_components/estate-price-card";
+import { EstateTourCard } from "../_components/estate-tour-card";
+import { SimilarEstates } from "../_components/similar-estates";
 
 export function generateStaticParams() {
   return getAllEstateIds().map((id) => ({ id }));
@@ -133,24 +133,44 @@ export default async function EstatePage({
       <Container className="mt-5">
         <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <Typography variant="h3" as="h1" className="text-xl font-bold sm:text-2xl">
+            <Typography
+              variant="h3"
+              as="h1"
+              className="text-xl font-bold sm:text-2xl"
+            >
               {detail.title}
             </Typography>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-              <Typography as="span" variant="small" className="flex items-center gap-1">
+              <Typography
+                as="span"
+                variant="small"
+                className="flex items-center gap-1"
+              >
                 <MapPin className="size-3.5 text-brand/70" />
                 {detail.district}، {detail.city}
               </Typography>
-              <Typography as="span" variant="small" className="flex items-center gap-1">
+              <Typography
+                as="span"
+                variant="small"
+                className="flex items-center gap-1"
+              >
                 <Hash className="size-3.5 text-brand/70" />
                 کد آگهی {Number(detail.code).toLocaleString("fa-IR")}
               </Typography>
-              <Typography as="span" variant="small" className="flex items-center gap-1">
+              <Typography
+                as="span"
+                variant="small"
+                className="flex items-center gap-1"
+              >
                 <Clock className="size-3.5 text-brand/70" />
                 {formatPublished(detail.publishedDaysAgo)}
               </Typography>
-              <Typography as="span" variant="small" className="flex items-center gap-1">
+              <Typography
+                as="span"
+                variant="small"
+                className="flex items-center gap-1"
+              >
                 <Eye className="size-3.5 text-brand/70" />
                 {detail.views.toLocaleString("fa-IR")} بازدید
               </Typography>

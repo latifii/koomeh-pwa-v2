@@ -33,7 +33,7 @@ const paths: {
     description: "معرفی ملک به متقاضیان واقعی",
   },
   {
-    href: "/customers/create",
+    href: "/panel/requests/new",
     image: introRequest,
     title: "ثبت درخواست",
     description: "نیازتان را به مشاور کومه بسپارید",

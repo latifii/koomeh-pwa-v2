@@ -22,7 +22,7 @@ const linkGroups = [
       { href: "/#top", label: "خانه" },
       { href: "/blogs/346", label: "داستان کومه" },
       { href: "/#branches", label: "شعب" },
-      { href: "/customers/create", label: "همکاری با ما" },
+      { href: "/contact", label: "همکاری با ما" },
     ],
   },
   {
@@ -31,7 +31,7 @@ const linkGroups = [
       { href: "/search/qom?deal=sale", label: "خرید ملک" },
       { href: "/search/qom?deal=rent", label: "رهن و اجاره" },
       { href: "/add", label: "ثبت ملک" },
-      { href: "/customers/create", label: "ثبت درخواست" },
+      { href: "/panel/customers/new", label: "ثبت درخواست" },
     ],
   },
   {
@@ -76,8 +76,8 @@ export function SiteFooter() {
               ملکی برای فروش یا اجاره دارید؟
             </h2>
             <p className="text-xs text-white/60 sm:text-sm">
-              فایل خود را ثبت کنید تا کارشناسان ما در سریع‌ترین زمان با شما
-              تماس بگیرند.
+              فایل خود را ثبت کنید تا کارشناسان ما در سریع‌ترین زمان با شما تماس
+              بگیرند.
             </p>
           </div>
           <Link

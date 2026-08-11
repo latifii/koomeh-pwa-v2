@@ -30,7 +30,7 @@ export function FaqSection({ faqs }: { faqs: Faq[] }) {
           می‌شوند.
         </Typography>
         <Link
-          href="/customers/create"
+          href="/panel/requests/new"
           className="text-xs font-medium text-brand underline-offset-4 hover:underline sm:mt-1 sm:text-sm "
         >
           پاسخ خود را پیدا نکردید؟ با ما در میان بگذارید.
