@@ -1,0 +1,12 @@
+"use client";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Camera, CheckCircle2, Save, UserRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormSelectField, FormTextField, FormTextareaField, type FormContext } from "@/components/shared/form";
+import { Typography } from "@/components/ui/typography";
+import { profileSchema,type ProfileValues } from "../_schema/profile.schema";
+export function ProfileForm(){const [saved,setSaved]=useState(false);const form=useForm<ProfileValues>({resolver:zodResolver(profileSchema),defaultValues:{firstName:"حامد",lastName:"کریمی",mobile:"09121234567",email:"hamed@example.com",city:"qom",bio:"به دنبال بهترین فرصت‌های ملکی در قم هستم."}});const context:FormContext<ProfileValues>={control:form.control,register:form.register,errors:form.formState.errors};return <form onSubmit={form.handleSubmit(()=>setSaved(true))} className="grid gap-4 lg:grid-cols-[220px_1fr]"><Card className="h-fit"><CardContent className="flex flex-col items-center p-5 text-center"><span className="flex size-24 items-center justify-center rounded-full bg-brand/10 text-brand"><UserRound className="size-10" /></span><Typography variant="h4" className="mt-3">حامد کریمی</Typography><Typography variant="small">کاربر عادی</Typography><Button type="button" variant="outline" size="sm" className="mt-4"><Camera />تغییر تصویر</Button></CardContent></Card><Card><CardHeader><CardTitle>اطلاعات شخصی</CardTitle></CardHeader><CardContent className="space-y-5"><div className="grid gap-5 sm:grid-cols-2"><FormTextField {...context} name="firstName" label="نام" required /><FormTextField {...context} name="lastName" label="نام خانوادگی" required /><FormTextField {...context} name="mobile" label="شماره همراه" type="tel" required /><FormTextField {...context} name="email" label="ایمیل" type="email" /><FormSelectField {...context} name="city" label="شهر" placeholder="انتخاب شهر" options={[{value:"qom",label:"قم"},{value:"tehran",label:"تهران"}]} /></div><FormTextareaField {...context} name="bio" label="درباره من" rows={4} /><div className="flex flex-wrap items-center gap-3"><Button disabled={form.formState.isSubmitting}><Save />ذخیره تغییرات</Button>{saved&&<Typography variant="small" className="flex items-center gap-1 text-emerald-600"><CheckCircle2 className="size-4" />اطلاعات ذخیره شد.</Typography>}</div></CardContent></Card></form>}
+

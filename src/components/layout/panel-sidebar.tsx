@@ -8,9 +8,13 @@ import {
   ChevronLeft,
   ClipboardList,
   Heart,
+  History,
   LayoutDashboard,
   Menu,
+  Scale,
+  SearchCheck,
   Settings,
+  StickyNote,
   UserRound,
 } from "lucide-react";
 
@@ -44,6 +48,30 @@ const panelLinks = [
     enabled: true,
   },
   {
+    href: routes.panel.compare,
+    label: "مقایسه املاک",
+    icon: Scale,
+    enabled: true,
+  },
+  {
+    href: routes.panel.savedSearches,
+    label: "جست‌وجوهای ذخیره‌شده",
+    icon: SearchCheck,
+    enabled: true,
+  },
+  {
+    href: routes.panel.history,
+    label: "تاریخچه بازدید",
+    icon: History,
+    enabled: true,
+  },
+  {
+    href: routes.panel.notes,
+    label: "یادداشت‌ها",
+    icon: StickyNote,
+    enabled: true,
+  },
+  {
     href: routes.panel.properties,
     label: "ملک‌های من",
     icon: Building2,
@@ -59,19 +87,19 @@ const panelLinks = [
     href: routes.panel.favorites,
     label: "علاقه‌مندی‌ها",
     icon: Heart,
-    enabled: false,
+    enabled: true,
   },
   {
     href: routes.panel.notifications,
     label: "اعلان‌ها",
     icon: Bell,
-    enabled: false,
+    enabled: true,
   },
   {
     href: routes.panel.profile,
     label: "تنظیمات حساب",
     icon: Settings,
-    enabled: false,
+    enabled: true,
   },
 ];
 
@@ -189,7 +217,7 @@ export function PanelSidebarContent() {
 export function PanelSidebar() {
   return (
     <aside className="hidden w-72 shrink-0 rounded-lg border border-sidebar-border bg-background  p-4  md:block">
-      <div className="sticky top-24">
+      <div className="sticky top-24 max-h-[calc(100svh-7rem)] overflow-y-auto pe-1">
         <PanelSidebarContent />
       </div>
     </aside>

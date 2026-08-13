@@ -31,9 +31,8 @@ export function PanelPropertyCard({ item }: { item: PanelProperty }) {
           <span className="rounded-lg bg-muted p-2 text-center text-xs"><Eye className="mx-auto mb-1 size-4 text-brand" />{item.views.toLocaleString("fa-IR")} بازدید</span>
           <span className="rounded-lg bg-muted p-2 text-center text-xs"><MessageSquare className="mx-auto mb-1 size-4 text-brand" />{item.inquiries.toLocaleString("fa-IR")} درخواست</span>
         </div>
-        <Button variant="outline" size="icon" nativeButton={false} render={<Link href={routes.property(listing.id)} aria-label="مشاهده ملک" />}><MoreHorizontal /></Button>
+        <Button variant="outline" size="icon" nativeButton={false} render={<Link href={routes.panel.adManagement(listing.id)} aria-label="مدیریت ملک" />}><MoreHorizontal /></Button>
       </div>
     </CardContent></Card>
   );
 }
-

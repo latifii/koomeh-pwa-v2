@@ -14,8 +14,13 @@ const routeLabels: Record<string, string> = {
   [routes.panel.requests]: "تقاضاهای ملکی",
   [routes.panel.properties]: "ملک‌های من",
   [routes.panel.favorites]: "علاقه‌مندی‌ها",
+  [routes.panel.compare]: "مقایسه املاک",
+  [routes.panel.savedSearches]: "جست‌وجوهای ذخیره‌شده",
+  [routes.panel.history]: "تاریخچه بازدید",
+  [routes.panel.notes]: "یادداشت‌ها",
   [routes.panel.notifications]: "اعلان‌ها",
   [routes.panel.profile]: "تنظیمات حساب",
+  [routes.panel.security]: "امنیت حساب",
 };
 
 export function PanelBreadcrumb() {

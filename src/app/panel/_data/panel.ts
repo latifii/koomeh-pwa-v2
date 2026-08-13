@@ -1,6 +1,7 @@
 import { customerRequestDefaults, type CustomerRequestValues } from "@/app/panel/requests/_schema/customer-request.schema";
 import { allListings } from "@/data/listings";
 import type { Listing } from "@/data/search";
+import { routes } from "@/lib/routes";
 
 export type PanelPropertyStatus = "published" | "review" | "draft" | "expired";
 
@@ -19,6 +20,9 @@ export const panelProperties: PanelProperty[] = allListings.slice(0, 10).map((li
   views: 48 + index * 37,
   updatedAt: index < 2 ? "امروز" : `${index + 1} روز پیش`,
 }));
+export function getPanelProperty(id: string): PanelProperty | null {
+  return panelProperties.find((item) => item.listing.id === id) ?? null;
+}
 
 export type RequestStatus = "new" | "following" | "matched" | "closed";
 
@@ -68,3 +72,38 @@ export function getPanelRequest(id: string): PanelRequest | null {
   return panelRequests.find((request) => request.id === id) ?? null;
 }
 
+export const favoriteProperties = allListings.slice(5, 11);
+export const comparedProperties = allListings.slice(0, 3);
+export const recentlyViewedProperties = allListings.slice(12, 18);
+
+export interface SavedSearch {
+  id: string;
+  title: string;
+  summary: string;
+  resultCount: number;
+  createdAt: string;
+  alertsEnabled: boolean;
+  query: Record<string, string>;
+}
+
+export const savedSearches: SavedSearch[] = [
+  { id: "s1", title: "آپارتمان خرید در سالاریه", summary: "۸۰ تا ۱۵۰ متر · حداکثر ۸ میلیارد", resultCount: 12, createdAt: "۲ روز پیش", alertsEnabled: true, query: { deal: "sale", district: "سالاریه", propertyTypes: "apartment" } },
+  { id: "s2", title: "رهن کامل در پردیسان", summary: "دو خواب · پارکینگ و آسانسور", resultCount: 8, createdAt: "۵ روز پیش", alertsEnabled: true, query: { deal: "rent", district: "پردیسان" } },
+  { id: "s3", title: "واحد تجاری صفاشهر", summary: "۴۰ تا ۱۰۰ متر · بر خیابان اصلی", resultCount: 5, createdAt: "۲ هفته پیش", alertsEnabled: false, query: { deal: "sale", district: "صفاشهر", propertyTypes: "commercial" } },
+];
+
+export type NotificationKind = "match" | "property" | "account" | "message";
+export interface PanelNotification { id: string; kind: NotificationKind; title: string; description: string; time: string; read: boolean; href?: string; }
+export const panelNotifications: PanelNotification[] = [
+  { id: "n1", kind: "match", title: "۳ فایل جدید با تقاضای شما تطبیق دارد", description: "فایل‌های جدید در محدوده پردیسان ثبت شده‌اند.", time: "۱۰ دقیقه پیش", read: false, href: routes.panel.request("r-1048") },
+  { id: "n2", kind: "property", title: "آگهی شما منتشر شد", description: "فایل آپارتمان نوساز پس از بررسی منتشر شد.", time: "۲ ساعت پیش", read: false, href: routes.panel.properties },
+  { id: "n3", kind: "message", title: "پیام جدید از کارشناس کومه", description: "زمان پیشنهادی بازدید برای فردا ساعت ۱۷ ثبت شد.", time: "دیروز", read: true },
+  { id: "n4", kind: "account", title: "ورود جدید به حساب", description: "ورود از مرورگر Chrome در ویندوز شناسایی شد.", time: "۳ روز پیش", read: true, href: routes.panel.security },
+];
+
+export interface PanelNote { id: string; title: string; body: string; relatedTo: string; updatedAt: string; color: "amber" | "blue" | "green"; }
+export const panelNotes: PanelNote[] = [
+  { id: "note-1", title: "پیگیری مالک فایل ۱۰۲۷۴۰", body: "مالک برای بازدید عصر سه‌شنبه هماهنگ است؛ قبل از حرکت تماس گرفته شود.", relatedTo: "ملک l3", updatedAt: "امروز", color: "amber" },
+  { id: "note-2", title: "اولویت‌های خانم موسوی", body: "نورگیر جنوبی و نزدیکی به مدرسه از متراژ مهم‌تر است.", relatedTo: "تقاضای ۱۰۴۷", updatedAt: "دیروز", color: "blue" },
+  { id: "note-3", title: "مدارک قرارداد", body: "تصویر سند و پایان‌کار پیش از جلسه قرارداد دریافت شود.", relatedTo: "ملک l1", updatedAt: "۴ روز پیش", color: "green" },
+];

@@ -1,0 +1,13 @@
+"use client";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2, KeyRound, LogOut, MonitorSmartphone, ShieldCheck } from "lucide-react";
+import { FormTextField,type FormContext } from "@/components/shared/form";
+import { Button } from "@/components/ui/button";
+import { Card,CardContent,CardHeader,CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Typography } from "@/components/ui/typography";
+import { passwordSchema,type PasswordValues } from "../_schema/security.schema";
+export function SecuritySettings(){const [saved,setSaved]=useState(false);const form=useForm<PasswordValues>({resolver:zodResolver(passwordSchema),defaultValues:{currentPassword:"",newPassword:"",confirmation:""}});const context:FormContext<PasswordValues>={control:form.control,register:form.register,errors:form.formState.errors};return <div className="grid gap-4"><Card><CardHeader><CardTitle className="flex items-center gap-2"><KeyRound className="size-4 text-brand" />تغییر رمز عبور</CardTitle></CardHeader><CardContent><form onSubmit={form.handleSubmit(()=>setSaved(true))} className="space-y-5"><div className="grid gap-5 sm:grid-cols-3"><FormTextField {...context} name="currentPassword" label="رمز فعلی" type="password" /><FormTextField {...context} name="newPassword" label="رمز جدید" type="password" /><FormTextField {...context} name="confirmation" label="تکرار رمز جدید" type="password" /></div><div className="flex items-center gap-3"><Button><ShieldCheck />ثبت رمز جدید</Button>{saved&&<Typography variant="small" className="flex items-center gap-1 text-emerald-600"><CheckCircle2 className="size-4" />رمز عبور تغییر کرد.</Typography>}</div></form></CardContent></Card><Card><CardHeader><CardTitle>ورود دومرحله‌ای</CardTitle></CardHeader><CardContent className="flex items-center justify-between gap-4"><div><Typography variant="body" className="font-medium">تأیید ورود با پیامک</Typography><Typography variant="small" className="mt-1">هنگام ورود از دستگاه جدید، کد تأیید ارسال شود.</Typography></div><Switch defaultChecked /></CardContent></Card><Card><CardHeader><CardTitle className="flex items-center gap-2"><MonitorSmartphone className="size-4 text-brand" />دستگاه‌های فعال</CardTitle></CardHeader><CardContent><div className="flex items-center justify-between rounded-lg border p-3"><div><Typography variant="body" className="font-medium">Chrome در Windows</Typography><Typography variant="small">قم · فعالیت فعلی</Typography></div><Button variant="ghost" size="sm"><LogOut />خروج</Button></div></CardContent></Card></div>}
+
