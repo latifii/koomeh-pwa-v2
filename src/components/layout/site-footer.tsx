@@ -33,6 +33,7 @@ const linkGroups = [
       { href: routes.properties({ deal: "rent" }), label: "رهن و اجاره" },
       { href: routes.panel.newProperty, label: "ثبت ملک" },
       { href: routes.panel.newRequest, label: "ثبت درخواست" },
+      { href: routes.tools.propertyAppraisal, label: "کارشناسی قیمت" },
     ],
   },
   {

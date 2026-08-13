@@ -44,13 +44,13 @@ const panelLinks = [
     enabled: true,
   },
   {
-    href: routes.panel.newProperty,
+    href: routes.panel.properties,
     label: "ملک‌های من",
     icon: Building2,
     enabled: true,
   },
   {
-    href: routes.panel.newRequest,
+    href: routes.panel.requests,
     label: "ثبت تقاضا",
     icon: ClipboardList,
     enabled: true,
@@ -113,7 +113,10 @@ export function PanelNav({
   return (
     <nav className="flex flex-col gap-1" aria-label="منوی پنل کاربری">
       {panelLinks.map((item) => {
-        const active = pathname === item.href;
+        const active =
+          pathname === item.href ||
+          (item.href !== routes.panel.dashboard &&
+            pathname.startsWith(`${item.href}/`));
         const Icon = item.icon;
         const className = cn(
           "flex h-11 w-full items-center justify-between rounded-lg px-3 text-sm font-medium transition-colors",

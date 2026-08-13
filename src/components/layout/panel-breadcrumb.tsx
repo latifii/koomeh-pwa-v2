@@ -11,6 +11,7 @@ const routeLabels: Record<string, string> = {
   [routes.panel.dashboard]: "داشبورد",
   [routes.panel.newProperty]: "ثبت ملک",
   [routes.panel.newRequest]: "ثبت تقاضا",
+  [routes.panel.requests]: "تقاضاهای ملکی",
   [routes.panel.properties]: "ملک‌های من",
   [routes.panel.favorites]: "علاقه‌مندی‌ها",
   [routes.panel.notifications]: "اعلان‌ها",
@@ -19,7 +20,7 @@ const routeLabels: Record<string, string> = {
 
 export function PanelBreadcrumb() {
   const pathname = usePathname();
-  const currentLabel = routeLabels[pathname] ?? "داشبورد";
+  const currentLabel = getCurrentLabel(pathname);
 
   return (
     <nav aria-label="مسیر صفحه" className="mb-4 flex items-center gap-1.5">
@@ -51,4 +52,14 @@ export function PanelBreadcrumb() {
       </Typography>
     </nav>
   );
+}
+
+function getCurrentLabel(pathname: string): string {
+  if (routeLabels[pathname]) return routeLabels[pathname];
+  if (pathname.startsWith(`${routes.panel.requests}/`) && pathname.endsWith("/edit")) {
+    return "ویرایش تقاضا";
+  }
+  if (pathname.startsWith(`${routes.panel.requests}/`)) return "جزئیات تقاضا";
+  if (pathname.startsWith(`${routes.panel.properties}/`)) return "مدیریت ملک";
+  return "داشبورد";
 }

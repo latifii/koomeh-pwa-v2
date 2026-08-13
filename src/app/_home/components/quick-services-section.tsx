@@ -17,6 +17,7 @@ const services: { href: string; icon: StaticImageData; label: string }[] = [
   { href: routes.properties({ deal: "rent" }), icon: iconKomision, label: "املاک اجاره" },
   { href: routes.properties(), icon: iconKomision, label: "جستجو ملک" },
   { href: routes.tools.commission, icon: iconKomision, label: "محاسبه کمیسیون" },
+  { href: routes.tools.propertyAppraisal, icon: iconKomision, label: "کارشناسی ملک" },
   { href: routes.neighborhoods, icon: iconMohalat, label: "محلات" },
   { href: routes.articles, icon: iconBlog, label: "مجله کومه" },
   { href: "/#branches", icon: iconBranch, label: "معرفی شعب" },

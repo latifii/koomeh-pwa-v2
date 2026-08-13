@@ -27,11 +27,19 @@ import {
   RequestBudgetSection,
 } from "./customer-request-sections";
 
-export function CustomerRequestForm() {
+export function CustomerRequestForm({
+  defaultValues = customerRequestDefaults,
+  submitLabel = "ذخیره درخواست",
+  successMessage = "درخواست با موفقیت ذخیره شد.",
+}: {
+  defaultValues?: CustomerRequestValues;
+  submitLabel?: string;
+  successMessage?: string;
+}) {
   const [submitted, setSubmitted] = useState(false);
   const form = useForm<CustomerRequestValues>({
     resolver: zodResolver(customerRequestSchema),
-    defaultValues: customerRequestDefaults,
+    defaultValues,
     mode: "onBlur",
   });
   const values = useWatch({ control: form.control });
@@ -61,6 +69,8 @@ export function CustomerRequestForm() {
         completion={completion}
         isSubmitting={form.formState.isSubmitting}
         submitted={submitted}
+        submitLabel={submitLabel}
+        successMessage={successMessage}
       />
     </form>
   );
@@ -102,10 +112,14 @@ function RequestSidebar({
   completion,
   isSubmitting,
   submitted,
+  submitLabel,
+  successMessage,
 }: {
   completion: number;
   isSubmitting: boolean;
   submitted: boolean;
+  submitLabel: string;
+  successMessage: string;
 }) {
   return (
     <aside className="order-first xl:order-last">
@@ -127,10 +141,10 @@ function RequestSidebar({
         </Card>
         <FormSubmitButton
           isSubmitting={isSubmitting}
-          idleLabel="ذخیره درخواست"
+          idleLabel={submitLabel}
         />
         {submitted && (
-          <FormSuccessMessage message="درخواست با موفقیت ذخیره شد." />
+          <FormSuccessMessage message={successMessage} />
         )}
       </div>
     </aside>
