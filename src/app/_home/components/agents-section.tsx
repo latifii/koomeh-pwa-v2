@@ -7,6 +7,7 @@ import { Section } from "@/components/layout/section";
 import { defaultAvatars } from "@/data/avatars";
 import type { Agent } from "@/data/home";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 import { SectionHeader } from "./section-header";
 
@@ -77,7 +78,7 @@ export function AgentsSection({ agents }: { agents: Agent[] }) {
           eyebrow="تیم حرفه‌ای کومه"
           title="مشاوران برتر این ماه"
           description="رتبه‌بندی بر اساس عملکرد ۳۰ روز گذشته؛ هر ماه بازنشانی می‌شود."
-          href="/agents/search"
+          href={routes.agents}
           linkLabel="جدول کامل"
           light
           className="mb-8"
@@ -109,7 +110,7 @@ function PodiumCard({ agent }: { agent: Agent }) {
 
   return (
     <Link
-      href={`/agents/${agent.id}`}
+      href={routes.agent(agent.id)}
       className={cn(
         "group relative flex flex-1 flex-col items-center gap-3 rounded-3xl border border-white/12 bg-white/5 px-5 pb-5 pt-12 text-center backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-secondary/40",
         isChampion && "bg-white/10 pt-14",
@@ -162,7 +163,7 @@ function LeaderRow({ agent }: { agent: Agent }) {
 
   return (
     <Link
-      href={`/agents/${agent.id}`}
+      href={routes.agent(agent.id)}
       className={cn(
         "flex items-center gap-3 rounded-2xl border border-white/12 bg-white/5 p-3 backdrop-blur-sm transition-colors active:bg-white/10",
         agent.rank === 1 && "border-secondary/40 bg-white/10"

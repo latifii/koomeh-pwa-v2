@@ -6,6 +6,7 @@ import type { Estate } from "@/data/home";
 
 import { PropertyCard } from "@/components/features/property/property-card";
 import { SectionHeader } from "./section-header";
+import { routes } from "@/lib/routes";
 
 export function SaleSection({ estates }: { estates: Estate[] }) {
   return (
@@ -14,7 +15,7 @@ export function SaleSection({ estates }: { estates: Estate[] }) {
         eyebrow="تازه‌ترین فایل‌ها"
         title="املاک خرید و فروش"
         description="گزینه‌های جدید بازار قم را سریع مقایسه کنید."
-        href="/search/qom?deal=sale"
+        href={routes.properties({ deal: "sale" })}
         className="mb-8"
       />
 

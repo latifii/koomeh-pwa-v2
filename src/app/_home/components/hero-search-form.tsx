@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 const dealTypes = [
   { value: "sale", label: "خرید", icon: Home },
@@ -89,7 +90,7 @@ export function HeroSearchForm({
     const maxArea = data.get("maxArea");
     if (maxArea) params.set("maxArea", String(maxArea));
 
-    router.push(`/search/qom?${params.toString()}`);
+    router.push(`${routes.properties()}?${params.toString()}`);
   }
 
   return (

@@ -5,15 +5,16 @@ import { usePathname } from "next/navigation";
 import { ChevronLeft, Home } from "lucide-react";
 
 import { Typography } from "@/components/ui/typography";
+import { routes } from "@/lib/routes";
 
 const routeLabels: Record<string, string> = {
-  "/panel/dashboard": "داشبورد",
-  "/panel/properties/new": "ثبت ملک",
-  "/panel/customers/new": "ثبت تقاضا",
-  "/panel/properties": "ملک‌های من",
-  "/panel/favorites": "علاقه‌مندی‌ها",
-  "/panel/notifications": "اعلان‌ها",
-  "/panel/settings": "تنظیمات حساب",
+  [routes.panel.dashboard]: "داشبورد",
+  [routes.panel.newProperty]: "ثبت ملک",
+  [routes.panel.newRequest]: "ثبت تقاضا",
+  [routes.panel.properties]: "ملک‌های من",
+  [routes.panel.favorites]: "علاقه‌مندی‌ها",
+  [routes.panel.notifications]: "اعلان‌ها",
+  [routes.panel.profile]: "تنظیمات حساب",
 };
 
 export function PanelBreadcrumb() {
@@ -23,7 +24,7 @@ export function PanelBreadcrumb() {
   return (
     <nav aria-label="مسیر صفحه" className="mb-4 flex items-center gap-1.5">
       <Link
-        href="/"
+        href={routes.home}
         className="inline-flex items-center gap-1 rounded-md px-1 py-1 text-muted-foreground transition-colors hover:text-brand"
       >
         <Home className="size-3.5" />
@@ -33,7 +34,7 @@ export function PanelBreadcrumb() {
       </Link>
       <ChevronLeft className="size-3.5 text-muted-foreground/60" />
       <Link
-        href="/panel/dashboard"
+        href={routes.panel.dashboard}
         className="rounded-md px-1 py-1 text-muted-foreground transition-colors hover:text-brand"
       >
         <Typography as="span" variant="small">

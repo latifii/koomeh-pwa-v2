@@ -23,12 +23,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 const navLinks = [
-  { href: "/search/qom", label: "جستجوی ملک" },
-  { href: "/agents/search", label: "کارشناسان" },
-  { href: "/blogs", label: "مجله املاک" },
-  { href: "/commission", label: "محاسبه کمیسیون" },
+  { href: routes.properties(), label: "جستجوی ملک" },
+  { href: routes.agents, label: "کارشناسان" },
+  { href: routes.articles, label: "مجله املاک" },
+  { href: routes.tools.commission, label: "محاسبه کمیسیون" },
   // { href: "/#branches", label: "شعب کومه" },
 ];
 
@@ -60,7 +61,7 @@ export function SiteHeader() {
       )}
     >
       <Container className="flex h-16 items-center justify-between">
-        <Link href="/" className="flex shrink-0 items-center">
+        <Link href={routes.home} className="flex shrink-0 items-center">
           <Image
             src={logoLight}
             alt="گروه املاک کومه"
@@ -110,6 +111,8 @@ export function SiteHeader() {
             size="lg"
             variant="secondary"
             className="hidden sm:inline-flex"
+            nativeButton={false}
+            render={<Link href={routes.panel.newProperty} />}
           >
             <PlusCircle />
             ثبت ملک
@@ -122,6 +125,8 @@ export function SiteHeader() {
               transparent &&
                 "border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white",
             )}
+            nativeButton={false}
+            render={<Link href={routes.auth.login} />}
           >
             <User className="hidden md:block" />
             ورود
@@ -178,16 +183,26 @@ export function SiteHeader() {
               <Separator className="my-3" />
               <div className="flex flex-col gap-2">
                 <DrawerClose
+                  nativeButton={false}
                   render={
-                    <Button variant="secondary">
+                    <Button
+                      variant="secondary"
+                      nativeButton={false}
+                      render={<Link href={routes.panel.newProperty} />}
+                    >
                       <PlusCircle />
                       ثبت ملک
                     </Button>
                   }
                 />
                 <DrawerClose
+                  nativeButton={false}
                   render={
-                    <Button variant="outline">
+                    <Button
+                      variant="outline"
+                      nativeButton={false}
+                      render={<Link href={routes.auth.login} />}
+                    >
                       <User />
                       ورود / ثبت‌نام
                     </Button>

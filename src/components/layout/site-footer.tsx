@@ -14,31 +14,32 @@ import {
 
 import logoLight from "@/assets/images/logo/logo-new-light.png";
 import { Container } from "@/components/layout/container";
+import { routes } from "@/lib/routes";
 
 const linkGroups = [
   {
     title: "کومه",
     links: [
-      { href: "/#top", label: "خانه" },
-      { href: "/blogs/346", label: "داستان کومه" },
+      { href: `${routes.home}#top`, label: "خانه" },
+      { href: routes.article(346), label: "داستان کومه" },
       { href: "/#branches", label: "شعب" },
-      { href: "/contact", label: "همکاری با ما" },
+      { href: routes.contact, label: "همکاری با ما" },
     ],
   },
   {
     title: "خدمات",
     links: [
-      { href: "/search/qom?deal=sale", label: "خرید ملک" },
-      { href: "/search/qom?deal=rent", label: "رهن و اجاره" },
-      { href: "/add", label: "ثبت ملک" },
-      { href: "/panel/customers/new", label: "ثبت درخواست" },
+      { href: routes.properties({ deal: "sale" }), label: "خرید ملک" },
+      { href: routes.properties({ deal: "rent" }), label: "رهن و اجاره" },
+      { href: routes.panel.newProperty, label: "ثبت ملک" },
+      { href: routes.panel.newRequest, label: "ثبت درخواست" },
     ],
   },
   {
     title: "منابع",
     links: [
-      { href: "/blogs", label: "مجله املاک" },
-      { href: "/areas", label: "راهنمای محلات" },
+      { href: routes.articles, label: "مجله املاک" },
+      { href: routes.neighborhoods, label: "راهنمای محلات" },
       { href: "/#faq", label: "پرسش‌های متداول" },
     ],
   },
@@ -81,7 +82,7 @@ export function SiteFooter() {
             </p>
           </div>
           <Link
-            href="/add"
+            href={routes.panel.newProperty}
             className="group flex w-fit shrink-0 items-center gap-1.5 rounded-lg bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground transition-transform hover:scale-105"
           >
             ثبت رایگان ملک
@@ -91,7 +92,7 @@ export function SiteFooter() {
 
         <div className="grid gap-8 py-8 sm:py-10 lg:grid-cols-[1.3fr_2fr_1.2fr]">
           <div className="flex flex-col gap-4">
-            <Link href="/" className="w-fit">
+            <Link href={routes.home} className="w-fit">
               <Image
                 src={logoLight}
                 alt="گروه املاک کومه"

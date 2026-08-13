@@ -3,6 +3,7 @@ import { ClipboardList, Megaphone } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 import { Typography } from "@/components/ui/typography";
 
 export function FinalCtaSection() {
@@ -24,7 +25,7 @@ export function FinalCtaSection() {
             variant="secondary"
             className="w-full sm:w-fit"
             nativeButton={false}
-            render={<Link href="/panel/requests/new" />}
+            render={<Link href={routes.panel.newRequest} />}
           >
             <ClipboardList />
             ثبت تقاضا
@@ -34,7 +35,7 @@ export function FinalCtaSection() {
             variant="outline"
             className="w-full sm:w-fit"
             nativeButton={false}
-            render={<Link href="/add" />}
+            render={<Link href={routes.panel.newProperty} />}
           >
             <Megaphone />
             ثبت ملک

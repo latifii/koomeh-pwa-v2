@@ -7,6 +7,7 @@ import introBuy from "@/assets/images/intro/intro3.webp";
 import introRent from "@/assets/images/intro/intro2.webp";
 import introSell from "@/assets/images/intro/intro1.webp";
 import introRequest from "@/assets/images/intro/intro4.webp";
+import { routes } from "@/lib/routes";
 
 const paths: {
   href: string;
@@ -15,25 +16,25 @@ const paths: {
   description: string;
 }[] = [
   {
-    href: "/search/qom?deal=sale",
+    href: routes.properties({ deal: "sale" }),
     image: introBuy,
     title: "خرید ملک",
     description: "فایل‌های فروش در محله‌های قم",
   },
   {
-    href: "/search/qom?deal=rent",
+    href: routes.properties({ deal: "rent" }),
     image: introRent,
     title: "رهن و اجاره",
     description: "خانه مناسب با بودجه شما",
   },
   {
-    href: "/add",
+    href: routes.panel.newProperty,
     image: introSell,
     title: "فروش ملک",
     description: "معرفی ملک به متقاضیان واقعی",
   },
   {
-    href: "/panel/requests/new",
+    href: routes.panel.newRequest,
     image: introRequest,
     title: "ثبت درخواست",
     description: "نیازتان را به مشاور کومه بسپارید",

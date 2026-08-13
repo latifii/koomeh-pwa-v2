@@ -7,6 +7,7 @@ import { Icon360 } from "@/components/icons/icon-360";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 import type { Estate } from "@/data/home";
 import { propertyTypeLabels } from "@/data/home";
 
@@ -55,7 +56,7 @@ export function VirtualTourSection({ estates }: { estates: Estate[] }) {
           eyebrow="بازدید آنلاین و بدون محدودیت"
           title="املاک دارای تور مجازی"
           description="پیش از بازدید حضوری، تمام فضای ملک را به‌صورت ۳۶۰ درجه بررسی کنید."
-          href="/search/qom"
+          href={routes.properties()}
           light
           className="mb-6"
         />
@@ -108,7 +109,7 @@ function TourCard({
 }) {
   return (
     <Link
-      href={`/estate/${estate.id}`}
+      href={routes.property(estate.id)}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/12 backdrop-blur-sm transition-all duration-300 hover:ring-secondary/50 hover:shadow-[0_24px_60px_-30px_var(--color-black)]",
         className

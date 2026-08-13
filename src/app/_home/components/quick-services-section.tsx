@@ -10,16 +10,17 @@ import iconMaps from "@/assets/images/card/quick/maps.png";
 import iconMohalat from "@/assets/images/card/quick/mohalat.png";
 import iconSocial from "@/assets/images/card/quick/social.png";
 import { Section } from "@/components/layout/section";
+import { routes } from "@/lib/routes";
 
 const services: { href: string; icon: StaticImageData; label: string }[] = [
-  { href: "/search/qom?deal=sale", icon: iconKomision, label: "املاک فروشی" },
-  { href: "/search/qom?deal=rent", icon: iconKomision, label: "املاک اجاره" },
-  { href: "/search/qom", icon: iconKomision, label: "جستجو ملک" },
-  { href: "/blogs/9", icon: iconKomision, label: "محاسبه کمیسیون" },
-  { href: "/areas", icon: iconMohalat, label: "محلات" },
-  { href: "/blogs", icon: iconBlog, label: "مجله کومه" },
+  { href: routes.properties({ deal: "sale" }), icon: iconKomision, label: "املاک فروشی" },
+  { href: routes.properties({ deal: "rent" }), icon: iconKomision, label: "املاک اجاره" },
+  { href: routes.properties(), icon: iconKomision, label: "جستجو ملک" },
+  { href: routes.tools.commission, icon: iconKomision, label: "محاسبه کمیسیون" },
+  { href: routes.neighborhoods, icon: iconMohalat, label: "محلات" },
+  { href: routes.articles, icon: iconBlog, label: "مجله کومه" },
   { href: "/#branches", icon: iconBranch, label: "معرفی شعب" },
-  { href: "/search/qom", icon: iconMaps, label: "جستجو نقشه" },
+  { href: routes.properties(), icon: iconMaps, label: "جستجو نقشه" },
   { href: "/#virtual-tour-title", icon: icon360, label: "تور مجازی" },
   { href: "https://instagram.com", icon: iconSocial, label: "شبکه اجتماعی" },
   { href: "/contact", icon: iconGoftino, label: "پشتیبانی" },

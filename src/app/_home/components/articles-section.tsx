@@ -6,6 +6,7 @@ import blogCover from "@/assets/images/card/blog.webp";
 import { Section } from "@/components/layout/section";
 import type { Article } from "@/data/home";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 import { SectionHeader } from "./section-header";
 
@@ -20,7 +21,7 @@ export function ArticlesSection({ articles }: { articles: Article[] }) {
         eyebrow="دانش بازار ملک"
         title="مجله املاک کومه"
         description="پیش از تصمیم‌گیری، بازار قم را از زبان کارشناسان ما بخوانید."
-        href="/blogs"
+        href={routes.articles}
         linkLabel="مقالات بیشتر"
         className="mb-6 sm:mb-8"
       />
@@ -61,7 +62,7 @@ function ArticleCard({
 }) {
   return (
     <Link
-      href={`/blogs/${article.id}`}
+      href={routes.article(article.id)}
       className={cn(
         "group flex flex-col overflow-hidden rounded-2xl border bg-card",
         className
@@ -94,7 +95,7 @@ function ArticleCard({
 function FeaturedArticle({ article }: { article: Article }) {
   return (
     <Link
-      href={`/blogs/${article.id}`}
+      href={routes.article(article.id)}
       className="group relative flex min-h-56 flex-col justify-end overflow-hidden rounded-2xl border p-4 sm:min-h-96 sm:rounded-3xl sm:p-7"
     >
       <Image
@@ -126,7 +127,7 @@ function FeaturedArticle({ article }: { article: Article }) {
 function CompactArticle({ article }: { article: Article }) {
   return (
     <Link
-      href={`/blogs/${article.id}`}
+      href={routes.article(article.id)}
       className="group flex h-full items-center gap-2.5 overflow-hidden rounded-2xl border bg-card p-2 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md sm:gap-4 sm:p-4"
     >
       <span className="relative size-20 shrink-0 overflow-hidden rounded-xl sm:size-32">

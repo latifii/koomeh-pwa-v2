@@ -3,6 +3,7 @@ import { Building2, MapPin, Phone } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
 import type { Branch } from "@/data/home";
+import { routes } from "@/lib/routes";
 
 import { CoverPlaceholder } from "./cover-placeholder";
 import { SectionHeader } from "./section-header";
@@ -50,7 +51,7 @@ export function BranchesSection({ branches }: { branches: Branch[] }) {
             </div>
 
             <Link
-              href={`/branch/${branch.id}`}
+              href={routes.branch(branch.id)}
               aria-label={branch.name}
               className="absolute inset-0 z-10"
             />

@@ -3,6 +3,7 @@ import { ArrowLeft, MapPinned } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
 import type { AreaGuide } from "@/data/home";
+import { routes } from "@/lib/routes";
 
 import { CoverPlaceholder } from "./cover-placeholder";
 import { SectionHeader } from "./section-header";
@@ -16,7 +17,7 @@ export function AreasSection({ areas }: { areas: AreaGuide[] }) {
         eyebrow="قم را بهتر بشناسید"
         title="محلات"
         description="راهنمای انتخاب محله مناسب برای زندگی و سرمایه‌گذاری."
-        href="/areas"
+        href={routes.neighborhoods}
         className="mb-8"
       />
 
@@ -25,7 +26,7 @@ export function AreasSection({ areas }: { areas: AreaGuide[] }) {
         {areas.map((area) => (
           <Link
             key={area.id}
-            href={`/areas/${area.id}`}
+            href={routes.neighborhood(area.id)}
             className="group w-[38%] shrink-0 snap-start overflow-hidden rounded-2xl border bg-card sm:w-auto"
           >
             <CoverPlaceholder

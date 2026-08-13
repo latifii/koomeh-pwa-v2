@@ -10,6 +10,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Typography } from "@/components/ui/typography";
+import { routes } from "@/lib/routes";
 import type { Faq } from "@/data/home";
 
 export function FaqSection({ faqs }: { faqs: Faq[] }) {
@@ -30,7 +31,7 @@ export function FaqSection({ faqs }: { faqs: Faq[] }) {
           می‌شوند.
         </Typography>
         <Link
-          href="/panel/requests/new"
+          href={routes.panel.newRequest}
           className="text-xs font-medium text-brand underline-offset-4 hover:underline sm:mt-1 sm:text-sm "
         >
           پاسخ خود را پیدا نکردید؟ با ما در میان بگذارید.

@@ -10,6 +10,7 @@ import {
   getAgentListingCount,
 } from "@/data/agents";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 /** Top-rated ribbon, reused on the card and the profile hero. */
 export function TopRatedBadge({ className }: { className?: string }) {
@@ -44,7 +45,7 @@ export function AgentCard({
 
   return (
     <Link
-      href={`/agents/${agent.id}`}
+      href={routes.agent(agent.id)}
       className={cn(
         "group flex flex-col gap-3 rounded-2xl border bg-card p-4 transition-colors hover:border-brand/30",
         className

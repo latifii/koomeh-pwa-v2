@@ -6,6 +6,7 @@ import mapImage from "@/assets/images/others/maps1.webp";
 import { Section } from "@/components/layout/section";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 /** Decorative markers — position only, no fabricated listing data. */
 const markers = [
@@ -68,7 +69,7 @@ export function MapCtaSection() {
           </Typography>
 
           <Link
-            href="/search/qom"
+            href={routes.properties()}
             className="group mt-1 flex w-fit items-center gap-2 rounded-lg bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground transition-transform hover:scale-105"
           >
             <Map className="size-4" />

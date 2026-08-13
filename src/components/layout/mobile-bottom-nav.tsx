@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation";
 import { Heart, Home, PlusCircle, Search, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 const items = [
-  { href: "/", label: "خانه", icon: Home },
-  { href: "/search/qom", label: "جستجو", icon: Search },
-  { href: "/add", label: "ثبت ملک", icon: PlusCircle, accent: true },
-  { href: "/favorite", label: "علاقه‌مندی", icon: Heart },
-  { href: "/login", label: "حساب", icon: User },
+  { href: routes.home, label: "خانه", icon: Home },
+  { href: routes.properties(), label: "جستجو", icon: Search },
+  { href: routes.panel.newProperty, label: "ثبت ملک", icon: PlusCircle, accent: true },
+  { href: routes.panel.favorites, label: "علاقه‌مندی", icon: Heart },
+  { href: routes.auth.login, label: "حساب", icon: User },
 ];
 
 export function MobileBottomNav() {

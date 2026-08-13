@@ -8,6 +8,7 @@ import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 /**
  * The etymology told as three beats instead of three paragraphs — a reader can
@@ -224,7 +225,7 @@ function StoryFooter({ className }: { className?: string }) {
         size="sm"
         className="w-fit shrink-0"
         nativeButton={false}
-        render={<Link href="/blogs/346" />}
+        render={<Link href={routes.article(346)} />}
       >
         داستان کامل
         <ArrowLeft className="size-4" />

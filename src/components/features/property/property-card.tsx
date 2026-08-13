@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 import { defaultAvatars } from "@/data/avatars";
 import { type Estate, propertyTypeLabels } from "@/data/home";
 
@@ -37,7 +38,7 @@ export function PropertyCard({
   estate: Estate;
   className?: string;
 }) {
-  const href = `/estate/${estate.id}`;
+  const href = routes.property(estate.id);
 
   return (
     <Card

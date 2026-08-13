@@ -28,6 +28,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 
 const panelUser = {
   firstName: "حامد",
@@ -37,37 +38,37 @@ const panelUser = {
 
 const panelLinks = [
   {
-    href: "/panel/dashboard",
+    href: routes.panel.dashboard,
     label: "داشبورد",
     icon: LayoutDashboard,
     enabled: true,
   },
   {
-    href: "/panel/properties/new",
+    href: routes.panel.newProperty,
     label: "ملک‌های من",
     icon: Building2,
     enabled: true,
   },
   {
-    href: "/panel/customers/new",
+    href: routes.panel.newRequest,
     label: "ثبت تقاضا",
     icon: ClipboardList,
     enabled: true,
   },
   {
-    href: "/panel/favorites",
+    href: routes.panel.favorites,
     label: "علاقه‌مندی‌ها",
     icon: Heart,
     enabled: false,
   },
   {
-    href: "/panel/notifications",
+    href: routes.panel.notifications,
     label: "اعلان‌ها",
     icon: Bell,
     enabled: false,
   },
   {
-    href: "/panel/settings",
+    href: routes.panel.profile,
     label: "تنظیمات حساب",
     icon: Settings,
     enabled: false,

@@ -33,6 +33,7 @@ import {
   getAllAgentIds,
 } from "@/data/agents";
 import { propertyTypeLabels } from "@/data/home";
+import { routes } from "@/lib/routes";
 
 import { AgentContactCard } from "./_components/agent-contact-card";
 
@@ -103,7 +104,7 @@ export default async function AgentProfilePage({
             خانه
           </Link>
           <ChevronLeft className="size-3.5 shrink-0" />
-          <Link href="/agents/search" className="shrink-0 hover:text-brand">
+          <Link href={routes.agents} className="shrink-0 hover:text-brand">
             کارشناسان
           </Link>
           <ChevronLeft className="size-3.5 shrink-0" />
@@ -332,7 +333,7 @@ export default async function AgentProfilePage({
                   size="sm"
                   className="text-brand"
                   nativeButton={false}
-                  render={<Link href="/search/qom" />}
+                  render={<Link href={routes.properties()} />}
                 >
                   همه فایل‌ها
                   <ChevronLeft data-icon="inline-end" />
