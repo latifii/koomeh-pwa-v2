@@ -26,7 +26,11 @@ export interface Estate {
   baths: number;
   agentName: string;
   agentGender: "male" | "female";
+  agentPhoto?: string;
+  coverImage?: string;
+  locationLabel?: string;
   isNew?: boolean;
+  isSpecial?: boolean;
   hasTour?: boolean;
 }
 

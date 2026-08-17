@@ -5,6 +5,7 @@ import "./globals.css";
 import { DirectionProvider } from "@/components/ui/direction";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/provider/theme-provider";
+import { QueryProvider } from "@/provider/query-provider";
 import { THEME_COOKIE } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -90,14 +91,16 @@ export default async function RootLayout({
     >
       <DirectionProvider direction="rtl">
         <body className="min-h-full flex flex-col">
-          <ThemeProvider initialTheme={theme}>
-            <TooltipProvider>
-              <SiteHeader />
-              <main className="flex flex-1 flex-col">{children}</main>
-              <SiteFooter />
-              <MobileBottomNav />
-            </TooltipProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider initialTheme={theme}>
+              <TooltipProvider>
+                <SiteHeader />
+                <main className="flex flex-1 flex-col">{children}</main>
+                <SiteFooter />
+                <MobileBottomNav />
+              </TooltipProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </body>
       </DirectionProvider>
     </html>

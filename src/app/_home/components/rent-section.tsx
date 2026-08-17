@@ -1,36 +1,27 @@
 import Link from "next/link";
 
+import type { HomeRentEstateSection } from "@/app/_home/_types/home-estates.types";
 import { Section } from "@/components/layout/section";
-import type { Estate } from "@/data/home";
 import { cn } from "@/lib/utils";
 
 import { PropertyCard } from "@/components/features/property/property-card";
 import { SectionHeader } from "./section-header";
-import { routes } from "@/lib/routes";
 
-const filters = [
-  { label: "آپارتمان", href: routes.properties({ deal: "rent", propertyTypes: "apartment" }) },
-  { label: "خانه ویلایی", href: routes.properties({ deal: "rent", propertyTypes: "villa" }) },
-  { label: "تجاری", href: routes.properties({ deal: "rent", propertyTypes: "commercial" }) },
-  { label: "رهن کامل", href: routes.properties({ deal: "rent" }) },
-  { label: "اجاره ماهانه", href: routes.properties({ deal: "rent" }) },
-];
-
-export function RentSection({ estates }: { estates: Estate[] }) {
-  if (estates.length === 0) return null;
+export function RentSection({ section }: { section: HomeRentEstateSection }) {
+  if (section.items.length === 0) return null;
 
   return (
     <Section tone="muted">
       <SectionHeader
-        eyebrow="برای یک شروع تازه"
-        title="املاک رهن و اجاره"
-        description="فایل‌های مناسب اجاره را بدون شلوغی مرور کنید."
-        href={routes.properties({ deal: "rent" })}
+        eyebrow={section.eyebrow}
+        title={section.title}
+        description={section.subtitle}
+        href={section.viewAllHref}
         className="mb-6"
       />
 
       <div className="mb-6 flex flex-wrap gap-2">
-        {filters.map((filter, i) => (
+        {section.quickFilters.map((filter, i) => (
           <Link
             key={filter.label + i}
             href={filter.href}
@@ -47,7 +38,7 @@ export function RentSection({ estates }: { estates: Estate[] }) {
       </div>
 
       <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none]">
-        {estates.map((estate) => (
+        {section.items.map((estate) => (
           <PropertyCard
             key={estate.id}
             estate={estate}

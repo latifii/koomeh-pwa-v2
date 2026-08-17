@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { AgentsSection } from "@/app/_home/components/agents-section";
 import { AreasSection } from "@/app/_home/components/areas-section";
 import { ArticlesSection } from "@/app/_home/components/articles-section";
@@ -7,9 +9,9 @@ import { FaqSection } from "@/app/_home/components/faq-section";
 import { Hero } from "@/app/_home/components/hero";
 import { MapCtaSection } from "@/app/_home/components/map-cta-section";
 import { QuickServicesSection } from "@/app/_home/components/quick-services-section";
-
-import { RentSection } from "@/app/_home/components/rent-section";
-import { SaleSection } from "@/app/_home/components/sale-section";
+import { LatestRentEstatesServer } from "@/app/_home/components/latest-rent-estates-server";
+import { LatestSaleEstatesServer } from "@/app/_home/components/latest-sale-estates-server";
+import { EstateSectionSkeleton } from "@/app/_home/components/estate-section-state";
 import { StorySection } from "@/app/_home/components/story-section";
 // import { TrustStrip } from "@/app/_home/components/trust-strip";
 import { VirtualTourSection } from "@/app/_home/components/virtual-tour-section";
@@ -18,12 +20,12 @@ import {
   articles,
   branches,
   homeFaqs,
-  rentEstates,
-  saleEstates,
   topAgents,
   tourEstates,
 } from "@/data/home";
 // import { QuickPaths } from "./_home/components/quick-paths";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
   return (
@@ -32,10 +34,14 @@ export default function Home() {
       <QuickServicesSection />
       {/* <QuickPaths /> */}
       {/* <TrustStrip /> */}
-      <SaleSection estates={saleEstates.slice(0, 8)} />
+      <Suspense fallback={<EstateSectionSkeleton count={8} />}>
+        <LatestSaleEstatesServer />
+      </Suspense>
       <VirtualTourSection estates={tourEstates} />
       <StorySection />
-      <RentSection estates={rentEstates.slice(0, 4)} />
+      <Suspense fallback={<EstateSectionSkeleton count={4} withFilters />}>
+        <LatestRentEstatesServer />
+      </Suspense>
       <AgentsSection agents={topAgents} />
       <ArticlesSection articles={articles.slice(0, 3)} />
       <AreasSection areas={areaGuides.slice(0, 6)} />

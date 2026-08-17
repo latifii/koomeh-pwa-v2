@@ -2,26 +2,25 @@ import { Home } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
 import { Typography } from "@/components/ui/typography";
-import type { Estate } from "@/data/home";
+import type { HomeSaleEstateSection } from "@/app/_home/_types/home-estates.types";
 
 import { PropertyCard } from "@/components/features/property/property-card";
 import { SectionHeader } from "./section-header";
-import { routes } from "@/lib/routes";
 
-export function SaleSection({ estates }: { estates: Estate[] }) {
+export function SaleSection({ section }: { section: HomeSaleEstateSection }) {
   return (
     <Section id="sale-estates" tone="muted">
       <SectionHeader
-        eyebrow="تازه‌ترین فایل‌ها"
-        title="املاک خرید و فروش"
-        description="گزینه‌های جدید بازار قم را سریع مقایسه کنید."
-        href={routes.properties({ deal: "sale" })}
+        eyebrow={section.eyebrow}
+        title={section.title}
+        description={section.subtitle}
+        href={section.viewAllHref}
         className="mb-8"
       />
 
-      {estates.length > 0 ? (
+      {section.items.length > 0 ? (
         <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
-          {estates.map((estate) => (
+          {section.items.map((estate) => (
             <PropertyCard
               key={estate.id}
               estate={estate}

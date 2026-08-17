@@ -39,6 +39,7 @@ export function PropertyCard({
   className?: string;
 }) {
   const href = routes.property(estate.id);
+  const image = estate.coverImage ?? propertyImages[estate.propertyType];
 
   return (
     <Card
@@ -47,11 +48,13 @@ export function PropertyCard({
         className,
       )}
     >
-      <div className="relative overflow-hidden rounded-t-2xl">
+      <div className="relative aspect-4/3 overflow-hidden rounded-t-2xl">
         <Image
-          src={propertyImages[estate.propertyType]}
+          src={image}
           alt={propertyTypeLabels[estate.propertyType]}
-          className="aspect-4/3 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-107"
+          fill
+          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 80vw"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-107"
         />
 
         {/* Scrim: keeps the overlaid badges and price legible on any artwork */}
@@ -67,6 +70,11 @@ export function PropertyCard({
                 جدید
               </Badge>
             )}
+            {estate.isSpecial && (
+              <Badge variant="secondary" className="shadow-sm">
+                ویژه
+              </Badge>
+            )}
           </div>
 
           <button
@@ -79,20 +87,25 @@ export function PropertyCard({
         </div>
 
         <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-2">
-          <span className="flex min-w-0 items-center gap-2 rounded-full border border-secondary/60 bg-black/30 py-1 pe-3 ps-1 text-white shadow-sm backdrop-blur-md">
-            <Avatar className="size-6 ring-1 ring-white/30">
-              <AvatarImage
-                src={defaultAvatars[estate.agentGender].src}
-                alt={estate.agentName}
-              />
-              <AvatarFallback className="bg-white/20 text-xs font-semibold text-white">
-                {estate.agentName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="truncate text-[13px] font-medium">
-              {estate.agentName}
+          {estate.agentName && (
+            <span className="flex min-w-0 items-center gap-2 rounded-full border border-secondary/60 bg-black/30 py-1 pe-3 ps-1 text-white shadow-sm backdrop-blur-md">
+              <Avatar className="size-6 ring-1 ring-white/30">
+                <AvatarImage
+                  src={
+                    estate.agentPhoto ??
+                    defaultAvatars[estate.agentGender ?? "male"].src
+                  }
+                  alt={estate.agentName}
+                />
+                <AvatarFallback className="bg-white/20 text-xs font-semibold text-white">
+                  {estate.agentName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="truncate text-[13px] font-medium">
+                {estate.agentName}
+              </span>
             </span>
-          </span>
+          )}
           {estate.hasTour && (
             <span
               title="تور مجازی ۳۶۰ درجه"
@@ -112,7 +125,7 @@ export function PropertyCard({
           </h3>
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="size-3.5 shrink-0" />
-            {estate.district}، قم
+            {estate.locationLabel ?? `${estate.district}، قم`}
           </span>
         </div>
 
@@ -125,8 +138,12 @@ export function PropertyCard({
                 <Spec icon={BedDouble} value={`${estate.rooms} خواب`} />
               </>
             )}
-            <span className="h-3.5 w-px bg-border" />
-            <Spec icon={Bath} value={`${estate.baths} سرویس`} />
+            {typeof estate.baths === "number" && estate.baths > 0 && (
+              <>
+                <span className="h-3.5 w-px bg-border" />
+                <Spec icon={Bath} value={`${estate.baths} سرویس`} />
+              </>
+            )}
           </div>
         ) : (
           <div className="flex items-center rounded-xl bg-muted/60 px-2.5 py-1.5 text-xs text-muted-foreground">
