@@ -23,7 +23,7 @@ export function MapCtaSection() {
           src={mapImage}
           alt="نقشه شهر قم"
           fill
-          sizes="100vw"
+          sizes="(min-width: 1280px) 1152px, calc(100vw - 2rem)"
           quality={90}
           className="object-cover"
         />

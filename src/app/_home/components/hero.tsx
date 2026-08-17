@@ -22,6 +22,7 @@ export function Hero() {
             alt="نمای املاک قم"
             fill
             priority
+            sizes="(max-width: 767px) 100vw, 1px"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-linear-to-b from-primary/60 via-black/35 to-primary/85" />
@@ -57,6 +58,7 @@ export function Hero() {
             alt="نمای املاک قم"
             fill
             priority
+            sizes="(min-width: 768px) 100vw, 1px"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-linear-to-b from-primary/70 via-black/45 to-primary/85" />

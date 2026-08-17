@@ -3,6 +3,7 @@ import type {
   HomeQuickFilter,
   HomeRentEstateSection,
   HomeSaleEstateSection,
+  HomeVirtualTourEstateSection,
 } from "@/app/_home/_types/home-estates.types";
 import type { PropertyType } from "@/data/home";
 import { routes } from "@/lib/routes";
@@ -10,6 +11,7 @@ import { toAbsoluteMediaUrl } from "@/lib/api/config";
 import type {
   LatestRentEstatesResponse,
   LatestSaleEstatesResponse,
+  VirtualTourEstatesResponse,
 } from "@/app/_home/_schemas/home-estates.schema";
 
 const moneyFormatter = new Intl.NumberFormat("fa-IR", {
@@ -43,7 +45,7 @@ function propertyTypeFrom(dto: HomeEstateDto): PropertyType {
   return propertyTypeById[dto.estate_type] ?? "apartment";
 }
 
-function mapEstate(dto: HomeEstateDto) {
+export function mapHomeEstate(dto: HomeEstateDto) {
   return {
     id: String(dto.id),
     title: dto.title,
@@ -95,7 +97,7 @@ export function mapLatestSaleEstates(
     subtitle: section.subtitle,
     viewAllHref: routes.properties({ deal: "sale" }),
     total: section.total,
-    items: section.items.map(mapEstate),
+    items: section.items.map(mapHomeEstate),
   };
 }
 
@@ -111,6 +113,21 @@ export function mapLatestRentEstates(
     viewAllHref: routes.properties({ deal: "rent" }),
     total: section.total,
     quickFilters: section.quick_filters.map(mapQuickFilter),
-    items: section.items.map(mapEstate),
+    items: section.items.map(mapHomeEstate),
+  };
+}
+
+export function mapVirtualTourEstates(
+  response: VirtualTourEstatesResponse,
+): HomeVirtualTourEstateSection {
+  const section = response.result;
+  return {
+    key: section.key,
+    eyebrow: section.eyebrow,
+    title: section.title,
+    subtitle: section.subtitle,
+    viewAllHref: routes.properties({ virtualTour: true }),
+    total: section.total,
+    items: section.items.map(mapHomeEstate),
   };
 }

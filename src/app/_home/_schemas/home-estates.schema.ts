@@ -68,10 +68,20 @@ export const latestRentEstatesResponseSchema = z.object({
   }),
 });
 
+export const virtualTourEstatesResponseSchema = z.object({
+  status: z.literal("success"),
+  result: sectionBaseSchema.extend({
+    key: z.literal("virtual_tour_estates"),
+  }),
+});
+
 export type HomeEstateDto = z.infer<typeof homeEstateSchema>;
 export type LatestSaleEstatesResponse = z.infer<
   typeof latestSaleEstatesResponseSchema
 >;
 export type LatestRentEstatesResponse = z.infer<
   typeof latestRentEstatesResponseSchema
+>;
+export type VirtualTourEstatesResponse = z.infer<
+  typeof virtualTourEstatesResponseSchema
 >;

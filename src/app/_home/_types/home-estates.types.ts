@@ -3,7 +3,10 @@ import type { Estate } from "@/data/home";
 export type HomeSectionLimit = number;
 
 export interface HomeEstateSection {
-  key: "latest_sale_estates" | "latest_rent_estates";
+  key:
+    | "latest_sale_estates"
+    | "latest_rent_estates"
+    | "virtual_tour_estates";
   eyebrow: string;
   title: string;
   subtitle: string;
@@ -24,4 +27,8 @@ export interface HomeRentEstateSection extends HomeEstateSection {
 
 export interface HomeSaleEstateSection extends HomeEstateSection {
   key: "latest_sale_estates";
+}
+
+export interface HomeVirtualTourEstateSection extends HomeEstateSection {
+  key: "virtual_tour_estates";
 }

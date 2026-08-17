@@ -6,10 +6,12 @@ import tourCover from "@/assets/images/card/360.webp";
 import { Icon360 } from "@/components/icons/icon-360";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
+import { ApiImage } from "@/components/shared/api-image";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 import type { Estate } from "@/data/home";
 import { propertyTypeLabels } from "@/data/home";
+import type { HomeVirtualTourEstateSection } from "@/app/_home/_types/home-estates.types";
 
 import { SectionHeader } from "./section-header";
 
@@ -27,8 +29,12 @@ const gridPlacement = [
   "lg:col-start-3 lg:row-start-2",
 ];
 
-export function VirtualTourSection({ estates }: { estates: Estate[] }) {
-  if (estates.length === 0) return null;
+export function VirtualTourSection({
+  section,
+}: {
+  section: HomeVirtualTourEstateSection;
+}) {
+  if (section.items.length === 0) return null;
 
   return (
     <Section
@@ -53,10 +59,10 @@ export function VirtualTourSection({ estates }: { estates: Estate[] }) {
 
       <Container className="relative z-10">
         <SectionHeader
-          eyebrow="بازدید آنلاین و بدون محدودیت"
-          title="املاک دارای تور مجازی"
-          description="پیش از بازدید حضوری، تمام فضای ملک را به‌صورت ۳۶۰ درجه بررسی کنید."
-          href={routes.properties()}
+          eyebrow={section.eyebrow}
+          title={section.title}
+          description={section.subtitle}
+          href={section.viewAllHref}
           light
           className="mb-6"
         />
@@ -81,7 +87,7 @@ export function VirtualTourSection({ estates }: { estates: Estate[] }) {
           Mobile: snap carousel.
         */}
         <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none] lg:mx-0 lg:grid lg:h-136 lg:grid-cols-3 lg:grid-rows-2 lg:overflow-visible lg:px-0 lg:pb-0">
-          {estates.slice(0, 3).map((estate, index) => (
+          {section.items.slice(0, 3).map((estate, index) => (
             <TourCard
               key={estate.id}
               estate={estate}
@@ -116,13 +122,24 @@ function TourCard({
       )}
     >
       <div className="relative aspect-video overflow-hidden lg:aspect-auto lg:min-h-0 lg:flex-1">
-        <Image
-          src={tourCover}
-          alt={`تور مجازی ${estate.title}`}
-          fill
-          sizes="(min-width: 1024px) 640px, 85vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-        />
+        {estate.coverImage ? (
+          <ApiImage
+            src={estate.coverImage}
+            fallbackSrc={tourCover}
+            alt={`تور مجازی ${estate.title}`}
+            fill
+            sizes="(min-width: 1024px) 640px, 85vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        ) : (
+          <Image
+            src={tourCover}
+            alt={`تور مجازی ${estate.title}`}
+            fill
+            sizes="(min-width: 1024px) 640px, 85vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        )}
         <div className="absolute inset-0 bg-linear-to-t from-primary-deep via-primary-deep/25 to-primary-deep/50" />
 
         {/* Viewfinder brackets — they push outward on hover, like a camera focusing */}

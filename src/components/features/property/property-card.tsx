@@ -17,6 +17,7 @@ import villaImage from "@/assets/images/card/villa.webp";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { ApiImage } from "@/components/shared/api-image";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 import { defaultAvatars } from "@/data/avatars";
@@ -39,7 +40,7 @@ export function PropertyCard({
   className?: string;
 }) {
   const href = routes.property(estate.id);
-  const image = estate.coverImage ?? propertyImages[estate.propertyType];
+  const fallbackImage = propertyImages[estate.propertyType];
 
   return (
     <Card
@@ -49,13 +50,24 @@ export function PropertyCard({
       )}
     >
       <div className="relative aspect-4/3 overflow-hidden rounded-t-2xl">
-        <Image
-          src={image}
-          alt={propertyTypeLabels[estate.propertyType]}
-          fill
-          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 80vw"
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-107"
-        />
+        {estate.coverImage ? (
+          <ApiImage
+            src={estate.coverImage}
+            fallbackSrc={fallbackImage}
+            alt={propertyTypeLabels[estate.propertyType]}
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 80vw"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-107"
+          />
+        ) : (
+          <Image
+            src={fallbackImage}
+            alt={propertyTypeLabels[estate.propertyType]}
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 80vw"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-107"
+          />
+        )}
 
         {/* Scrim: keeps the overlaid badges and price legible on any artwork */}
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-black/25" />

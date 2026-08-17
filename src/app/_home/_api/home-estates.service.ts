@@ -1,19 +1,23 @@
 import {
   latestRentEstatesResponseSchema,
   latestSaleEstatesResponseSchema,
+  virtualTourEstatesResponseSchema,
   type LatestRentEstatesResponse,
   type LatestSaleEstatesResponse,
+  type VirtualTourEstatesResponse,
 } from "@/app/_home/_schemas/home-estates.schema";
 import { getValidated } from "@/lib/api/http-client";
 
 const endpoints = {
   latestSaleEstates: "/site3/home/sections/latest-sale-estates",
   latestRentEstates: "/site3/home/sections/latest-rent-estates",
+  virtualTourEstates: "/site3/home/sections/virtual-tour-estates",
 } as const;
 
 const limits = {
   sale: 8,
   rent: 4,
+  virtualTour: 3,
   max: 24,
 } as const;
 
@@ -48,6 +52,24 @@ export async function getLatestRentEstates(
     latestRentEstatesResponseSchema,
     {
       params: { limit: normalizeLimit(options.limit ?? limits.rent, limits.rent) },
+      signal: options.signal,
+    },
+  );
+}
+
+export async function getVirtualTourEstates(
+  options: RequestOptions = {},
+): Promise<VirtualTourEstatesResponse> {
+  return getValidated(
+    endpoints.virtualTourEstates,
+    virtualTourEstatesResponseSchema,
+    {
+      params: {
+        limit: normalizeLimit(
+          options.limit ?? limits.virtualTour,
+          limits.virtualTour,
+        ),
+      },
       signal: options.signal,
     },
   );

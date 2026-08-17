@@ -1,34 +1,40 @@
-import Image from "next/image";
+import Image, { type ImageProps } from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Clock } from "lucide-react";
 
 import blogCover from "@/assets/images/card/blog.webp";
+import type { HomeBlogArticlesSection } from "@/app/_home/_types/home-content.types";
 import { Section } from "@/components/layout/section";
+import { ApiImage } from "@/components/shared/api-image";
 import type { Article } from "@/data/home";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 
 import { SectionHeader } from "./section-header";
 
-export function ArticlesSection({ articles }: { articles: Article[] }) {
-  if (articles.length === 0) return null;
+export function ArticlesSection({
+  section,
+}: {
+  section: HomeBlogArticlesSection;
+}) {
+  if (section.items.length === 0) return null;
 
-  const [featured, ...rest] = articles;
+  const [featured, ...rest] = section.items;
 
   return (
     <Section>
       <SectionHeader
-        eyebrow="دانش بازار ملک"
-        title="مجله املاک کومه"
-        description="پیش از تصمیم‌گیری، بازار قم را از زبان کارشناسان ما بخوانید."
-        href={routes.articles}
+        eyebrow={section.eyebrow}
+        title={section.title}
+        description={section.subtitle}
+        href={section.viewAllHref}
         linkLabel="مقالات بیشتر"
         className="mb-6 sm:mb-8"
       />
 
       {/* Mobile: horizontal snap carousel, same pattern as the property sections */}
       <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] lg:hidden">
-        {articles.map((article) => (
+        {section.items.map((article) => (
           <ArticleCard
             key={article.id}
             article={article}
@@ -69,9 +75,8 @@ function ArticleCard({
       )}
     >
       <span className="relative aspect-video w-full shrink-0 overflow-hidden">
-        <Image
-          src={blogCover}
-          alt={article.title}
+        <ArticleImage
+          article={article}
           fill
           sizes="80vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -98,9 +103,8 @@ function FeaturedArticle({ article }: { article: Article }) {
       href={routes.article(article.id)}
       className="group relative flex min-h-56 flex-col justify-end overflow-hidden rounded-2xl border p-4 sm:min-h-96 sm:rounded-3xl sm:p-7"
     >
-      <Image
-        src={blogCover}
-        alt={article.title}
+      <ArticleImage
+        article={article}
         fill
         sizes="(min-width: 1024px) 50vw, 100vw"
         className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -131,9 +135,8 @@ function CompactArticle({ article }: { article: Article }) {
       className="group flex h-full items-center gap-2.5 overflow-hidden rounded-2xl border bg-card p-2 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md sm:gap-4 sm:p-4"
     >
       <span className="relative size-20 shrink-0 overflow-hidden rounded-xl sm:size-32">
-        <Image
-          src={blogCover}
-          alt={article.title}
+        <ArticleImage
+          article={article}
           fill
           sizes="128px"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -180,8 +183,26 @@ function Meta({ article, light }: { article: Article; light?: boolean }) {
         )}
       >
         <Clock className="size-3" />
-        {article.readTime}
+        {article.publishedAtLabel}
       </span>
     </span>
   );
+}
+
+function ArticleImage({
+  article,
+  ...props
+}: Omit<ImageProps, "src" | "alt"> & { article: Article }) {
+  if (article.image) {
+    return (
+      <ApiImage
+        {...props}
+        src={article.image}
+        fallbackSrc={blogCover}
+        alt={article.title}
+      />
+    );
+  }
+
+  return <Image {...props} src={blogCover} alt={article.title} />;
 }

@@ -4,10 +4,12 @@ import { ArrowLeft, Crown, Handshake, Medal, TrendingUp } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
+import { ApiImage } from "@/components/shared/api-image";
 import { defaultAvatars } from "@/data/avatars";
 import type { Agent } from "@/data/home";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
+import type { HomeTopAgentsSection } from "@/app/_home/_types/home-agents.types";
 
 import { SectionHeader } from "./section-header";
 
@@ -53,10 +55,16 @@ const podiumOrder: Record<Agent["rank"], string> = {
   3: "order-1",
 };
 
-export function AgentsSection({ agents }: { agents: Agent[] }) {
-  if (agents.length === 0) return null;
+export function AgentsSection({
+  section,
+}: {
+  section: HomeTopAgentsSection;
+}) {
+  if (section.items.length === 0) return null;
 
-  const ranked = [...agents].sort((a, b) => a.rank - b.rank).slice(0, 3);
+  const ranked = [...section.items]
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, 3);
 
   return (
     <Section
@@ -75,10 +83,10 @@ export function AgentsSection({ agents }: { agents: Agent[] }) {
 
       <Container className="relative z-10">
         <SectionHeader
-          eyebrow="تیم حرفه‌ای کومه"
-          title="مشاوران برتر این ماه"
-          description="رتبه‌بندی بر اساس عملکرد ۳۰ روز گذشته؛ هر ماه بازنشانی می‌شود."
-          href={routes.agents}
+          eyebrow={section.eyebrow}
+          title={section.title}
+          description={section.subtitle}
+          href={section.viewAllHref}
           linkLabel="جدول کامل"
           light
           className="mb-8"
@@ -213,18 +221,35 @@ function RankedAvatar({
   const style = rankStyles[agent.rank];
 
   return (
-    <span className="relative shrink-0">
-      <Image
-        src={defaultAvatars[agent.gender]}
-        alt={agent.name}
-        className={cn(
-          "rounded-full object-cover ring-2",
-          avatarSizes[size],
-          size !== "sm" &&
-            "ring-offset-2 ring-offset-primary transition-transform duration-300 group-hover:scale-105",
-          style.ring
-        )}
-      />
+    <span className={cn("relative shrink-0", avatarSizes[size])}>
+      {agent.photo ? (
+        <ApiImage
+          src={agent.photo}
+          fallbackSrc={defaultAvatars[agent.gender]}
+          alt={agent.name}
+          fill
+          sizes={size === "sm" ? "48px" : size === "lg" ? "80px" : "96px"}
+          className={cn(
+            "rounded-full object-cover ring-2",
+            size !== "sm" &&
+              "ring-offset-2 ring-offset-primary transition-transform duration-300 group-hover:scale-105",
+            style.ring
+          )}
+        />
+      ) : (
+        <Image
+          src={defaultAvatars[agent.gender]}
+          alt={agent.name}
+          fill
+          sizes={size === "sm" ? "48px" : size === "lg" ? "80px" : "96px"}
+          className={cn(
+            "rounded-full object-cover ring-2",
+            size !== "sm" &&
+              "ring-offset-2 ring-offset-primary transition-transform duration-300 group-hover:scale-105",
+            style.ring
+          )}
+        />
+      )}
       {showRankBadge && (
         <span
           className={cn(
@@ -249,11 +274,15 @@ function AgentMetrics({
 }) {
   return (
     <span className={cn("flex items-center gap-2.5 text-white/70", className)}>
-      <span className="flex items-center gap-1">
-        <Handshake className="size-3.5 text-secondary" />
-        {agent.deals} معامله
-      </span>
-      <span className="h-3.5 w-px bg-white/20" />
+      {agent.deals && (
+        <>
+          <span className="flex items-center gap-1">
+            <Handshake className="size-3.5 text-secondary" />
+            {agent.deals} معامله
+          </span>
+          <span className="h-3.5 w-px bg-white/20" />
+        </>
+      )}
       <span className="flex items-center gap-1">
         <TrendingUp className="size-3.5 text-secondary" />
         امتیاز {agent.score}

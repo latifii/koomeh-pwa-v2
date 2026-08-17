@@ -39,7 +39,8 @@ export interface Article {
   title: string;
   excerpt: string;
   category: string;
-  readTime: string;
+  publishedAtLabel: string;
+  image?: string;
 }
 
 export interface Agent {
@@ -50,8 +51,9 @@ export interface Agent {
   /** Display score (Persian digits) plus its numeric twin for the ranking bar. */
   score: string;
   scoreValue: number;
-  deals: string;
+  deals?: string;
   gender: Gender;
+  photo?: string;
 }
 
 export interface Branch {
@@ -59,12 +61,14 @@ export interface Branch {
   name: string;
   address: string;
   phone: string;
+  coverImage?: string;
 }
 
 export interface AreaGuide {
   id: string;
   name: string;
   description: string;
+  image?: string;
 }
 
 export interface Faq {
@@ -256,44 +260,6 @@ export const rentEstates: Estate[] = [
   },
 ];
 
-export const tourEstates: Estate[] = saleEstates.filter((e) => e.hasTour);
-
-export const articles: Article[] = [
-  {
-    id: "a1",
-    title: "راهنمای خرید آپارتمان در قم؛ نکاتی که نباید نادیده بگیرید",
-    excerpt:
-      "پیش از امضای قرارداد، این چک‌لیست را مرور کنید تا از یک خرید مطمئن اطمینان حاصل کنید.",
-    category: "راهنمای خرید",
-    readTime: "۶ دقیقه",
-  },
-  {
-    id: "a2",
-    title: "روند قیمت مسکن در قم در فصل جاری",
-    excerpt:
-      "تحلیلی کوتاه از نوسانات قیمت در مناطق پرتقاضای شهر و پیش‌بینی ماه‌های آینده.",
-    category: "تحلیل بازار",
-    readTime: "۴ دقیقه",
-  },
-  {
-    id: "a3",
-    title: "رهن و اجاره یا خرید؟ کدام برای شما مناسب‌تر است",
-    excerpt:
-      "مقایسه‌ای عملی بین دو مسیر رایج تأمین مسکن، متناسب با بودجه و شرایط زندگی شما.",
-    category: "مشاوره",
-    readTime: "۵ دقیقه",
-  },
-];
-
-export const areaGuides: AreaGuide[] = [
-  { id: "pardisan", name: "پردیسان", description: "منطقه‌ای مدرن با دسترسی بالا" },
-  { id: "salariyeh", name: "سالاریه", description: "نزدیک به حرم و بافت قدیمی" },
-  { id: "zanbil-abad", name: "زنبیل‌آباد", description: "مناسب سرمایه‌گذاری" },
-  { id: "safashahr", name: "صفاشهر", description: "محله‌ای آرام و مسکونی" },
-  { id: "shahrak-qods", name: "شهرک قدس", description: "ویلایی‌نشین و پردرخت" },
-  { id: "jomhouri", name: "جمهوری", description: "مرکز تجاری و اداری شهر" },
-];
-
 export const branches: Branch[] = [
   {
     id: "b1",
@@ -318,39 +284,6 @@ export const branches: Branch[] = [
     name: "شعبه زمرد",
     address: "قم، شهرک زمرد",
     phone: "۰۲۵-۳۹۱۲۳۴۵۶",
-  },
-];
-
-export const topAgents: Agent[] = [
-  {
-    id: "a1",
-    name: "علی محمدی",
-    branch: "پردیسان",
-    rank: 1,
-    score: "۹۸",
-    scoreValue: 98,
-    deals: "۴۸",
-    gender: "male",
-  },
-  {
-    id: "a2",
-    name: "زهرا احمدی",
-    branch: "جمهوری",
-    rank: 2,
-    score: "۹۲",
-    scoreValue: 92,
-    deals: "۴۱",
-    gender: "female",
-  },
-  {
-    id: "a3",
-    name: "حسین رضایی",
-    branch: "صدوقی",
-    rank: 3,
-    score: "۸۷",
-    scoreValue: 87,
-    deals: "۳۶",
-    gender: "male",
   },
 ];
 

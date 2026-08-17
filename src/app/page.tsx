@@ -1,9 +1,7 @@
 import { Suspense } from "react";
 
-import { AgentsSection } from "@/app/_home/components/agents-section";
-import { AreasSection } from "@/app/_home/components/areas-section";
-import { ArticlesSection } from "@/app/_home/components/articles-section";
-import { BranchesSection } from "@/app/_home/components/branches-section";
+import { CityBranchesServer } from "@/app/_home/components/city-branches-server";
+import { ContentSectionSkeleton } from "@/app/_home/components/content-section-state";
 import { FaqSection } from "@/app/_home/components/faq-section";
 // import { FinalCtaSection } from "@/app/_home/components/final-cta-section";
 import { Hero } from "@/app/_home/components/hero";
@@ -11,18 +9,15 @@ import { MapCtaSection } from "@/app/_home/components/map-cta-section";
 import { QuickServicesSection } from "@/app/_home/components/quick-services-section";
 import { LatestRentEstatesServer } from "@/app/_home/components/latest-rent-estates-server";
 import { LatestSaleEstatesServer } from "@/app/_home/components/latest-sale-estates-server";
+import { LatestBlogArticlesServer } from "@/app/_home/components/latest-blog-articles-server";
 import { EstateSectionSkeleton } from "@/app/_home/components/estate-section-state";
+import { FeatureSectionSkeleton } from "@/app/_home/components/feature-section-state";
 import { StorySection } from "@/app/_home/components/story-section";
+import { NeighborhoodGuidesServer } from "@/app/_home/components/neighborhood-guides-server";
+import { TopRankedAgentsServer } from "@/app/_home/components/top-ranked-agents-server";
 // import { TrustStrip } from "@/app/_home/components/trust-strip";
-import { VirtualTourSection } from "@/app/_home/components/virtual-tour-section";
-import {
-  areaGuides,
-  articles,
-  branches,
-  homeFaqs,
-  topAgents,
-  tourEstates,
-} from "@/data/home";
+import { VirtualTourEstatesServer } from "@/app/_home/components/virtual-tour-estates-server";
+import { homeFaqs } from "@/data/home";
 // import { QuickPaths } from "./_home/components/quick-paths";
 
 // Route segment config must be a statically analyzable literal for Next.js.
@@ -38,16 +33,30 @@ export default function Home() {
       <Suspense fallback={<EstateSectionSkeleton count={8} />}>
         <LatestSaleEstatesServer />
       </Suspense>
-      <VirtualTourSection estates={tourEstates} />
+      <Suspense
+        fallback={<FeatureSectionSkeleton variant="virtual-tour" />}
+      >
+        <VirtualTourEstatesServer />
+      </Suspense>
       <StorySection />
       <Suspense fallback={<EstateSectionSkeleton count={4} withFilters />}>
         <LatestRentEstatesServer />
       </Suspense>
-      <AgentsSection agents={topAgents} />
-      <ArticlesSection articles={articles.slice(0, 3)} />
-      <AreasSection areas={areaGuides.slice(0, 6)} />
+      <Suspense fallback={<FeatureSectionSkeleton variant="agents" />}>
+        <TopRankedAgentsServer />
+      </Suspense>
+      <Suspense fallback={<ContentSectionSkeleton variant="articles" />}>
+        <LatestBlogArticlesServer />
+      </Suspense>
+      <Suspense
+        fallback={<ContentSectionSkeleton variant="neighborhoods" />}
+      >
+        <NeighborhoodGuidesServer />
+      </Suspense>
       <MapCtaSection />
-      <BranchesSection branches={branches} />
+      <Suspense fallback={<ContentSectionSkeleton variant="branches" />}>
+        <CityBranchesServer />
+      </Suspense>
       <FaqSection faqs={homeFaqs} />
       {/* <FinalCtaSection /> */}
     </div>

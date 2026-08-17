@@ -15,6 +15,7 @@ export const cacheTags = {
   home: {
     latestSaleEstates: "home:latest-sale-estates",
     latestRentEstates: "home:latest-rent-estates",
+    virtualTourEstates: "home:virtual-tour-estates",
     articles: "home:articles",
     agents: "home:agents",
     branches: "home:branches",

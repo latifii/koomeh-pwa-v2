@@ -5,10 +5,12 @@ import { unstable_cache } from "next/cache";
 import {
   getLatestRentEstates,
   getLatestSaleEstates,
+  getVirtualTourEstates,
 } from "@/app/_home/_api/home-estates.service";
 import {
   mapLatestRentEstates,
   mapLatestSaleEstates,
+  mapVirtualTourEstates,
 } from "@/app/_home/_mappers/home-estates.mapper";
 import { cacheTags, cacheTtl } from "@/lib/cache-policy";
 
@@ -29,5 +31,15 @@ export const getCachedLatestRentEstates = unstable_cache(
   {
     revalidate: cacheTtl.latestEstates,
     tags: [cacheTags.home.latestRentEstates],
+  },
+);
+
+export const getCachedVirtualTourEstates = unstable_cache(
+  async (limit: number) =>
+    mapVirtualTourEstates(await getVirtualTourEstates({ limit })),
+  ["home", "virtual-tour-estates"],
+  {
+    revalidate: cacheTtl.latestEstates,
+    tags: [cacheTags.home.virtualTourEstates],
   },
 );

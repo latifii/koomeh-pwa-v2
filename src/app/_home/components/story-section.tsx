@@ -57,7 +57,7 @@ function MobileStory() {
           src={qomImage}
           alt="نمایی از شهر قم"
           fill
-          sizes="100vw"
+          sizes="(min-width: 1024px) 1px, calc(100vw - 2rem)"
           quality={90}
           className="object-cover"
         />
@@ -114,18 +114,13 @@ function DesktopStory() {
       />
 
       <div className="relative grid grid-cols-[1fr_1.15fr]">
-        {/*
-          The panorama is cropped into a much taller box than its own aspect
-          ratio, so the browser needs a source far wider than the box itself —
-          hence sizes="100vw" instead of the column's actual 50vw, plus a
-          higher quality so the upscaled crop stays sharp.
-        */}
+        {/* The source size follows the rendered column width; object-cover owns the crop. */}
         <div className="relative min-h-[560px]">
           <Image
             src={qomImage}
             alt="نمایی از شهر قم"
             fill
-            sizes="100vw"
+            sizes="(min-width: 1280px) 600px, 50vw"
             quality={90}
             className="object-cover"
           />
