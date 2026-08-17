@@ -25,7 +25,8 @@ import {
 } from "@/data/home";
 // import { QuickPaths } from "./_home/components/quick-paths";
 
-export const dynamic = "force-dynamic";
+// Route segment config must be a statically analyzable literal for Next.js.
+export const revalidate = 300;
 
 export default function Home() {
   return (
