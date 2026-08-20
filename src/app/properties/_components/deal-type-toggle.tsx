@@ -4,9 +4,10 @@ import { Home, Key } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { DealType } from "@/data/home";
+import type { LookupItem } from "@/app/_lookups/_schemas/lookups.schema";
 import { cn } from "@/lib/utils";
 
-const dealTypes: { value: DealType; label: string; icon: typeof Home }[] = [
+const fallbackDealTypes: { value: DealType; label: string; icon: typeof Home }[] = [
   { value: "sale", label: "خرید", icon: Home },
   { value: "rent", label: "رهن و اجاره", icon: Key },
 ];
@@ -20,11 +21,19 @@ export function DealTypeToggle({
   value,
   onChange,
   className,
+  options,
 }: {
   value: DealType;
   onChange: (deal: DealType) => void;
   className?: string;
+  options?: LookupItem[];
 }) {
+  const dealTypes = options?.map((item, index) => ({
+    value: (item.value === "2" ? "rent" : "sale") as DealType,
+    label: item.title,
+    icon: index === 1 ? Key : Home,
+  })) ?? fallbackDealTypes;
+
   return (
     <div
       role="group"

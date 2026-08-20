@@ -40,7 +40,7 @@ export function ListingRow({
 }) {
   return (
     <Link
-      href={routes.property(listing.id)}
+      href={listing.href ?? routes.property(listing.id)}
       onMouseEnter={() => onHover?.(listing.id)}
       onMouseLeave={() => onHover?.(null)}
       onFocus={() => onHover?.(listing.id)}

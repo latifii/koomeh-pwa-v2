@@ -1,4 +1,4 @@
-import type { DealType, Estate, PropertyType } from "./home";
+import type { DealType, Estate } from "./home";
 
 export type Amenity =
   | "elevator"
@@ -9,7 +9,12 @@ export type Amenity =
 
 export type Orientation = "north" | "south" | "east" | "west";
 
-export type SortKey = "newest" | "priceAsc" | "priceDesc" | "areaDesc";
+export type SortKey =
+  | "newest"
+  | "oldest"
+  | "cheapest"
+  | "most_expensive"
+  | "cheapest_meter";
 
 /** A search result: everything a card shows, plus everything the filters need. */
 export interface Listing extends Estate {
@@ -30,6 +35,8 @@ export interface Listing extends Estate {
   publishedDaysAgo: number;
   lat: number;
   lng: number;
+  /** False when the search API did not expose a public map position. */
+  hasCoordinates?: boolean;
 }
 
 /** Qom city centre — the default map view. */
@@ -56,26 +63,10 @@ export const orientationLabels: Record<Orientation, string> = {
 
 export const sortLabels: Record<SortKey, string> = {
   newest: "جدیدترین",
-  priceAsc: "ارزان‌ترین",
-  priceDesc: "گران‌ترین",
-  areaDesc: "بیشترین متراژ",
-};
-
-export const cities = ["قم", "تهران", "کاشان"];
-
-export const districtsByCity: Record<string, string[]> = {
-  قم: [
-    "پردیسان",
-    "سالاریه",
-    "زنبیل‌آباد",
-    "صفاشهر",
-    "شهرک قدس",
-    "جمهوری",
-    "کریمی",
-    "فردوسی",
-  ],
-  تهران: ["سعادت‌آباد", "ونک", "نارمک"],
-  کاشان: ["فین", "میدان کمال‌الملک"],
+  oldest: "قدیمی‌ترین",
+  cheapest: "ارزان‌ترین",
+  most_expensive: "گران‌ترین",
+  cheapest_meter: "متری ارزان‌تر",
 };
 
 /** Building-age buckets, as an upper bound in years (`null` = no limit). */
@@ -90,23 +81,25 @@ export const buildingAgeOptions: { value: string; label: string; max: number }[]
 export interface SearchFilters {
   query: string;
   deal: DealType;
-  types: PropertyType[];
+  /** API lookup values, sent to the search service as `estateTypes`. */
+  types: string[];
   code: string;
   city: string;
-  district: string;
+  cityId: string;
+  districtIds: string[];
+  areas: string[];
   minPrice: string;
   maxPrice: string;
+  minRent: string;
+  maxRent: string;
   minArea: string;
   maxArea: string;
   buildingAge: string;
-  minFloor: string;
-  maxFloor: string;
-  maxUnitsPerFloor: string;
   minRooms: string;
-  orientation: string;
-  amenities: Amenity[];
   hasPhotos: boolean;
-  isUrgent: boolean;
+  hasVideo: boolean;
+  hasVirtualTour: boolean;
+  hasAgent: boolean;
   sort: SortKey;
 }
 
@@ -116,20 +109,21 @@ export const defaultFilters: SearchFilters = {
   types: [],
   code: "",
   city: "قم",
-  district: "",
+  cityId: "",
+  districtIds: [],
+  areas: [],
   minPrice: "",
   maxPrice: "",
+  minRent: "",
+  maxRent: "",
   minArea: "",
   maxArea: "",
   buildingAge: "",
-  minFloor: "",
-  maxFloor: "",
-  maxUnitsPerFloor: "",
   minRooms: "",
-  orientation: "",
-  amenities: [],
   hasPhotos: false,
-  isUrgent: false,
+  hasVideo: false,
+  hasVirtualTour: false,
+  hasAgent: false,
   sort: "newest",
 };
 
@@ -139,89 +133,18 @@ export function countActiveFilters(filters: SearchFilters): number {
   if (filters.query.trim()) count += 1;
   if (filters.types.length) count += filters.types.length;
   if (filters.code.trim()) count += 1;
-  if (filters.district) count += 1;
+  count += filters.districtIds.length;
+  count += filters.areas.length;
   if (filters.minPrice || filters.maxPrice) count += 1;
+  if (filters.minRent || filters.maxRent) count += 1;
   if (filters.minArea || filters.maxArea) count += 1;
   if (filters.buildingAge) count += 1;
-  if (filters.minFloor || filters.maxFloor) count += 1;
-  if (filters.maxUnitsPerFloor) count += 1;
   if (filters.minRooms) count += 1;
-  if (filters.orientation) count += 1;
-  count += filters.amenities.length;
   if (filters.hasPhotos) count += 1;
-  if (filters.isUrgent) count += 1;
+  if (filters.hasVideo) count += 1;
+  if (filters.hasVirtualTour) count += 1;
+  if (filters.hasAgent) count += 1;
   return count;
-}
-
-const toNumber = (value: string): number | null => {
-  const parsed = Number(value);
-  return value.trim() !== "" && Number.isFinite(parsed) ? parsed : null;
-};
-
-export function filterListings(
-  listings: Listing[],
-  filters: SearchFilters
-): Listing[] {
-  const query = filters.query.trim();
-  const code = filters.code.trim();
-  const minPrice = toNumber(filters.minPrice);
-  const maxPrice = toNumber(filters.maxPrice);
-  const minArea = toNumber(filters.minArea);
-  const maxArea = toNumber(filters.maxArea);
-  const maxAge = toNumber(filters.buildingAge);
-  const minFloor = toNumber(filters.minFloor);
-  const maxFloor = toNumber(filters.maxFloor);
-  const maxUnits = toNumber(filters.maxUnitsPerFloor);
-  const minRooms = toNumber(filters.minRooms);
-
-  const result = listings.filter((listing) => {
-    if (listing.dealType !== filters.deal) return false;
-    if (filters.city && listing.city !== filters.city) return false;
-    if (filters.district && listing.district !== filters.district) return false;
-    if (filters.types.length && !filters.types.includes(listing.propertyType))
-      return false;
-    if (code && !listing.code.includes(code)) return false;
-    if (query && !`${listing.title} ${listing.district}`.includes(query))
-      return false;
-
-    if (minPrice !== null && listing.priceValue < minPrice) return false;
-    if (maxPrice !== null && listing.priceValue > maxPrice) return false;
-    if (minArea !== null && listing.area < minArea) return false;
-    if (maxArea !== null && listing.area > maxArea) return false;
-    if (maxAge !== null && listing.buildingAge > maxAge) return false;
-    if (minFloor !== null && listing.floor < minFloor) return false;
-    if (maxFloor !== null && listing.floor > maxFloor) return false;
-    if (maxUnits !== null && listing.unitsPerFloor > maxUnits) return false;
-    if (minRooms !== null && listing.rooms < minRooms) return false;
-    if (filters.orientation && listing.orientation !== filters.orientation)
-      return false;
-
-    if (
-      filters.amenities.length &&
-      !filters.amenities.every((amenity) => listing.amenities.includes(amenity))
-    )
-      return false;
-    if (filters.hasPhotos && !listing.hasPhotos) return false;
-    if (filters.isUrgent && !listing.isUrgent) return false;
-
-    return true;
-  });
-
-  return sortListings(result, filters.sort);
-}
-
-function sortListings(listings: Listing[], sort: SortKey): Listing[] {
-  const sorted = [...listings];
-  switch (sort) {
-    case "priceAsc":
-      return sorted.sort((a, b) => a.priceValue - b.priceValue);
-    case "priceDesc":
-      return sorted.sort((a, b) => b.priceValue - a.priceValue);
-    case "areaDesc":
-      return sorted.sort((a, b) => b.area - a.area);
-    default:
-      return sorted.sort((a, b) => a.publishedDaysAgo - b.publishedDaysAgo);
-  }
 }
 
 /** Formats toman into the short Persian wording used across the site. */

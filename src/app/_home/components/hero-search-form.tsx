@@ -15,20 +15,19 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
+import { useEstateFilters } from "@/app/_lookups/_hooks/use-lookups";
 
-const dealTypes = [
+const fallbackDealTypes = [
   { value: "sale", label: "خرید", icon: Home },
   { value: "rent", label: "رهن و اجاره", icon: Key },
 ];
 
-// Values match `PropertyType` in `@/data/home` directly, so they can be sent
-// straight through to the search page's `propertyTypes` filter.
-const estateTypeItems: Record<string, string> = {
+const fallbackEstateTypeItems: Record<string, string> = {
   "": "همه املاک",
-  apartment: "آپارتمان",
-  villa: "خانه ویلایی",
-  land: "زمین",
-  commercial: "تجاری",
+  "1": "آپارتمان",
+  "2": "خانه ویلایی",
+  "4": "زمین",
+  "3": "تجاری",
 };
 
 // The search page filters on a min/max range, not a named bucket, so each
@@ -68,12 +67,31 @@ export function HeroSearchForm({
 }) {
   const trigger = compact ? compactFieldTrigger : fieldTrigger;
   const router = useRouter();
+  const lookups = useEstateFilters().data?.result;
+  const dealTypes = lookups?.deal_types.items.map((item) => ({
+    value: item.value === "2" ? "rent" : "sale",
+    label: item.title,
+    icon: item.value === "2" ? Key : Home,
+    apiValue: item.value,
+  })) ?? fallbackDealTypes.map((item, index) => ({
+    ...item,
+    apiValue: String(index + 1),
+  }));
+  const estateTypes = lookups?.estate_types.items ??
+    Object.entries(fallbackEstateTypeItems)
+      .filter(([value]) => value !== "")
+      .map(([value, title]) => ({ value, title }));
+  const estateTypeItems = {
+    "": "همه املاک",
+    ...Object.fromEntries(estateTypes.map((item) => [item.value, item.title])),
+  };
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const data = new FormData(event.currentTarget);
-    const params = new URLSearchParams({ deal: dealType });
+    const apiDealType = dealTypes.find((item) => item.value === dealType)?.apiValue;
+    const params = new URLSearchParams({ type: apiDealType ?? "1" });
 
     const q = data.get("q");
     if (q) params.set("q", String(q));
@@ -183,10 +201,11 @@ export function HeroSearchForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">همه املاک</SelectItem>
-                <SelectItem value="apartment">آپارتمان</SelectItem>
-                <SelectItem value="villa">خانه ویلایی</SelectItem>
-                <SelectItem value="land">زمین</SelectItem>
-                <SelectItem value="commercial">تجاری</SelectItem>
+                {estateTypes.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.title}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </Field>

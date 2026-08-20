@@ -39,7 +39,7 @@ export function PropertyCard({
   estate: Estate;
   className?: string;
 }) {
-  const href = routes.property(estate.id);
+  const href = estate.href ?? routes.property(estate.id);
   const fallbackImage = propertyImages[estate.propertyType];
 
   return (

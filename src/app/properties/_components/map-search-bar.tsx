@@ -16,6 +16,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { type SearchFilters, type SortKey, sortLabels } from "@/data/search";
+import type { EstateFilters } from "@/app/_lookups/_schemas/lookups.schema";
 
 import { ActiveFilters } from "./active-filters";
 
@@ -30,13 +31,21 @@ export function MapSearchBar({
   activeCount,
   onOpenFilters,
   onReset,
+  lookups,
 }: {
   filters: SearchFilters;
   onChange: (patch: Partial<SearchFilters>) => void;
   activeCount: number;
   onOpenFilters: () => void;
   onReset: () => void;
+  lookups?: EstateFilters;
 }) {
+  const sortOptions = lookups?.sort_options.items ??
+    Object.entries(sortLabels).map(([value, title]) => ({ value, title }));
+  const sortItems = Object.fromEntries(
+    sortOptions.map((item) => [item.value, item.title]),
+  );
+
   return (
     <div className="flex flex-col gap-2 border-b bg-card/95 p-3 shadow-sm backdrop-blur-md">
       <div className="flex items-center gap-2">
@@ -56,7 +65,7 @@ export function MapSearchBar({
         {/* Icon-only: the trigger's own text is dropped so just the sort
             glyph shows, matching the surrounding icon buttons. */}
         <Select
-          items={sortLabels}
+          items={sortItems}
           value={filters.sort}
           onValueChange={(value) => onChange({ sort: value as SortKey })}
         >
@@ -69,9 +78,9 @@ export function MapSearchBar({
             <ArrowDownUp className="size-4 text-muted-foreground" />
           </SelectTrigger>
           <SelectContent align="end">
-            {Object.entries(sortLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
+            {sortOptions.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.title}
               </SelectItem>
             ))}
           </SelectContent>
@@ -100,6 +109,7 @@ export function MapSearchBar({
           onReset={onReset}
           layout="scroll"
           className="min-w-0 flex-1"
+          lookups={lookups}
         />
       </div>
     </div>

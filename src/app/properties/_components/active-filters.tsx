@@ -4,20 +4,19 @@ import { RotateCcw, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { EstateFilters } from "@/app/_lookups/_schemas/lookups.schema";
 import { propertyTypeLabels } from "@/data/home";
 import {
   type SearchFilters,
-  amenityLabels,
   buildingAgeOptions,
   formatToman,
-  orientationLabels,
 } from "@/data/search";
 import { cn } from "@/lib/utils";
 
 type Chip = { key: string; label: string; clear: Partial<SearchFilters> };
 
 /** Turns the filter object into removable chips, so nothing is silently applied. */
-function buildChips(filters: SearchFilters): Chip[] {
+function buildChips(filters: SearchFilters, lookups?: EstateFilters): Chip[] {
   const chips: Chip[] = [];
 
   if (filters.query.trim()) {
@@ -31,7 +30,10 @@ function buildChips(filters: SearchFilters): Chip[] {
   for (const type of filters.types) {
     chips.push({
       key: `type-${type}`,
-      label: propertyTypeLabels[type],
+      label:
+        lookups?.estate_types.items.find((item) => item.value === type)?.title ??
+        propertyTypeLabels[type as keyof typeof propertyTypeLabels] ??
+        type,
       clear: { types: filters.types.filter((item) => item !== type) },
     });
   }
@@ -44,11 +46,25 @@ function buildChips(filters: SearchFilters): Chip[] {
     });
   }
 
-  if (filters.district) {
+  for (const districtId of filters.districtIds) {
     chips.push({
-      key: "district",
-      label: filters.district,
-      clear: { district: "" },
+      key: `district-${districtId}`,
+      label:
+        lookups?.districts.items.find((item) => item.value === districtId)
+          ?.title ?? districtId,
+      clear: {
+        districtIds: filters.districtIds.filter((item) => item !== districtId),
+      },
+    });
+  }
+
+  for (const area of filters.areas) {
+    chips.push({
+      key: `city-area-${area}`,
+      label:
+        lookups?.areas.items.find((item) => item.value === area)?.title ??
+        `منطقه ${area}`,
+      clear: { areas: filters.areas.filter((item) => item !== area) },
     });
   }
 
@@ -59,15 +75,28 @@ function buildChips(filters: SearchFilters): Chip[] {
         filters.minPrice,
         filters.maxPrice,
         (value) => formatToman(Number(value)),
-        "قیمت"
+        filters.deal === "rent" ? "ودیعه" : "قیمت"
       ),
       clear: { minPrice: "", maxPrice: "" },
     });
   }
 
+  if (filters.minRent || filters.maxRent) {
+    chips.push({
+      key: "rent",
+      label: rangeLabel(
+        filters.minRent,
+        filters.maxRent,
+        (value) => formatToman(Number(value)),
+        "اجاره",
+      ),
+      clear: { minRent: "", maxRent: "" },
+    });
+  }
+
   if (filters.minArea || filters.maxArea) {
     chips.push({
-      key: "area",
+      key: "area-range",
       label: rangeLabel(
         filters.minArea,
         filters.maxArea,
@@ -89,53 +118,14 @@ function buildChips(filters: SearchFilters): Chip[] {
     });
   }
 
-  if (filters.minFloor || filters.maxFloor) {
-    chips.push({
-      key: "floor",
-      label: rangeLabel(
-        filters.minFloor,
-        filters.maxFloor,
-        (value) => Number(value).toLocaleString("fa-IR"),
-        "طبقه"
-      ),
-      clear: { minFloor: "", maxFloor: "" },
-    });
-  }
-
-  if (filters.maxUnitsPerFloor) {
-    chips.push({
-      key: "units",
-      label: `حداکثر ${Number(filters.maxUnitsPerFloor).toLocaleString("fa-IR")} واحد در طبقه`,
-      clear: { maxUnitsPerFloor: "" },
-    });
-  }
-
   if (filters.minRooms) {
     chips.push({
       key: "rooms",
-      label: `${Number(filters.minRooms).toLocaleString("fa-IR")} خواب به بالا`,
-      clear: { minRooms: "" },
-    });
-  }
-
-  if (filters.orientation) {
-    chips.push({
-      key: "orientation",
       label:
-        orientationLabels[
-          filters.orientation as keyof typeof orientationLabels
-        ] ?? filters.orientation,
-      clear: { orientation: "" },
-    });
-  }
-
-  for (const amenity of filters.amenities) {
-    chips.push({
-      key: `amenity-${amenity}`,
-      label: amenityLabels[amenity],
-      clear: {
-        amenities: filters.amenities.filter((item) => item !== amenity),
-      },
+        lookups?.room_counts.items.find(
+          (item) => item.value === filters.minRooms,
+        )?.title ?? `${Number(filters.minRooms).toLocaleString("fa-IR")} خواب به بالا`,
+      clear: { minRooms: "" },
     });
   }
 
@@ -147,8 +137,24 @@ function buildChips(filters: SearchFilters): Chip[] {
     });
   }
 
-  if (filters.isUrgent) {
-    chips.push({ key: "urgent", label: "فوری", clear: { isUrgent: false } });
+  if (filters.hasVideo) {
+    chips.push({ key: "video", label: "دارای ویدیو", clear: { hasVideo: false } });
+  }
+
+  if (filters.hasVirtualTour) {
+    chips.push({
+      key: "virtual-tour",
+      label: "دارای تور مجازی",
+      clear: { hasVirtualTour: false },
+    });
+  }
+
+  if (filters.hasAgent) {
+    chips.push({
+      key: "agent",
+      label: "دارای مشاور",
+      clear: { hasAgent: false },
+    });
   }
 
   return chips;
@@ -175,14 +181,16 @@ export function ActiveFilters({
    */
   layout = "wrap",
   className,
+  lookups,
 }: {
   filters: SearchFilters;
   onChange: (patch: Partial<SearchFilters>) => void;
   onReset: () => void;
   layout?: "wrap" | "scroll";
   className?: string;
+  lookups?: EstateFilters;
 }) {
-  const chips = buildChips(filters);
+  const chips = buildChips(filters, lookups);
   if (chips.length === 0) return null;
 
   return (

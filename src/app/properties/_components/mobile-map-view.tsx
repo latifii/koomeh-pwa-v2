@@ -9,7 +9,9 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Typography } from "@/components/ui/typography";
+import { Button } from "@/components/ui/button";
 import type { Listing, SearchFilters } from "@/data/search";
+import type { EstateFilters } from "@/app/_lookups/_schemas/lookups.schema";
 
 import { ListingCard } from "./listing-card";
 import { MapSearchBar } from "./map-search-bar";
@@ -44,9 +46,14 @@ export function MobileMapView({
   onRetry,
   status,
   results,
+  total,
+  hasMore,
+  isLoadingMore,
+  onLoadMore,
   snap,
   onSnapChange,
   map,
+  lookups,
 }: {
   filters: SearchFilters;
   onChange: (patch: Partial<SearchFilters>) => void;
@@ -56,9 +63,14 @@ export function MobileMapView({
   onRetry: () => void;
   status: "loading" | "ready" | "error";
   results: Listing[];
+  total: number;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  onLoadMore: () => void;
   snap: SheetSnap;
   onSnapChange: (snap: SheetSnap) => void;
   map: ReactNode;
+  lookups?: EstateFilters;
 }) {
   const expanded = snap === SHEET_FULL;
 
@@ -69,12 +81,13 @@ export function MobileMapView({
       activeCount={activeCount}
       onOpenFilters={onOpenFilters}
       onReset={onReset}
+      lookups={lookups}
     />
   );
 
   const countLabel =
     status === "ready"
-      ? `${results.length.toLocaleString("fa-IR")} آگهی در این محدوده`
+      ? `${total.toLocaleString("fa-IR")} آگهی در این محدوده`
       : "در حال جستجو…";
 
   return (
@@ -151,6 +164,15 @@ export function MobileMapView({
                 results.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
+              {status === "ready" && hasMore && (
+                <Button
+                  variant="outline"
+                  disabled={isLoadingMore}
+                  onClick={onLoadMore}
+                >
+                  {isLoadingMore ? "در حال دریافت…" : "نمایش آگهی‌های بیشتر"}
+                </Button>
+              )}
             </div>
           </div>
         </DrawerContent>

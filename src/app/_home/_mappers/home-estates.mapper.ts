@@ -7,7 +7,7 @@ import type {
 } from "@/app/_home/_types/home-estates.types";
 import type { PropertyType } from "@/data/home";
 import { routes } from "@/lib/routes";
-import { toAbsoluteMediaUrl } from "@/lib/api/config";
+import { toAbsoluteMediaUrl, toAbsoluteSiteUrl } from "@/lib/api/config";
 import type {
   LatestRentEstatesResponse,
   LatestSaleEstatesResponse,
@@ -48,6 +48,7 @@ function propertyTypeFrom(dto: HomeEstateDto): PropertyType {
 export function mapHomeEstate(dto: HomeEstateDto) {
   return {
     id: String(dto.id),
+    href: toAbsoluteSiteUrl(dto.url),
     title: dto.title,
     district: dto.district?.name ?? "قم",
     locationLabel: dto.location_label,

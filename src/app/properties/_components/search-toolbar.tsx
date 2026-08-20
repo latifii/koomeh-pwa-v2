@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { type SearchFilters, type SortKey, sortLabels } from "@/data/search";
+import type { EstateFilters } from "@/app/_lookups/_schemas/lookups.schema";
 import { cn } from "@/lib/utils";
 
 import { DealTypeToggle } from "./deal-type-toggle";
@@ -27,13 +28,21 @@ export function SearchToolbar({
   activeCount,
   onOpenFilters,
   className,
+  lookups,
 }: {
   filters: SearchFilters;
   onChange: (patch: Partial<SearchFilters>) => void;
   activeCount: number;
   onOpenFilters: () => void;
   className?: string;
+  lookups?: EstateFilters;
 }) {
+  const sortOptions = lookups?.sort_options.items ??
+    Object.entries(sortLabels).map(([value, title]) => ({ value, title }));
+  const sortItems = Object.fromEntries(
+    sortOptions.map((item) => [item.value, item.title]),
+  );
+
   return (
     <div
       className={cn(
@@ -46,6 +55,7 @@ export function SearchToolbar({
         <DealTypeToggle
           value={filters.deal}
           onChange={(deal) => onChange({ deal })}
+          options={lookups?.deal_types.items}
           className="hidden lg:flex"
         />
 
@@ -64,7 +74,7 @@ export function SearchToolbar({
 
         <div className="flex items-center gap-2">
           <Select
-            items={sortLabels}
+            items={sortItems}
             value={filters.sort}
             onValueChange={(value) => onChange({ sort: value as SortKey })}
           >
@@ -72,9 +82,9 @@ export function SearchToolbar({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(sortLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
+              {sortOptions.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.title}
                 </SelectItem>
               ))}
             </SelectContent>

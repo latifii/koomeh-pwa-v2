@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 
-import type { PropertyType } from "@/data/home";
 import {
-  type Amenity,
   type SearchFilters,
   type SortKey,
   defaultFilters,
@@ -36,6 +34,17 @@ export async function generateMetadata({
 const single = (value: string | string[] | undefined): string =>
   (Array.isArray(value) ? value[0] : value) ?? "";
 
+const csv = (value: string | string[] | undefined): string[] =>
+  single(value).split(",").map((item) => item.trim()).filter(Boolean);
+
+const range = (value: string | string[] | undefined): [string, string] => {
+  const [min = "", max = ""] = single(value).split(",");
+  return [min, max];
+};
+
+const enabled = (value: string | string[] | undefined): boolean =>
+  ["1", "true"].includes(single(value).toLowerCase());
+
 /**
  * Maps the query string onto filters so shared links and the homepage's
  * `?deal=rent` shortcut land on a pre-filtered search.
@@ -44,27 +53,41 @@ function parseFilters(
   searchParams: SearchParams,
   cityName: string,
 ): SearchFilters {
-  const types = single(searchParams.propertyTypes)
-    .split(",")
-    .filter(Boolean) as PropertyType[];
-  const amenities = single(searchParams.amenities)
-    .split(",")
-    .filter(Boolean) as Amenity[];
+  const types = csv(searchParams.estateTypes ?? searchParams.propertyTypes);
   const sort = single(searchParams.sort) as SortKey;
+  const deal =
+    single(searchParams.type) === "2" || single(searchParams.deal) === "rent"
+      ? "rent"
+      : "sale";
+  const [priceMin, priceMax] = range(
+    deal === "rent"
+      ? searchParams.mortgage ?? searchParams.rahn
+      : searchParams.price,
+  );
+  const [rentMin, rentMax] = range(searchParams.rent);
 
   return {
     ...defaultFilters,
     city: cityName,
-    deal: single(searchParams.deal) === "rent" ? "rent" : "sale",
+    cityId: single(searchParams.city_id),
+    deal,
     query: single(searchParams.q),
-    district: single(searchParams.district),
-    code: single(searchParams.code),
+    districtIds: csv(searchParams.districts),
+    areas: csv(searchParams.areas),
+    code: single(searchParams.id ?? searchParams.code),
     types,
-    amenities,
-    minPrice: single(searchParams.minPrice),
-    maxPrice: single(searchParams.maxPrice),
+    minPrice: single(searchParams.minPrice) || priceMin,
+    maxPrice: single(searchParams.maxPrice) || priceMax,
+    minRent: single(searchParams.minRent) || rentMin,
+    maxRent: single(searchParams.maxRent) || rentMax,
     minArea: single(searchParams.minArea),
     maxArea: single(searchParams.maxArea),
+    buildingAge: single(searchParams.built_year),
+    minRooms: single(searchParams.room_count),
+    hasPhotos: enabled(searchParams.has_photo),
+    hasVideo: enabled(searchParams.has_video),
+    hasVirtualTour: enabled(searchParams.vr),
+    hasAgent: enabled(searchParams.has_agent),
     sort: sort || defaultFilters.sort,
   };
 }
@@ -85,7 +108,6 @@ export default async function SearchPage({
     <SearchView
       cityName={cityName}
       initialFilters={filters}
-      simulateError={single(resolvedSearchParams.debug) === "error"}
     />
   );
 }

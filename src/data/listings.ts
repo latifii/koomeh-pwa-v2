@@ -146,29 +146,3 @@ function buildListing(index: number): Listing {
 export const allListings: Listing[] = Array.from({ length: 48 }, (_, index) =>
   buildListing(index)
 );
-
-export class SearchRequestError extends Error {
-  constructor() {
-    super("دریافت آگهی‌ها با خطا مواجه شد");
-    this.name = "SearchRequestError";
-  }
-}
-
-/**
- * Stands in for the real endpoint: adds a short delay so the loading state is
- * exercised, and fails on demand (`?debug=error`) so the error state stays
- * reachable while the backend is still being built.
- */
-export function fetchListings(options?: {
-  shouldFail?: boolean;
-}): Promise<Listing[]> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (options?.shouldFail) {
-        reject(new SearchRequestError());
-        return;
-      }
-      resolve(allListings);
-    }, 450);
-  });
-}

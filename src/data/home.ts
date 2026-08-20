@@ -12,6 +12,7 @@ export type PropertyType =
 
 export interface Estate {
   id: string;
+  href?: string;
   title: string;
   district: string;
   dealType: DealType;

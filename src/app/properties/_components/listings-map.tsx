@@ -2,27 +2,39 @@
 
 import { useEffect, useMemo } from "react";
 import L from "leaflet";
-import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
 
-import { type Listing, cityCenters, formatToman } from "@/data/search";
+import type { EstateMapMarker } from "@/app/properties/_mappers/estate-map.mapper";
+import { cityCenters } from "@/data/search";
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return entities[character];
+  });
+}
 
 /**
  * Price bubbles instead of Leaflet's default pin: the price is the thing a
  * house-hunter scans for, and it sidesteps the broken default-marker asset
  * paths that bundlers cause.
  */
-function priceIcon(listing: Listing, active: boolean) {
+function priceIcon(marker: EstateMapMarker, active: boolean) {
   const className = active
     ? "bg-secondary text-secondary-foreground border-secondary"
     : "bg-card text-foreground border-border hover:border-brand";
 
   return L.divIcon({
     className: "!bg-transparent !border-0",
-    html: `<span class="inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 font-heading text-[11px] font-bold shadow-md transition-colors ${className}">${formatToman(
-      listing.priceValue
-    )}</span>`,
+    html: `<span class="inline-flex whitespace-nowrap rounded-full border px-2.5 py-1 font-heading text-[11px] font-bold shadow-md transition-colors ${className}">${escapeHtml(marker.pinLabel)}</span>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   });
@@ -30,44 +42,44 @@ function priceIcon(listing: Listing, active: boolean) {
 
 /** Keeps the viewport in sync when the result set or the selection changes. */
 function MapController({
-  listings,
+  markers,
   selectedId,
   center,
 }: {
-  listings: Listing[];
+  markers: EstateMapMarker[];
   selectedId: string | null;
   center: [number, number];
 }) {
   const map = useMap();
 
   useEffect(() => {
-    if (listings.length === 0) {
+    if (markers.length === 0) {
       map.setView(center, 12);
       return;
     }
     const bounds = L.latLngBounds(
-      listings.map((listing) => [listing.lat, listing.lng] as [number, number])
+      markers.map((marker) => [marker.lat, marker.lng] as [number, number])
     );
     map.fitBounds(bounds, { padding: [48, 48], maxZoom: 15 });
-  }, [listings, map, center]);
+  }, [markers, map, center]);
 
   useEffect(() => {
-    const selected = listings.find((listing) => listing.id === selectedId);
+    const selected = markers.find((marker) => marker.id === selectedId);
     if (selected) {
       map.panTo([selected.lat, selected.lng], { animate: true });
     }
-  }, [selectedId, listings, map]);
+  }, [selectedId, markers, map]);
 
   return null;
 }
 
 export function ListingsMap({
-  listings,
+  markers,
   city,
   selectedId,
   onSelect,
 }: {
-  listings: Listing[];
+  markers: EstateMapMarker[];
   city: string;
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -78,12 +90,12 @@ export function ListingsMap({
   const icons = useMemo(
     () =>
       new Map(
-        listings.map((listing) => [
-          listing.id,
-          priceIcon(listing, listing.id === selectedId),
+        markers.map((marker) => [
+          marker.id,
+          priceIcon(marker, marker.id === selectedId),
         ])
       ),
-    [listings, selectedId]
+    [markers, selectedId]
   );
 
   // `isolate` traps Leaflet's internal z-indexes (its panes and controls climb
@@ -103,19 +115,36 @@ export function ListingsMap({
       />
 
       <MapController
-        listings={listings}
+        markers={markers}
         selectedId={selectedId}
         center={center}
       />
 
-      {listings.map((listing) => (
+      {markers.map((marker) => (
         <Marker
-          key={listing.id}
-          position={[listing.lat, listing.lng]}
-          icon={icons.get(listing.id)}
-          eventHandlers={{ click: () => onSelect(listing.id) }}
-          zIndexOffset={listing.id === selectedId ? 1000 : 0}
-        />
+          key={marker.id}
+          position={[marker.lat, marker.lng]}
+          icon={icons.get(marker.id)}
+          eventHandlers={{ click: () => onSelect(marker.id) }}
+          zIndexOffset={marker.id === selectedId ? 1000 : 0}
+        >
+          <Popup>
+            <div dir="rtl" className="min-w-44 font-sans text-right">
+              {marker.href ? (
+                <a href={marker.href} className="font-semibold text-brand">
+                  {marker.title}
+                </a>
+              ) : (
+                <strong>{marker.title}</strong>
+              )}
+              <div className="mt-1 text-xs text-muted-foreground">
+                {marker.place} · {marker.area.toLocaleString("fa-IR")} متر
+                {marker.roomLabel ? ` · ${marker.roomLabel} خواب` : ""}
+              </div>
+              <div className="mt-1 font-semibold">{marker.priceLabel}</div>
+            </div>
+          </Popup>
+        </Marker>
       ))}
     </MapContainer>
   );

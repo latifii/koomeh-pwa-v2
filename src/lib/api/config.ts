@@ -21,3 +21,14 @@ export function toAbsoluteMediaUrl(value: string | null): string | undefined {
     return undefined;
   }
 }
+
+export function toAbsoluteSiteUrl(value: string | null): string | undefined {
+  if (!value) return undefined;
+  if (/^https?:\/\//i.test(value)) return value;
+
+  try {
+    return new URL(value, new URL(apiConfig.baseUrl).origin).toString();
+  } catch {
+    return undefined;
+  }
+}

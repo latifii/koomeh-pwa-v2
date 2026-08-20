@@ -1,8 +1,16 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, RotateCcw, SlidersHorizontal } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
@@ -17,16 +25,17 @@ import {
 } from "@/components/ui/drawer";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
-import { fetchListings } from "@/data/listings";
 import {
-  type Listing,
   type SearchFilters,
   countActiveFilters,
   defaultFilters,
-  filterListings,
 } from "@/data/search";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { routes } from "@/lib/routes";
+import { useEstateFilters } from "@/app/_lookups/_hooks/use-lookups";
+import { useEstateSearch } from "@/app/properties/_hooks/use-estate-search";
+import { useEstateMap } from "@/app/properties/_hooks/use-estate-map";
+import { mapFiltersToSearchParams } from "@/app/properties/_mappers/estate-search.mapper";
 
 import { ActiveFilters } from "./active-filters";
 import { FiltersPanel } from "./filters-panel";
@@ -50,64 +59,136 @@ const ListingsMap = dynamic(
   },
 );
 
-const PAGE_SIZE = 9;
-
 type Status = "loading" | "ready" | "error";
 type ViewMode = "grid" | "map";
 
 export function SearchView({
   cityName,
   initialFilters,
-  simulateError = false,
 }: {
   cityName: string;
   initialFilters: SearchFilters;
-  simulateError?: boolean;
 }) {
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [status, setStatus] = useState<Status>("loading");
   const [view, setView] = useState<ViewMode>("grid");
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [reloadToken, setReloadToken] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sheetSnap, setSheetSnap] = useState<SheetSnap>(SHEET_SPLIT);
-
-  // Stands in for the search request; filtering itself happens on the client
-  // against the mock inventory, so only the fetch is simulated here.
-  useEffect(() => {
-    let cancelled = false;
-
-    Promise.resolve().then(() => {
-      if (!cancelled) setStatus("loading");
-    });
-
-    fetchListings({ shouldFail: simulateError })
-      .then((data) => {
-        if (cancelled) return;
-        setListings(data);
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("error");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [simulateError, reloadToken]);
-
-  const results = useMemo(
-    () => filterListings(listings, filters),
-    [listings, filters],
+  const isDesktop = useMediaQuery("(min-width: 64rem)");
+  const pathname = usePathname();
+  const router = useRouter();
+  const requestedCityId = Number(filters.cityId) || undefined;
+  const lookupsQuery = useEstateFilters(requestedCityId);
+  const lookups = lookupsQuery.data?.result;
+  const deferredFilters = useDeferredValue(filters);
+  const apiParams = useMemo(
+    () => mapFiltersToSearchParams(deferredFilters, lookups),
+    [deferredFilters, lookups],
   );
+  const searchQuery = useEstateSearch({ ...apiParams, per_page: 12 });
+  const mapQuery = useEstateMap(
+    { ...apiParams, limit: 500 },
+    { enabled: !isDesktop || view === "map" },
+  );
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ownedKeys = [
+      "deal",
+      "propertyTypes",
+      "district",
+      "districtTitle",
+      "code",
+      "amenities",
+      "minPrice",
+      "maxPrice",
+      "minRent",
+      "maxRent",
+      "type",
+      "id",
+      "estateTypes",
+      "city_id",
+      "districts",
+      "areas",
+      "q",
+      "room_count",
+      "minArea",
+      "maxArea",
+      "price",
+      "mortgage",
+      "rahn",
+      "rent",
+      "built_year",
+      "has_photo",
+      "has_video",
+      "vr",
+      "has_agent",
+      "sort",
+      "page",
+    ];
+    ownedKeys.forEach((key) => params.delete(key));
+
+    const set = (key: string, value: string | undefined) => {
+      if (value) params.set(key, value);
+    };
+    const range = (min: string, max: string) =>
+      min || max ? `${min},${max}` : undefined;
+
+    params.set("type", deferredFilters.deal === "rent" ? "2" : "1");
+    set("id", deferredFilters.code.trim());
+    set("estateTypes", deferredFilters.types.join(","));
+    set("city_id", deferredFilters.cityId);
+    set("districts", deferredFilters.districtIds.join(","));
+    set("areas", deferredFilters.areas.join(","));
+    set("q", deferredFilters.query.trim());
+    set("room_count", deferredFilters.minRooms);
+    set("minArea", deferredFilters.minArea);
+    set("maxArea", deferredFilters.maxArea);
+    set(
+      deferredFilters.deal === "rent" ? "mortgage" : "price",
+      range(deferredFilters.minPrice, deferredFilters.maxPrice),
+    );
+    if (deferredFilters.deal === "rent") {
+      set("rent", range(deferredFilters.minRent, deferredFilters.maxRent));
+    }
+    set("built_year", deferredFilters.buildingAge);
+    if (deferredFilters.hasPhotos) params.set("has_photo", "1");
+    if (deferredFilters.hasVideo) params.set("has_video", "1");
+    if (deferredFilters.hasVirtualTour) params.set("vr", "1");
+    if (deferredFilters.hasAgent) params.set("has_agent", "1");
+    if (deferredFilters.sort !== defaultFilters.sort) {
+      params.set("sort", deferredFilters.sort);
+    }
+
+    const search = params.toString();
+    const nextUrl = search ? `${pathname}?${search}` : pathname;
+    if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
+      router.replace(nextUrl, { scroll: false });
+    }
+  }, [deferredFilters, pathname, router]);
+  const results = useMemo(
+    () => searchQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [searchQuery.data],
+  );
+  const total = searchQuery.data?.pages[0]?.total ?? 0;
+  const selectedDistrictNames = filters.districtIds
+    .map(
+      (districtId) =>
+        lookups?.districts.items.find((item) => item.value === districtId)
+          ?.title,
+    )
+    .filter(Boolean)
+    .join("، ");
+  const status: Status = searchQuery.isPending
+    ? "loading"
+    : searchQuery.isError
+      ? "error"
+      : "ready";
 
   const activeCount = countActiveFilters(filters);
 
   const updateFilters = useCallback((patch: Partial<SearchFilters>) => {
     setFilters((current) => ({ ...current, ...patch }));
-    setVisibleCount(PAGE_SIZE);
   }, []);
 
   const resetFilters = useCallback(() => {
@@ -117,9 +198,9 @@ export function SearchView({
       // "clear filters" keeps the visitor where they are.
       deal: current.deal,
       city: current.city,
+      cityId: current.cityId,
       sort: current.sort,
     }));
-    setVisibleCount(PAGE_SIZE);
   }, []);
 
   const toggleView = useCallback(() => {
@@ -127,18 +208,40 @@ export function SearchView({
     setSheetSnap(SHEET_SPLIT);
   }, []);
 
-  const retry = useCallback(() => setReloadToken((token) => token + 1), []);
+  const retry = useCallback(() => void searchQuery.refetch(), [searchQuery]);
 
-  const countLabel = `${results.length.toLocaleString("fa-IR")} آگهی در این محدوده`;
-
-  const map = (
-    <ListingsMap
-      listings={results}
-      city={filters.city}
-      selectedId={selectedId}
-      onSelect={setSelectedId}
-    />
-  );
+  const countLabel = `${total.toLocaleString("fa-IR")} آگهی در این محدوده`;
+  const markers = mapQuery.data?.markers ?? [];
+  const map = mapQuery.isPending ? (
+    <div className="flex size-full items-center justify-center bg-muted">
+      <Spinner className="size-6 text-muted-foreground" />
+    </div>
+  ) : mapQuery.isError ? (
+    <div className="flex size-full items-center justify-center bg-muted p-6">
+      <ErrorState onRetry={() => void mapQuery.refetch()} />
+    </div>
+  ) : mapQuery.data.total > 0 && markers.length === 0 ? (
+      <div className="flex size-full items-center justify-center bg-muted p-6 text-center">
+        <Typography variant="muted" className="max-w-sm">
+          هیچ‌کدام از آگهی‌های این جست‌وجو مختصات قابل نمایش ندارند.
+        </Typography>
+      </div>
+    ) : (
+      <div className="relative size-full">
+        <ListingsMap
+          markers={markers}
+          city={filters.city}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+        {mapQuery.data.truncated && (
+          <span className="absolute bottom-3 start-3 z-20 rounded-full border bg-card/95 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur">
+            نمایش {mapQuery.data.count.toLocaleString("fa-IR")} نقطه از{" "}
+            {mapQuery.data.total.toLocaleString("fa-IR")} آگهی
+          </span>
+        )}
+      </div>
+    );
 
   const filtersSidebar = (
     <div className="rounded-2xl border bg-card">
@@ -160,7 +263,12 @@ export function SearchView({
         )}
       </div>
       <div className="overflow-y-auto p-4">
-        <FiltersPanel filters={filters} onChange={updateFilters} />
+        <FiltersPanel
+          filters={filters}
+          onChange={updateFilters}
+          lookups={lookups}
+          lookupsLoading={lookupsQuery.isPending}
+        />
       </div>
     </div>
   );
@@ -195,12 +303,14 @@ export function SearchView({
             filters={filters}
             onChange={updateFilters}
             showDealType
+            lookups={lookups}
+            lookupsLoading={lookupsQuery.isPending}
           />
         </div>
 
         <DrawerFooter>
           <Button onClick={() => setFiltersOpen(false)}>
-            نمایش {results.length.toLocaleString("fa-IR")} آگهی
+            نمایش {total.toLocaleString("fa-IR")} آگهی
           </Button>
         </DrawerFooter>
       </DrawerContent>
@@ -211,8 +321,6 @@ export function SearchView({
   // swipe handle already covers everything a grid/map switch used to. Leaflet
   // misbehaves in a `display:none` box, so this is a mount decision, not a
   // `lg:hidden` one.
-  const isDesktop = useMediaQuery("(min-width: 64rem)");
-
   if (!isDesktop) {
     return (
       <>
@@ -225,9 +333,14 @@ export function SearchView({
           onRetry={retry}
           status={status}
           results={results}
+          total={total}
+          hasMore={Boolean(searchQuery.hasNextPage)}
+          isLoadingMore={searchQuery.isFetchingNextPage}
+          onLoadMore={() => void searchQuery.fetchNextPage()}
           snap={sheetSnap}
           onSnapChange={setSheetSnap}
           map={map}
+          lookups={lookups}
         />
         {drawer}
       </>
@@ -303,6 +416,17 @@ export function SearchView({
               {status === "ready" && results.length === 0 && (
                 <EmptyState onReset={resetFilters} />
               )}
+              {status === "ready" && searchQuery.hasNextPage && (
+                <Button
+                  variant="outline"
+                  disabled={searchQuery.isFetchingNextPage}
+                  onClick={() => void searchQuery.fetchNextPage()}
+                >
+                  {searchQuery.isFetchingNextPage
+                    ? "در حال دریافت…"
+                    : "نمایش آگهی‌های بیشتر"}
+                </Button>
+              )}
             </div>
 
             <div className="relative mt-3 min-w-0 flex-1 overflow-hidden">
@@ -312,6 +436,7 @@ export function SearchView({
                 activeCount={activeCount}
                 onOpenFilters={() => setFiltersOpen(true)}
                 className="absolute inset-x-3 top-3 z-30 bg-card/95 shadow-lg backdrop-blur-md"
+                lookups={lookups}
               />
 
               {status === "error" ? (
@@ -331,6 +456,7 @@ export function SearchView({
               onChange={updateFilters}
               activeCount={activeCount}
               onOpenFilters={() => setFiltersOpen(true)}
+              lookups={lookups}
             />
 
             <div className="grid gap-6 lg:grid-cols-[19rem_1fr] lg:items-start">
@@ -347,10 +473,10 @@ export function SearchView({
                   ) : (
                     <>
                       <span className="font-bold text-foreground">
-                        {results.length.toLocaleString("fa-IR")}
+                        {total.toLocaleString("fa-IR")}
                       </span>{" "}
                       آگهی در {filters.city}
-                      {filters.district ? `، ${filters.district}` : ""}
+                      {selectedDistrictNames ? `، ${selectedDistrictNames}` : ""}
                     </>
                   )}
                 </Typography>
@@ -359,6 +485,7 @@ export function SearchView({
                   filters={filters}
                   onChange={updateFilters}
                   onReset={resetFilters}
+                  lookups={lookups}
                 />
 
                 {status === "loading" && <ResultsSkeleton />}
@@ -372,13 +499,13 @@ export function SearchView({
                 {status === "ready" && results.length > 0 && (
                   <>
                     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                      {results.slice(0, visibleCount).map((listing, index) => (
+                      {results.map((listing, index) => (
                         <Fragment key={listing.id}>
                           <PropertyCard estate={listing} />
                           {/* Slotted after the first full row, where interest is highest */}
                           {index === 2 && (
                             <MapPromo
-                              count={results.length}
+                              count={total}
                               city={filters.city}
                               onOpen={toggleView}
                             />
@@ -387,22 +514,16 @@ export function SearchView({
                       ))}
                     </div>
 
-                    {visibleCount < results.length && (
+                    {searchQuery.hasNextPage && (
                       <Button
                         variant="outline"
                         className="mx-auto w-fit"
-                        onClick={() =>
-                          setVisibleCount((count) => count + PAGE_SIZE)
-                        }
+                        disabled={searchQuery.isFetchingNextPage}
+                        onClick={() => void searchQuery.fetchNextPage()}
                       >
-                        نمایش آگهی‌های بیشتر
-                        <span className="text-muted-foreground">
-                          (
-                          {(results.length - visibleCount).toLocaleString(
-                            "fa-IR",
-                          )}
-                          )
-                        </span>
+                        {searchQuery.isFetchingNextPage
+                          ? "در حال دریافت…"
+                          : "نمایش آگهی‌های بیشتر"}
                       </Button>
                     )}
                   </>

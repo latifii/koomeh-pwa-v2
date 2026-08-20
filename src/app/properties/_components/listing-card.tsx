@@ -122,7 +122,7 @@ export function ListingCard({
       </div>
 
       <Link
-        href={routes.property(listing.id)}
+        href={listing.href ?? routes.property(listing.id)}
         aria-label={listing.title}
         className="absolute inset-0 z-10"
       />
