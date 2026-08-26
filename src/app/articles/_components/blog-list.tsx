@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Newspaper, Search } from "lucide-react";
 
 import { BlogCard } from "./blog-card";
-import { Typography } from "@/components/ui/typography";
+import { EmptyState } from "@/components/shared/empty-state";
 import {
   type BlogCategory,
   type BlogPost,
@@ -77,17 +77,12 @@ export function BlogList({ posts }: { posts: BlogPost[] }) {
           ))}
         </div>
       ) : (
-        <div className="mt-6 flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-muted/30 px-6 py-16 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-muted text-brand">
-            <Newspaper className="size-6" strokeWidth={1.5} />
-          </span>
-          <Typography variant="h4" as="p">
-            مقاله‌ای پیدا نشد
-          </Typography>
-          <Typography variant="small" className="max-w-xs">
-            با دسته‌بندی یا عبارت دیگری جست‌وجو کنید.
-          </Typography>
-        </div>
+        <EmptyState
+          icon={Newspaper}
+          title="مقاله‌ای پیدا نشد"
+          description="با دسته‌بندی یا عبارت دیگری جست‌وجو کنید."
+          className="mt-6"
+        />
       )}
     </div>
   );

@@ -9,9 +9,9 @@ import {
 import { getValidated } from "@/lib/api/http-client";
 
 const endpoints = {
-  latestSaleEstates: "/site3/home/sections/latest-sale-estates",
-  latestRentEstates: "/site3/home/sections/latest-rent-estates",
-  virtualTourEstates: "/site3/home/sections/virtual-tour-estates",
+  latestSaleEstates: "/api/site3/home/sections/latest-sale-estates",
+  latestRentEstates: "/api/site3/home/sections/latest-rent-estates",
+  virtualTourEstates: "/api/site3/home/sections/virtual-tour-estates",
 } as const;
 
 const limits = {

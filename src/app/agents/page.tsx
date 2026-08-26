@@ -4,9 +4,15 @@ import { ChevronLeft, Users } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { Typography } from "@/components/ui/typography";
-import { agents } from "@/data/agents";
 
 import { AgentsSearch } from "./_components/agents-search";
+import { getAgentFilters, getAgents } from "./_api/agents.service";
+
+/**
+ * The default agents catalogue changes infrequently, so render it ahead of
+ * time and refresh the cached HTML in the background every hour.
+ */
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "کارشناسان املاک کومه در قم | جست‌وجوی مشاور",
@@ -14,17 +20,20 @@ export const metadata: Metadata = {
     "لیست کارشناسان گروه املاک کومه در قم؛ بر اساس نوع فعالیت، تخصص ملک و امتیاز، مشاور مناسب خود را پیدا کنید.",
 };
 
-export default function AgentsSearchPage() {
+export default async function AgentsSearchPage() {
+  const [initialAgents, initialFilters] = await Promise.all([
+    getAgents({ city_id: 1, page: 1, per_page: 20 }),
+    getAgentFilters({ cityId: 1 }),
+  ]);
+
   return (
     <div className="pb-16">
       <Container className="py-3">
         <nav
           aria-label="مسیر صفحه"
-          className="flex items-center gap-1 text-xs text-muted-foreground"
+          className="flex items-center gap-1"
         >
-          <Link href="/" className="shrink-0 hover:text-brand">
-            خانه
-          </Link>
+          <Link href="/" className="shrink-0 hover:text-brand"><Typography as="span" variant="small">خانه</Typography></Link>
           <ChevronLeft className="size-3.5 shrink-0" />
           <Typography
             as="span"
@@ -55,7 +64,10 @@ export default function AgentsSearchPage() {
           </Typography>
         </header>
 
-        <AgentsSearch agents={agents} />
+        <AgentsSearch
+          initialAgents={initialAgents}
+          initialFilters={initialFilters}
+        />
       </Container>
     </div>
   );

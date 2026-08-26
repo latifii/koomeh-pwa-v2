@@ -8,13 +8,9 @@ import type {
   EstateSearchRequestOptions,
 } from "@/app/properties/_types/estate-search.types";
 import { getValidated } from "@/lib/api/http-client";
+import { positiveInteger } from "@/lib/api/query-params";
 
-const endpoint = "/site3/estates/map";
-
-function positiveInteger(value: number | undefined): number | undefined {
-  if (value === undefined || !Number.isFinite(value) || value <= 0) return undefined;
-  return Math.trunc(value);
-}
+const endpoint = "/api/site3/estates/map";
 
 export function normalizeEstateMapParams(params: EstateMapParams) {
   const normalized = normalizeEstateSearchParams(params);

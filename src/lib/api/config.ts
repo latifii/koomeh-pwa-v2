@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = "https://koomeh.ir/api";
+const DEFAULT_API_BASE_URL = "https://koomeh.ir";
 
 function withoutTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");

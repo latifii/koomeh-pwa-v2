@@ -1,117 +1,132 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Award, Handshake, Home, MapPin, Star } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  Building2,
+  Home,
+  KeyRound,
+  MapPin,
+} from "lucide-react";
 
+import type { AgentDto } from "@/app/agents/_schemas/agents.schema";
+import { ApiImage } from "@/components/shared/api-image";
 import { Typography } from "@/components/ui/typography";
 import { defaultAvatars } from "@/data/avatars";
-import {
-  type Agent,
-  activityShortLabels,
-  getAgentListingCount,
-} from "@/data/agents";
+import { toAbsoluteMediaUrl } from "@/lib/api/config";
 import { cn } from "@/lib/utils";
-import { routes } from "@/lib/routes";
+import { Badge } from "@/components/ui/badge";
 
-/** Top-rated ribbon, reused on the card and the profile hero. */
-export function TopRatedBadge({ className }: { className?: string }) {
-  return (
-    <Typography
-      as="span"
-      variant="small"
-      className={cn(
-        "flex w-fit items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-secondary-foreground",
-        className
-      )}
-    >
-      <Award className="size-3" />
-      برترین
-    </Typography>
-  );
-}
-
-/**
- * The advisor card used across the search grid and the homepage. Photo, name,
- * activity, the two numbers a client scans for (rating and active files), and a
- * clear affordance into the profile.
- */
 export function AgentCard({
   agent,
   className,
 }: {
-  agent: Agent;
+  agent: AgentDto;
   className?: string;
 }) {
-  const listingCount = getAgentListingCount(agent);
+  const avatar = defaultAvatars[agent.gender === "female" ? "female" : "male"];
+  const photo = toAbsoluteMediaUrl(agent.photo ?? null);
+  const location = [agent.branch?.name, agent.city?.name]
+    .filter(Boolean)
+    .join("، ");
+  const specialties = agent.estate_types.slice(0, 2);
+  const specialtyLabel = specialties.map((type) => type.label).join("، ");
+  const remainingSpecialties = agent.estate_types.length - specialties.length;
 
   return (
     <Link
-      href={routes.agent(agent.id)}
+      href={agent.url || `/agents/${agent.id}`}
       className={cn(
-        "group flex flex-col gap-3 rounded-2xl border bg-card p-4 transition-colors hover:border-brand/30",
-        className
+        "group flex h-full flex-col rounded-xl border bg-card p-4 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-brand/35 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+        className,
       )}
     >
-      <div className="flex items-center gap-3">
-        <span className="relative shrink-0">
-          <Image
-            src={defaultAvatars[agent.gender]}
+      <div className="flex items-start gap-3">
+        {photo ? (
+          <ApiImage
+            src={photo}
+            fallbackSrc={avatar}
             alt={agent.name}
             width={64}
             height={64}
-            className="size-16 rounded-2xl object-cover ring-2 ring-border transition-transform duration-300 group-hover:scale-105"
+            className="size-16 shrink-0 rounded-lg object-cover ring-1 ring-border"
           />
-        </span>
+        ) : (
+          <Image
+            src={avatar}
+            alt={agent.name}
+            width={64}
+            height={64}
+            className="size-16 shrink-0 rounded-lg object-cover ring-1 ring-border"
+          />
+        )}
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <Typography
-              variant="h4"
-              as="h3"
-              className="truncate transition-colors group-hover:text-brand sm:text-sm"
-            >
-              {agent.name}
-            </Typography>
-            {agent.isTopRated && (
-              <Award className="size-4 shrink-0 text-secondary" />
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <Typography
+                variant="h4"
+                as="h3"
+                className="truncate transition-colors group-hover:text-brand"
+              >
+                {agent.name}
+              </Typography>
+              {(agent.title || agent.activity_label) && (
+                <Typography
+                  variant="small"
+                  className="mt-0.5 truncate"
+                >
+                  {agent.title || agent.activity_label}
+                </Typography>
+              )}
+            </div>
+            {agent.code && (
+              <Badge className="shrink-0">
+                <Typography as="span" variant="small" className="text-current">
+                  کد {agent.code}
+                </Typography>
+              </Badge>
             )}
           </div>
-          <Typography variant="small" className="truncate">
-            {activityShortLabels[agent.activity]}
-          </Typography>
-          <Typography
-            as="span"
-            variant="small"
-            className="mt-0.5 flex items-center gap-1 text-[11px]"
-          >
-            <MapPin className="size-3 text-brand/70" />
-            شعبه {agent.branch}
-          </Typography>
-        </div>
 
-        <span className="flex size-7 shrink-0 items-center justify-center self-start rounded-full bg-muted text-brand transition-colors group-hover:bg-brand group-hover:text-white">
-          <ArrowLeft className="size-3.5" />
-        </span>
+          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+            {agent.title && agent.activity_label && (
+              <Meta icon={BriefcaseBusiness}>{agent.activity_label}</Meta>
+            )}
+            {location && <Meta icon={MapPin}>شعبه {location}</Meta>}
+            {specialtyLabel && (
+              <Meta icon={Building2}>
+                تخصص: {specialtyLabel}
+                {remainingSpecialties > 0 &&
+                  ` و ${remainingSpecialties.toLocaleString("fa-IR")} مورد دیگر`}
+              </Meta>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 border-t pt-3 text-center">
-        <Stat
-          icon={Star}
-          value={agent.rating.toLocaleString("fa-IR")}
-          label="امتیاز"
-          iconClassName="fill-secondary text-secondary"
-        />
-        <Stat
-          icon={Home}
-          value={listingCount.toLocaleString("fa-IR")}
-          label="فایل فعال"
-        />
-        <Stat
-          icon={Handshake}
-          value={agent.totalDeals.toLocaleString("fa-IR")}
-          label="معامله"
-        />
+      <div className="mt-auto pt-3">
+        <div className="grid grid-cols-3 border-t pt-3">
+          <Stat icon={Home} value={agent.estate_count} label="فایل فعال" />
+          <Stat icon={Building2} value={agent.sale_count} label="فروش" />
+          <Stat icon={KeyRound} value={agent.rent_count} label="اجاره" />
+        </div>
       </div>
     </Link>
+  );
+}
+
+function Meta({
+  icon: Icon,
+  children,
+}: {
+  icon: typeof MapPin;
+  children: React.ReactNode;
+}) {
+  return (
+    <Typography as="span" variant="small" className="flex min-w-0 items-center gap-1">
+      <Icon className="size-3 shrink-0 text-brand/70" />
+      <span className="truncate">{children}</span>
+    </Typography>
   );
 }
 
@@ -119,24 +134,24 @@ function Stat({
   icon: Icon,
   value,
   label,
-  iconClassName,
 }: {
-  icon: typeof Star;
-  value: string;
+  icon: typeof Home;
+  value: number | null | undefined;
   label: string;
-  iconClassName?: string;
 }) {
   return (
-    <span className="flex flex-col items-center gap-0.5">
-      <span className="flex items-center gap-1">
-        <Icon className={cn("size-3.5 text-brand/70", iconClassName)} />
-        <Typography as="span" variant="h4" className="text-[13px] sm:text-[13px]">
-          {value}
+    <span className="flex min-w-0 items-center justify-center gap-1.5 border-s px-2 first:border-s-0">
+      <Icon className="size-3.5 shrink-0 text-brand/70" />
+      <span className="min-w-0">
+        <Typography as="strong" variant="h4" className="block leading-none">
+          {value === null || value === undefined
+            ? "—"
+            : value.toLocaleString("fa-IR")}
+        </Typography>
+        <Typography as="small" variant="small" className="mt-1 block truncate">
+          {label}
         </Typography>
       </span>
-      <Typography as="span" variant="small" className="text-[11px]">
-        {label}
-      </Typography>
     </span>
   );
 }

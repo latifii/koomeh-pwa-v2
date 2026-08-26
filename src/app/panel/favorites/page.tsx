@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Heart, Home, UserRound } from "lucide-react";
 
-import { AgentCard } from "@/app/agents/_components/agent-card";
+import { LegacyAgentCard } from "@/app/agents/_components/legacy-agent-card";
 import { favoriteProperties } from "@/app/panel/_data/panel";
 import { PanelPropertyGrid } from "@/app/panel/_components/panel-property-grid";
 import { PanelPageHeader } from "@/components/layout/panel-page-header";
@@ -20,10 +20,9 @@ export default function FavoritesPage() {
           <TabsTrigger value="agents"><UserRound />کارشناسان ({Math.min(3, agents.length).toLocaleString("fa-IR")})</TabsTrigger>
         </TabsList>
         <TabsContent value="properties"><PanelPropertyGrid listings={favoriteProperties} /></TabsContent>
-        <TabsContent value="agents"><div className="grid gap-4 sm:grid-cols-2">{agents.slice(0,3).map((agent)=><AgentCard key={agent.id} agent={agent} />)}</div></TabsContent>
+        <TabsContent value="agents"><div className="grid gap-4 sm:grid-cols-2">{agents.slice(0,3).map((agent)=><LegacyAgentCard key={agent.id} agent={agent} />)}</div></TabsContent>
       </Tabs>
       <p className="sr-only"><Heart />فهرست علاقه‌مندی‌ها</p>
     </div>
   );
 }
-

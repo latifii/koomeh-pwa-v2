@@ -13,16 +13,22 @@ export interface Agent {
   branch: string;
   phone: string;
   activity: AgentActivity;
+  activityLabel?: string;
   bio: string;
   rating: number;
   reviewsCount: number;
   totalDeals: number;
+  activeEstateCount?: number;
+  saleCount?: number;
+  rentCount?: number;
   yearsActive: number;
   joinedYear: number;
   specialties: PropertyType[];
   districts: string[];
   social: { whatsapp?: boolean; instagram?: boolean; telegram?: boolean };
   isTopRated?: boolean;
+  photo?: string;
+  branchUrl?: string;
 }
 
 export const activityLabels: Record<AgentActivity, string> = {

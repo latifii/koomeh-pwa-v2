@@ -17,26 +17,22 @@ import {
   type SortOptionsResponse,
 } from "@/app/_lookups/_schemas/lookups.schema";
 import { getValidated } from "@/lib/api/http-client";
+import { positiveInteger } from "@/lib/api/query-params";
 
 const endpoints = {
-  dealTypes: "/lookups/deal-types",
-  estateTypes: "/lookups/estate-types",
-  cities: "/lookups/cities",
-  districts: "/lookups/districts",
-  areas: "/lookups/areas",
-  roomCounts: "/lookups/room-counts",
-  sortOptions: "/lookups/sort-options",
-  estateFilters: "/lookups/estate-filters",
+  dealTypes: "/api/lookups/deal-types",
+  estateTypes: "/api/lookups/estate-types",
+  cities: "/api/lookups/cities",
+  districts: "/api/lookups/districts",
+  areas: "/api/lookups/areas",
+  roomCounts: "/api/lookups/room-counts",
+  sortOptions: "/api/lookups/sort-options",
+  estateFilters: "/api/lookups/estate-filters",
 } as const;
 
 type RequestOptions = { signal?: AbortSignal };
 type CityOptions = RequestOptions & { cityId?: number };
 type ProvinceOptions = RequestOptions & { provinceId?: number };
-
-function positiveInteger(value: number | undefined): number | undefined {
-  if (value === undefined || !Number.isFinite(value) || value <= 0) return undefined;
-  return Math.trunc(value);
-}
 
 export function getDealTypes(options: RequestOptions = {}): Promise<DealTypesResponse> {
   return getValidated(endpoints.dealTypes, dealTypesResponseSchema, options);

@@ -70,6 +70,8 @@ export function FiltersPanel({
   const selectedCityTitle =
     cities.find((city) => city.value === selectedCityId)?.title ??
     lookups?.city.name;
+  const districtsAnchor = useComboboxAnchor();
+  const areasAnchor = useComboboxAnchor();
 
   const toggleType = (type: string) =>
     onChange({
@@ -160,23 +162,69 @@ export function FiltersPanel({
           </LabeledField>
 
           <LabeledField label="محله">
-            <MultiLookupCombobox
-              options={districts}
+            <Combobox
+              multiple
+              items={districts.map((district) => district.value)}
               value={filters.districtIds}
-              onChange={(districtIds) => onChange({ districtIds })}
-              placeholder="جست‌وجو و انتخاب محله‌ها"
-              emptyLabel="محله‌ای پیدا نشد"
-            />
+              onValueChange={(districtIds) => onChange({ districtIds })}
+            >
+              <ComboboxChips ref={districtsAnchor} className="w-full">
+                {filters.districtIds.map((selectedValue) => (
+                  <ComboboxChip key={selectedValue}>
+                    {findLookupTitle(districts, selectedValue)}
+                  </ComboboxChip>
+                ))}
+                <ComboboxChipsInput
+                  placeholder={
+                    filters.districtIds.length
+                      ? ""
+                      : "جست‌وجو و انتخاب محله‌ها"
+                  }
+                />
+              </ComboboxChips>
+              <ComboboxContent anchor={districtsAnchor}>
+                <ComboboxEmpty>محله‌ای پیدا نشد</ComboboxEmpty>
+                <ComboboxList>
+                  {districts.map((district) => (
+                    <ComboboxItem key={district.value} value={district.value}>
+                      {district.title}
+                    </ComboboxItem>
+                  ))}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
           </LabeledField>
 
           <LabeledField label="منطقه شهری">
-            <MultiLookupCombobox
-              options={areas}
+            <Combobox
+              multiple
+              items={areas.map((area) => area.value)}
               value={filters.areas}
-              onChange={(selectedAreas) => onChange({ areas: selectedAreas })}
-              placeholder="انتخاب مناطق"
-              emptyLabel="منطقه‌ای پیدا نشد"
-            />
+              onValueChange={(selectedAreas) =>
+                onChange({ areas: selectedAreas })
+              }
+            >
+              <ComboboxChips ref={areasAnchor} className="w-full">
+                {filters.areas.map((selectedValue) => (
+                  <ComboboxChip key={selectedValue}>
+                    {findLookupTitle(areas, selectedValue)}
+                  </ComboboxChip>
+                ))}
+                <ComboboxChipsInput
+                  placeholder={filters.areas.length ? "" : "انتخاب مناطق"}
+                />
+              </ComboboxChips>
+              <ComboboxContent anchor={areasAnchor}>
+                <ComboboxEmpty>منطقه‌ای پیدا نشد</ComboboxEmpty>
+                <ComboboxList>
+                  {areas.map((area) => (
+                    <ComboboxItem key={area.value} value={area.value}>
+                      {area.title}
+                    </ComboboxItem>
+                  ))}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
           </LabeledField>
 
           <LabeledField label="کد ملک">
@@ -541,6 +589,13 @@ function getRangeSummary(
   return null;
 }
 
+function findLookupTitle(
+  options: { value: string; title: string }[],
+  value: string,
+) {
+  return options.find((option) => option.value === value)?.title ?? value;
+}
+
 function SwitchRow({
   icon: Icon,
   label,
@@ -560,52 +615,5 @@ function SwitchRow({
       </span>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />
     </Label>
-  );
-}
-
-type MultiLookupOption = { value: string; title: string };
-
-function MultiLookupCombobox({
-  options,
-  value,
-  onChange,
-  placeholder,
-  emptyLabel,
-}: {
-  options: MultiLookupOption[];
-  value: string[];
-  onChange: (value: string[]) => void;
-  placeholder: string;
-  emptyLabel: string;
-}) {
-  const anchor = useComboboxAnchor();
-
-  return (
-    <Combobox
-      multiple
-      items={options.map((option) => option.value)}
-      value={value}
-      onValueChange={onChange}
-    >
-      <ComboboxChips ref={anchor} className="w-full">
-        {value.map((selectedValue) => (
-          <ComboboxChip key={selectedValue}>
-            {options.find((option) => option.value === selectedValue)?.title ??
-              selectedValue}
-          </ComboboxChip>
-        ))}
-        <ComboboxChipsInput placeholder={value.length ? "" : placeholder} />
-      </ComboboxChips>
-      <ComboboxContent anchor={anchor}>
-        <ComboboxEmpty>{emptyLabel}</ComboboxEmpty>
-        <ComboboxList>
-          {options.map((option) => (
-            <ComboboxItem key={option.value} value={option.value}>
-              {option.title}
-            </ComboboxItem>
-          ))}
-        </ComboboxList>
-      </ComboboxContent>
-    </Combobox>
   );
 }

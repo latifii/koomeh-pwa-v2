@@ -1,6 +1,7 @@
 import { RotateCcw, SearchX, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState as SharedEmptyState } from "@/components/shared/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
@@ -38,22 +39,12 @@ export function ResultsSkeleton({
 
 export function EmptyState({ onReset }: { onReset: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed py-16 text-center">
-      <span className="flex size-12 items-center justify-center rounded-full bg-muted">
-        <SearchX className="size-6 text-muted-foreground" />
-      </span>
-      <Typography as="h3" variant="h4">
-        با فیلترهای فعلی آگهی‌ای پیدا نشد
-      </Typography>
-      <Typography variant="muted" className="max-w-sm">
-        محدوده قیمت یا متراژ را کمی بازتر کنید، یا فیلترها را پاک کنید تا همه
-        آگهی‌های این شهر را ببینید.
-      </Typography>
-      <Button variant="outline" size="sm" className="mt-1" onClick={onReset}>
-        <RotateCcw className="size-4" />
-        حذف فیلترها
-      </Button>
-    </div>
+    <SharedEmptyState
+      icon={SearchX}
+      title="با فیلترهای فعلی آگهی‌ای پیدا نشد"
+      description="محدوده قیمت یا متراژ را کمی بازتر کنید، یا فیلترها را پاک کنید تا همه آگهی‌های این شهر را ببینید."
+      action={<Button variant="outline" size="sm" onClick={onReset}><RotateCcw />حذف فیلترها</Button>}
+    />
   );
 }
 

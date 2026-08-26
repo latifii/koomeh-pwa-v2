@@ -5,7 +5,7 @@ import {
 import { getValidated } from "@/lib/api/http-client";
 
 const TOP_AGENTS_ENDPOINT =
-  "/site3/home/sections/top-ranked-agents-of-month";
+  "/api/site3/home/sections/top-ranked-agents-of-month";
 const DEFAULT_LIMIT = 3;
 const MAX_LIMIT = 24;
 

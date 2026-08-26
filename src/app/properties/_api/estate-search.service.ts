@@ -7,41 +7,14 @@ import type {
   EstateSearchRequestOptions,
 } from "@/app/properties/_types/estate-search.types";
 import { getValidated } from "@/lib/api/http-client";
+import {
+  csvParam,
+  nonNegativeInteger,
+  normalizedText,
+  positiveInteger,
+} from "@/lib/api/query-params";
 
-const endpoint = "/site3/estates/search";
-
-function positiveInteger(value: number | undefined): number | undefined {
-  if (value === undefined || !Number.isFinite(value) || value <= 0) return undefined;
-  return Math.trunc(value);
-}
-
-function nonNegativeInteger(value: number | undefined): number | undefined {
-  if (value === undefined || !Number.isFinite(value) || value < 0) return undefined;
-  return Math.trunc(value);
-}
-
-function text(value: string | undefined): string | undefined {
-  const normalized = value?.trim();
-  return normalized || undefined;
-}
-
-function csv(
-  value: string | readonly (string | number)[] | undefined,
-): string | undefined {
-  if (Array.isArray(value)) {
-    const normalized = value
-      .map(String)
-      .map((item) => item.trim())
-      .filter((item) => item && item !== "0");
-    return normalized.length ? normalized.join(",") : undefined;
-  }
-  if (typeof value !== "string") return undefined;
-  const normalized = value
-    .split(",")
-    .map((item) => item.trim())
-    .filter((item) => item && item !== "0");
-  return normalized.length ? normalized.join(",") : undefined;
-}
+const endpoint = "/api/site3/estates/search";
 
 export function normalizeEstateSearchParams(
   params: EstateSearchParams,
@@ -49,22 +22,22 @@ export function normalizeEstateSearchParams(
   return {
     type: params.type === 2 ? 2 : 1,
     id: positiveInteger(params.id),
-    estateTypes: csv(params.estateTypes),
+    estateTypes: csvParam(params.estateTypes),
     city_id: positiveInteger(params.city_id),
-    districts: csv(params.districts),
-    areas: csv(params.areas),
-    q: text(params.q),
-    title: text(params.title),
+    districts: csvParam(params.districts),
+    areas: csvParam(params.areas),
+    q: normalizedText(params.q),
+    title: normalizedText(params.title),
     room_count: positiveInteger(params.room_count),
     minArea: nonNegativeInteger(params.minArea),
     maxArea: nonNegativeInteger(params.maxArea),
-    price: text(params.price),
-    mortgage: text(params.mortgage),
-    rahn: text(params.rahn),
-    rent: text(params.rent),
+    price: normalizedText(params.price),
+    mortgage: normalizedText(params.mortgage),
+    rahn: normalizedText(params.rahn),
+    rent: normalizedText(params.rent),
     built_year: nonNegativeInteger(params.built_year),
-    conditions: csv(params.conditions),
-    facilities: csv(params.facilities),
+    conditions: csvParam(params.conditions),
+    facilities: csvParam(params.facilities),
     has_photo: params.has_photo || undefined,
     has_video: params.has_video || undefined,
     vr: params.vr || undefined,
