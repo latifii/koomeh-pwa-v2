@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, MapPinned } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
-import blogCover from "@/assets/images/card/blog.webp";
+import blogCover from "@/assets/images/default/blog-default.webp";
 import { ApiImage } from "@/components/shared/api-image";
 import type { HomeNeighborhoodGuidesSection } from "@/app/_home/_types/home-content.types";
 import { routes } from "@/lib/routes";

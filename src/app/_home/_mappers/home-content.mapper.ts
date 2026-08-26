@@ -8,6 +8,7 @@ import type {
   HomeBranchesSection,
   HomeNeighborhoodGuidesSection,
 } from "@/app/_home/_types/home-content.types";
+import { mapBlogImage } from "@/app/articles/_mappers/blog.mapper";
 import { toAbsoluteMediaUrl } from "@/lib/api/config";
 import { routes } from "@/lib/routes";
 
@@ -35,7 +36,7 @@ export function mapLatestBlogArticles(
       category:
         articleCategoryLabels[article.category_id] ?? "مجله املاک",
       publishedAtLabel: article.publish_date,
-      image: toAbsoluteMediaUrl(article.image),
+      image: mapBlogImage(article.image),
     })),
   };
 }
@@ -55,7 +56,7 @@ export function mapNeighborhoodGuideArticles(
       id: String(article.id),
       name: article.title.trim(),
       description: article.summary.trim(),
-      image: toAbsoluteMediaUrl(article.image),
+      image: mapBlogImage(article.image),
     })),
   };
 }

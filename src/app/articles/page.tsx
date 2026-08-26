@@ -4,10 +4,15 @@ import { BookOpen, ChevronLeft } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
 import { Typography } from "@/components/ui/typography";
-import { getBlogPosts, getFeaturedPost } from "@/data/blog";
+import {
+  getBlogCategories,
+  getBlogPosts,
+} from "@/app/articles/_api/blog.service";
+import { mapBlogCategories } from "@/app/articles/_mappers/blog.mapper";
 
 import { BlogList } from "./_components/blog-list";
-import { FeaturedPost } from "./_components/featured-post";
+
+export const revalidate = 900;
 
 export const metadata: Metadata = {
   title: "مجله املاک کومه | راهنما، تحلیل بازار و نکات حقوقی",
@@ -15,10 +20,12 @@ export const metadata: Metadata = {
     "جدیدترین مقالات گروه املاک کومه درباره خرید، فروش و اجاره ملک در قم؛ راهنمای معامله، تحلیل بازار مسکن و نکات حقوقی قرارداد.",
 };
 
-export default function BlogsPage() {
-  const posts = getBlogPosts();
-  const featured = getFeaturedPost();
-  const rest = posts.filter((post) => post.id !== featured.id);
+export default async function BlogsPage() {
+  const [initialPosts, categoriesResponse] = await Promise.all([
+    getBlogPosts({ page: 1, per_page: 21, sort: 1 }),
+    getBlogCategories(),
+  ]);
+  const categories = mapBlogCategories(categoriesResponse);
 
   return (
     <div className="pb-16">
@@ -60,11 +67,7 @@ export default function BlogsPage() {
           </Typography>
         </header>
 
-        <FeaturedPost post={featured} />
-
-        <div className="mt-8">
-          <BlogList posts={rest} />
-        </div>
+        <BlogList initialPosts={initialPosts} categories={categories} />
       </Container>
     </div>
   );

@@ -2,7 +2,7 @@ import Image, { type ImageProps } from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Clock } from "lucide-react";
 
-import blogCover from "@/assets/images/card/blog.webp";
+import blogCover from "@/assets/images/default/blog-default.webp";
 import type { HomeBlogArticlesSection } from "@/app/_home/_types/home-content.types";
 import { Section } from "@/components/layout/section";
 import { ApiImage } from "@/components/shared/api-image";
