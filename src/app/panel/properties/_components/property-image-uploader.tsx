@@ -1,160 +1,215 @@
 "use client";
 
-import Image from "next/image";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type DragEvent,
-} from "react";
-import { Upload, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useRef, useState } from "react";
+import { ImagePlus, Star, Trash2, TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
+
+import { uploadEstateImage } from "@/app/panel/properties/_api/estate-submit.service";
+import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 import { cn } from "@/lib/utils";
-import type { ImageItem } from "../_types/property-form.types";
 
+const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+const MAX_BYTES = 5 * 1024 * 1024;
+
+type Upload = {
+  /** Local key while uploading; replaced by the API's id on success. */
+  key: string;
+  preview: string;
+  progress: number;
+  id?: number;
+  error?: string;
+};
+
+/**
+ * Uploads one file per request, as the API requires, and hands the resulting
+ * ids up to the form. Previews come from object URLs so a picture appears the
+ * moment it is chosen rather than after the round trip.
+ */
 export function PropertyImageUploader({
-  images,
+  imageIds,
+  coverImageId,
+  maxImages,
   onChange,
+  onCoverChange,
 }: {
-  images: ImageItem[];
-  onChange: (images: ImageItem[]) => void;
+  imageIds: number[];
+  coverImageId: number | null;
+  maxImages: number;
+  onChange: (ids: number[]) => void;
+  onCoverChange: (id: number | null) => void;
 }) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [error, setError] = useState("");
-  const imagesRef = useRef(images);
-  useEffect(() => {
-    imagesRef.current = images;
-  }, [images]);
-  useEffect(
-    () => () =>
-      imagesRef.current.forEach((image) => URL.revokeObjectURL(image.url)),
-    [],
-  );
+  const [uploads, setUploads] = useState<Upload[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const addImages = (files: File[]) => {
-    const valid = files.filter(
-      (file) => file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024,
+  const patch = (key: string, changes: Partial<Upload>) =>
+    setUploads((current) =>
+      current.map((item) => (item.key === key ? { ...item, ...changes } : item)),
     );
-    setError(
-      valid.length === files.length
-        ? ""
-        : "فقط تصاویر JPG، PNG یا WEBP با حجم کمتر از ۱۰ مگابایت قابل انتخاب هستند.",
-    );
-    const existing = new Set(
-      images.map(({ file }) => `${file.name}-${file.size}`),
-    );
-    const next = valid
-      .filter((file) => !existing.has(`${file.name}-${file.size}`))
-      .map((file) => ({ file, url: URL.createObjectURL(file) }));
-    onChange([...images, ...next]);
+
+  const accept = async (files: FileList | null) => {
+    if (!files?.length) return;
+
+    const room = maxImages - imageIds.length;
+    if (room <= 0) {
+      toast.error(`حداکثر ${maxImages.toLocaleString("fa-IR")} تصویر می‌توانید اضافه کنید.`);
+      return;
+    }
+
+    const chosen = Array.from(files).slice(0, room);
+    if (files.length > room) {
+      toast.warning(
+        `فقط ${room.toLocaleString("fa-IR")} تصویر دیگر جا دارد؛ بقیه اضافه نشد.`,
+      );
+    }
+
+    for (const file of chosen) {
+      if (!ACCEPTED.includes(file.type)) {
+        toast.error(`${file.name}: فقط jpg، png و webp پذیرفته می‌شود.`);
+        continue;
+      }
+      if (file.size > MAX_BYTES) {
+        toast.error(`${file.name}: حجم تصویر باید کمتر از ۵ مگابایت باشد.`);
+        continue;
+      }
+
+      const key = `${file.name}-${file.size}-${file.lastModified}`;
+      const preview = URL.createObjectURL(file);
+      setUploads((current) => [...current, { key, preview, progress: 0 }]);
+
+      try {
+        const response = await uploadEstateImage(file, (percent) =>
+          patch(key, { progress: percent }),
+        );
+        const id = response.result.id;
+        patch(key, { id, progress: 100 });
+
+        const next = [...imageIds, id];
+        onChange(next);
+        // The first successful upload becomes the cover unless one is chosen.
+        if (coverImageId === null) onCoverChange(id);
+      } catch (error) {
+        patch(key, { error: getApiErrorMessage(error) });
+      }
+    }
+
+    if (inputRef.current) inputRef.current.value = "";
   };
 
-  const onInput = (event: ChangeEvent<HTMLInputElement>) => {
-    addImages(Array.from(event.target.files ?? []));
-    event.target.value = "";
-  };
-  const onDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(false);
-    addImages(Array.from(event.dataTransfer.files));
-  };
-  const remove = (index: number) => {
-    const removed = images[index];
-    if (removed) URL.revokeObjectURL(removed.url);
-    onChange(images.filter((_, imageIndex) => imageIndex !== index));
+  const remove = (upload: Upload) => {
+    URL.revokeObjectURL(upload.preview);
+    setUploads((current) => current.filter((item) => item.key !== upload.key));
+
+    if (upload.id === undefined) return;
+    const next = imageIds.filter((id) => id !== upload.id);
+    onChange(next);
+    if (coverImageId === upload.id) onCoverChange(next[0] ?? null);
   };
 
   return (
-    <div className="space-y-4">
-      <div
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragOver={(event) => event.preventDefault()}
-        onDragLeave={(event) => {
-          if (event.currentTarget === event.target) setIsDragging(false);
-        }}
-        onDrop={onDrop}
-        className={cn(
-          "rounded-xl border border-dashed p-6 text-center transition-all",
-          isDragging
-            ? "border-brand bg-brand/15 ring-4 ring-brand/10"
-            : "border-brand/40 bg-brand/5 hover:border-brand hover:bg-brand/10",
-        )}
-      >
-        <div
-          className={cn(
-            "mx-auto flex size-12 items-center justify-center rounded-full",
-            isDragging
-              ? "bg-brand text-brand-foreground"
-              : "bg-brand/10 text-brand",
-          )}
-        >
-          <Upload className="size-6" />
-        </div>
-        <Typography variant="body" className="mt-3 font-medium">
-          تصاویر ملک را اضافه کنید
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Typography variant="small">
+          تا {maxImages.toLocaleString("fa-IR")} تصویر · jpg، png یا webp · حداکثر
+          ۵ مگابایت
         </Typography>
-        <Typography variant="small" className="mt-1">
-          تصاویر را اینجا رها کنید یا از دستگاه انتخاب کنید؛ JPG، PNG و WEBP تا
-          ۱۰ مگابایت
+        <Typography variant="small">
+          {imageIds.length.toLocaleString("fa-IR")} تصویر آپلود شده
         </Typography>
-        <Label
-          htmlFor="property-images"
-          className="mx-auto mt-4 inline-flex h-9 cursor-pointer items-center justify-center rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand/90"
-        >
-          انتخاب تصاویر
-        </Label>
-        <Input
-          id="property-images"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          className="sr-only !size-px !border-0 !p-0"
-          onChange={onInput}
-        />
-        {error && (
-          <Typography variant="small" className="mt-3 text-destructive">
-            {error}
-          </Typography>
-        )}
       </div>
-      {images.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {images.map((image, index) => (
-            <div
-              key={`${image.file.name}-${image.file.size}`}
-              className="group relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted"
-            >
-              <Image
-                src={image.url}
-                alt={`تصویر ملک ${index + 1}`}
-                fill
-                unoptimized
-                className="object-cover"
-              />
-              {index === 0 && (
-                <Badge className="absolute start-2 top-2 bg-brand text-brand-foreground">
-                  تصویر اصلی
-                </Badge>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {uploads.map((upload) => (
+          <figure
+            key={upload.key}
+            className={cn(
+              "relative aspect-4/3 overflow-hidden rounded-xl border bg-muted",
+              upload.error && "border-destructive",
+              upload.id !== undefined &&
+                upload.id === coverImageId &&
+                "ring-2 ring-brand",
+            )}
+          >
+            {/* Local preview: a blob URL Next's optimizer cannot process. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={upload.preview}
+              alt=""
+              className="size-full object-cover"
+            />
+
+            {upload.error ? (
+              <figcaption className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-destructive/85 p-2 text-center text-white">
+                <TriangleAlert className="size-4" />
+                <Typography as="span" variant="small" light className="text-[11px]">
+                  {upload.error}
+                </Typography>
+              </figcaption>
+            ) : upload.progress < 100 ? (
+              <figcaption className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5">
+                <span className="block h-1 overflow-hidden rounded-full bg-white/30">
+                  <span
+                    className="block h-full bg-secondary transition-[width]"
+                    style={{ width: `${upload.progress}%` }}
+                  />
+                </span>
+              </figcaption>
+            ) : null}
+
+            <div className="absolute end-1.5 top-1.5 flex gap-1">
+              {upload.id !== undefined && upload.id !== coverImageId && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="انتخاب به عنوان تصویر اصلی"
+                  onClick={() => onCoverChange(upload.id!)}
+                  className="size-7 border-white/30 bg-black/45 text-white backdrop-blur-md hover:bg-black/65 hover:text-white"
+                >
+                  <Star className="size-3.5" />
+                </Button>
               )}
-              <button
+              <Button
                 type="button"
-                onClick={() => remove(index)}
-                aria-label={`حذف تصویر ${index + 1}`}
-                className="absolute end-2 top-2 flex size-7 items-center justify-center rounded-full bg-background/90 text-destructive opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus:opacity-100"
+                variant="outline"
+                size="icon"
+                aria-label="حذف تصویر"
+                onClick={() => remove(upload)}
+                className="size-7 border-white/30 bg-black/45 text-white backdrop-blur-md hover:bg-black/65 hover:text-white"
               >
-                <X className="size-4" />
-              </button>
+                <Trash2 className="size-3.5" />
+              </Button>
             </div>
-          ))}
-        </div>
-      )}
+
+            {upload.id !== undefined && upload.id === coverImageId && (
+              <span className="absolute bottom-1.5 inset-s-1.5 rounded-md bg-brand px-1.5 py-0.5 text-[10px] font-medium text-white">
+                تصویر اصلی
+              </span>
+            )}
+          </figure>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex aspect-4/3 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand"
+        >
+          <ImagePlus className="size-6" />
+          <Typography as="span" variant="small">
+            افزودن تصویر
+          </Typography>
+        </button>
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={ACCEPTED.join(",")}
+        multiple
+        hidden
+        onChange={(event) => void accept(event.target.files)}
+      />
     </div>
   );
 }
