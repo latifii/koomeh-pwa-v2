@@ -1,14 +1,10 @@
 import {
-  compareListResponseSchema,
   compareToggleResponseSchema,
   estateViewResponseSchema,
-  favoriteEstatesResponseSchema,
   favoriteToggleResponseSchema,
   reportEstateResponseSchema,
   reportReasonsResponseSchema,
-  type CompareListResponse,
   type CompareToggleResponse,
-  type FavoriteEstatesResponse,
   type FavoriteToggleResponse,
   type ReportReasonsResponse,
 } from "@/app/properties/_schemas/estate-actions.schema";
@@ -24,8 +20,6 @@ const endpoints = {
   view: (id: string | number) => `/api/site3/estates/${id}/view`,
   report: (id: string | number) => `/api/site3/estates/${id}/report`,
   reportReasons: "/api/site3/estates/report-reasons",
-  favoriteEstates: "/api/site3/favorites/estates",
-  compareList: "/api/site3/compare",
 } as const;
 
 export function addFavorite(
@@ -63,22 +57,6 @@ export function recordEstateView(
 ) {
   return postValidated(endpoints.view(id), estateViewResponseSchema, undefined, {
     params: shareId ? { he: shareId } : undefined,
-    signal,
-  });
-}
-
-export function getFavoriteEstates(
-  signal?: AbortSignal,
-): Promise<FavoriteEstatesResponse> {
-  return getValidated(endpoints.favoriteEstates, favoriteEstatesResponseSchema, {
-    signal,
-  });
-}
-
-export function getCompareList(
-  signal?: AbortSignal,
-): Promise<CompareListResponse> {
-  return getValidated(endpoints.compareList, compareListResponseSchema, {
     signal,
   });
 }

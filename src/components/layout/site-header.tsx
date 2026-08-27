@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Phone, PlusCircle } from "lucide-react";
 
 import { AccountMenu } from "@/app/auth/_components/account-menu";
+import { NotificationBell } from "@/app/panel/notifications/_components/notification-bell";
 import { DrawerAccountAction } from "@/app/auth/_components/drawer-account-action";
 import logoDark from "@/assets/images/logo/logo-new-dark.png";
 import logoLight from "@/assets/images/logo/logo-new-light.png";
@@ -119,6 +120,7 @@ export function SiteHeader() {
             <PlusCircle />
             ثبت ملک
           </Button>
+          <NotificationBell transparent={transparent} />
           <AccountMenu transparent={transparent} />
           <Drawer swipeDirection="left">
             <DrawerTrigger

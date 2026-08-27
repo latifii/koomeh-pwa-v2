@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { homeEstateSchema } from "@/app/_home/_schemas/home-estates.schema";
-
 export const favoriteToggleResponseSchema = z.object({
   status: z.literal("success"),
   result: z.object({
@@ -24,37 +22,6 @@ export const estateViewResponseSchema = z.object({
   result: z.object({
     estate_id: z.number().int(),
     visit_count: z.number().int().nonnegative(),
-  }),
-});
-
-/**
- * `/favorites/estates` and `/compare` are the only way to learn whether a file
- * is already saved: `flags.is_favorite` and `flags.is_compare` on the detail
- * response come back `null` even for a signed-in caller.
- */
-export const favoriteEstatesResponseSchema = z.object({
-  status: z.literal("success"),
-  result: z.object({
-    total: z.number().int().nonnegative(),
-    items: z.array(homeEstateSchema.extend({ pinned: z.boolean().optional() })).default([]),
-  }),
-});
-
-export const compareListResponseSchema = z.object({
-  status: z.literal("success"),
-  result: z.object({
-    total: z.number().int().nonnegative(),
-    groups: z
-      .array(
-        z.object({
-          deal_type: z.number().int(),
-          deal_type_label: z.string(),
-          items: z
-            .array(z.object({ id: z.number().int() }).loose())
-            .default([]),
-        }),
-      )
-      .default([]),
   }),
 });
 
@@ -100,6 +67,4 @@ export const reportEstateSchema = z.object({
 export type ReportEstateValues = z.infer<typeof reportEstateSchema>;
 export type FavoriteToggleResponse = z.infer<typeof favoriteToggleResponseSchema>;
 export type CompareToggleResponse = z.infer<typeof compareToggleResponseSchema>;
-export type FavoriteEstatesResponse = z.infer<typeof favoriteEstatesResponseSchema>;
-export type CompareListResponse = z.infer<typeof compareListResponseSchema>;
 export type ReportReasonsResponse = z.infer<typeof reportReasonsResponseSchema>;

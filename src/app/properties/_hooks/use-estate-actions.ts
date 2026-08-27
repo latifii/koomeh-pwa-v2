@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -10,7 +11,7 @@ import {
   removeFavorite,
   removeFromCompare,
 } from "@/app/properties/_api/estate-actions.service";
-import { estateActionsQueryKeys } from "@/app/properties/_constants/estate-actions-query-keys";
+import { favoritesQueryKeys } from "@/app/_favorites/_constants/favorites-query-keys";
 import {
   compareIdsQueryOptions,
   favoriteIdsQueryOptions,
@@ -20,15 +21,20 @@ import { getApiErrorMessage } from "@/lib/api/api-error";
 import { CALLBACK_PARAM } from "@/lib/auth/routes";
 import { routes } from "@/lib/routes";
 
-type ToggleKey = "favorites" | "compare";
-
 /**
- * Saving and comparing a file. Both are the same shape: a membership set the
- * button reads, and a toggle that flips it optimistically and rolls back if
- * the request fails.
+ * Saving and comparing a file.
  *
- * A signed-out visitor is sent to the login screen with a `callbackUrl` back
- * to this page rather than being shown a button that silently 401s.
+ * The buttons read from the saved-file and compare lists, because the detail
+ * response cannot answer it — `flags.is_favorite` and `flags.is_compare` come
+ * back null even for a signed-in caller.
+ *
+ * Optimism lives in local state rather than in the query cache: the cache holds
+ * the raw list response, which the panel pages read in full, so writing a
+ * derived id set over it would corrupt them. The mutation's own answer replaces
+ * the guess, and the lists are invalidated so every other reader catches up.
+ *
+ * A signed-out visitor is sent to the login screen with a `callbackUrl` back to
+ * this page rather than being shown a button that silently 401s.
  */
 export function useEstateActions(estateId: string) {
   const queryClient = useQueryClient();
@@ -42,40 +48,28 @@ export function useEstateActions(estateId: string) {
   const favorites = useQuery(favoriteIdsQueryOptions(isAuthenticated));
   const compare = useQuery(compareIdsQueryOptions(isAuthenticated));
 
+  const [savedOverride, setSavedOverride] = useState<boolean>();
+  const [comparedOverride, setComparedOverride] = useState<boolean>();
+
   const requireSignIn = () => {
     router.push(
       `${routes.auth.login}?${CALLBACK_PARAM}=${encodeURIComponent(pathname)}`,
     );
   };
 
-  /** Flips one id inside a cached Set and hands back the previous value. */
-  const applyOptimistic = (key: ToggleKey, next: boolean) => {
-    const queryKey =
-      key === "favorites"
-        ? estateActionsQueryKeys.favorites()
-        : estateActionsQueryKeys.compare();
-
-    const previous = queryClient.getQueryData<Set<string>>(queryKey);
-
-    queryClient.setQueryData<Set<string>>(queryKey, (current) => {
-      const draft = new Set(current ?? []);
-      if (next) draft.add(estateId);
-      else draft.delete(estateId);
-      return draft;
-    });
-
-    return { queryKey, previous };
-  };
-
   const favoriteMutation = useMutation({
     mutationFn: (next: boolean) =>
       next ? addFavorite(estateId) : removeFavorite(estateId),
-    onMutate: (next) => applyOptimistic("favorites", next),
-    onError: (error, _next, context) => {
-      if (context) queryClient.setQueryData(context.queryKey, context.previous);
+    onMutate: (next) => setSavedOverride(next),
+    onError: (error) => {
+      setSavedOverride(undefined);
       toast.error(getApiErrorMessage(error));
     },
-    onSuccess: (_data, next) => {
+    onSuccess: (data, next) => {
+      setSavedOverride(data.result.is_favorite);
+      void queryClient.invalidateQueries({
+        queryKey: favoritesQueryKeys.estates(),
+      });
       toast.success(next ? "به نشان‌شده‌ها اضافه شد" : "از نشان‌شده‌ها حذف شد");
     },
   });
@@ -83,12 +77,16 @@ export function useEstateActions(estateId: string) {
   const compareMutation = useMutation({
     mutationFn: (next: boolean) =>
       next ? addToCompare(estateId) : removeFromCompare(estateId),
-    onMutate: (next) => applyOptimistic("compare", next),
-    onError: (error, _next, context) => {
-      if (context) queryClient.setQueryData(context.queryKey, context.previous);
+    onMutate: (next) => setComparedOverride(next),
+    onError: (error) => {
+      setComparedOverride(undefined);
       toast.error(getApiErrorMessage(error));
     },
     onSuccess: (data, next) => {
+      setComparedOverride(data.result.in_compare);
+      void queryClient.invalidateQueries({
+        queryKey: favoritesQueryKeys.compare(),
+      });
       toast.success(
         next
           ? `به مقایسه اضافه شد (${data.result.total.toLocaleString("fa-IR")} ملک)`
@@ -97,8 +95,8 @@ export function useEstateActions(estateId: string) {
     },
   });
 
-  const isSaved = favorites.data?.has(estateId) ?? false;
-  const isCompared = compare.data?.has(estateId) ?? false;
+  const isSaved = savedOverride ?? favorites.data?.has(estateId) ?? false;
+  const isCompared = comparedOverride ?? compare.data?.has(estateId) ?? false;
 
   return {
     isAuthenticated,

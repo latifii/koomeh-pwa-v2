@@ -113,6 +113,20 @@ export async function postValidated<T>(
   }
 }
 
+export async function putValidated<T>(
+  url: string,
+  schema: ZodType<T>,
+  body?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> {
+  try {
+    const response = await httpClient.put<unknown>(url, body, config);
+    return schema.parse(response.data);
+  } catch (error) {
+    throw normalizeApiError(error);
+  }
+}
+
 export async function deleteValidated<T>(
   url: string,
   schema: ZodType<T>,
