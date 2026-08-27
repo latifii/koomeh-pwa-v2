@@ -1,6 +1,6 @@
 import { type JWTPayload, SignJWT, jwtVerify } from "jose";
 
-import type { UserSession } from "./session.types";
+import { userSessionSchema, type UserSession } from "./session.types";
 
 /**
  * The session cookie is a JWT signed with a server-only secret, so nothing but
@@ -30,7 +30,12 @@ export class AuthConfigError extends Error {
   }
 }
 
-function secretKey(): Uint8Array {
+/**
+ * The one place the signing key is validated. `instrumentation.ts` calls it at
+ * boot so a deployment without a key never goes live; the functions below call
+ * it too, because the environment can also change between builds.
+ */
+export function assertAuthSecret(): string {
   const secret = process.env.AUTH_SECRET;
 
   if (!secret || secret.length < 32) {
@@ -41,7 +46,11 @@ function secretKey(): Uint8Array {
     );
   }
 
-  return new TextEncoder().encode(secret);
+  return secret;
+}
+
+function secretKey(): Uint8Array {
+  return new TextEncoder().encode(assertAuthSecret());
 }
 
 export async function encryptSession(session: UserSession): Promise<string> {
@@ -59,11 +68,18 @@ export async function decryptSession(
 ): Promise<UserSession | null> {
   if (!token) return null;
 
+  // Outside the `try` on purpose: a server with no signing key is a broken
+  // deployment, and swallowing that would report every visitor as signed out
+  // with nothing in the logs to say why.
+  const key = secretKey();
+
   try {
-    const { payload } = await jwtVerify(token, secretKey(), {
-      algorithms: ["HS256"],
-    });
-    return payload as unknown as UserSession;
+    const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
+    // A valid signature only proves this app minted the cookie — not that it
+    // still matches the shape this build expects. A cookie written before
+    // `SessionUser` changed verifies fine and would otherwise reach components
+    // with fields missing; parsing turns that into a clean sign-out instead.
+    return userSessionSchema.parse(payload);
   } catch {
     return null;
   }

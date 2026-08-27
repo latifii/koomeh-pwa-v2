@@ -1,7 +1,8 @@
 "use server";
 
 import { buildSession } from "@/app/auth/_api/build-session";
-import { login, logout } from "@/app/auth/_api/auth.service";
+import { login, logout, me, siteSession } from "@/app/auth/_api/auth.service";
+import { mapSessionUser } from "@/app/auth/_mappers/auth.mapper";
 import { signInSchema, type SignInValues } from "@/app/auth/_schemas/auth.schema";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import {
@@ -10,6 +11,7 @@ import {
   setSessionCookie,
 } from "@/lib/auth/session-cookie";
 import { AuthConfigError } from "@/lib/auth/session";
+import { toClientSession, type ClientSession } from "@/lib/auth/session.types";
 
 /**
  * Credentials never reach the browser's network tab and the tokens never leave
@@ -47,6 +49,37 @@ export async function signInAction(values: SignInValues): Promise<ActionResult> 
 
     console.error("[auth] sign-in failed:", error);
     return { ok: false, message: getApiErrorMessage(error) };
+  }
+}
+
+/**
+ * Re-reads the user from the API and re-signs the cookie with it.
+ *
+ * The profile lives *inside* the session JWT, so editing it in the panel leaves
+ * the old name and photo in the cookie until the access token happens to
+ * rotate. Asking `/api/auth/session` again does not help — that reads the same
+ * stale cookie. The tokens are carried over untouched: this is a profile
+ * refresh, not a rotation, and spending the refresh token here would be wrong.
+ *
+ * Returns the session to hand straight to the store, or `null` when nobody is
+ * signed in. If the API call fails the existing session is returned unchanged —
+ * a stale name is not a reason to sign someone out.
+ */
+export async function syncSessionUserAction(): Promise<ClientSession | null> {
+  const session = await getSession();
+  if (!session) return null;
+
+  try {
+    const [user, site] = await Promise.all([
+      me(session.accessToken),
+      siteSession(session.accessToken),
+    ]);
+    const updated = { ...session, user: mapSessionUser(user, site) };
+    await setSessionCookie(updated);
+    return toClientSession(updated);
+  } catch (error) {
+    console.error("[auth] session sync failed:", error);
+    return toClientSession(session);
   }
 }
 

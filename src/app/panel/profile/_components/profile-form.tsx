@@ -14,6 +14,7 @@ import {
   profileFormSchema,
   type ProfileFormValues,
 } from "@/app/panel/profile/_schemas/profile.schema";
+import { syncSessionUserAction } from "@/app/auth/_actions/auth-actions";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import {
   FormTextField,
@@ -38,7 +39,7 @@ import { toAbsoluteMediaUrl } from "@/lib/api/config";
 export function ProfileForm() {
   const queryClient = useQueryClient();
   const profile = useQuery(profileQueryOptions());
-  const refreshSession = useSessionStore((state) => state.refreshSession);
+  const applySession = useSessionStore((state) => state.applySession);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -80,8 +81,9 @@ export function ProfileForm() {
       }),
     onSuccess: async (response) => {
       await queryClient.invalidateQueries({ queryKey: profileQueryKeys.detail() });
-      // The header shows the user's name, so it has to hear about this too.
-      await refreshSession();
+      // The header shows the user's name, and that name lives in the session
+      // cookie — so the cookie has to be re-minted, not merely re-read.
+      applySession(await syncSessionUserAction());
 
       toast.success(response.result.message ?? "اطلاعات ذخیره شد.");
 

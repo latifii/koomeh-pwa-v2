@@ -1,29 +1,38 @@
+import { z } from "zod";
+
 /**
  * Shapes shared by the middleware, the server actions and the browser store.
  * Keep this module free of `next/headers`, `node:` and `axios` imports so the
  * Edge middleware can pull it in.
+ *
+ * These are schemas rather than bare types because the session cookie is parsed
+ * on the way in, the same way every API response is. See `decryptSession`.
  */
 
-export type SessionUser = {
-  id: number;
-  fullName: string;
-  username?: string;
-  email?: string;
-  phone?: string;
-  photo?: string;
-  roles: string[];
-  isAdmin: boolean;
-  isExpert: boolean;
-};
+export const sessionUserSchema = z.object({
+  id: z.number(),
+  fullName: z.string(),
+  username: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  photo: z.string().optional(),
+  roles: z.array(z.string()),
+  isAdmin: z.boolean(),
+  isExpert: z.boolean(),
+});
+
+export type SessionUser = z.infer<typeof sessionUserSchema>;
 
 /** What the encrypted cookie carries. Times are epoch milliseconds. */
-export type UserSession = {
-  user: SessionUser;
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: number;
-  refreshExpiresAt: number;
-};
+export const userSessionSchema = z.object({
+  user: sessionUserSchema,
+  accessToken: z.string(),
+  refreshToken: z.string(),
+  expiresAt: z.number(),
+  refreshExpiresAt: z.number(),
+});
+
+export type UserSession = z.infer<typeof userSessionSchema>;
 
 /**
  * What `/api/auth/session` hands the browser. The refresh token stays on the
