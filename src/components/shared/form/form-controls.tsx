@@ -62,10 +62,16 @@ export function FormTextField<TValues extends FieldValues>({
   type = "text",
   required = false,
   hint,
+  inputMode,
+  autoComplete,
 }: BaseFieldProps<TValues> & {
   placeholder?: string;
   type?: React.HTMLInputTypeAttribute;
   hint?: string;
+  /** Phone/number fields need the right on-screen keyboard. */
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  /** Credential fields need this for password managers to work. */
+  autoComplete?: React.InputHTMLAttributes<HTMLInputElement>["autoComplete"];
 }) {
   const error = errors[name]?.message as string | undefined;
 
@@ -76,6 +82,8 @@ export function FormTextField<TValues extends FieldValues>({
         id={name}
         type={type}
         placeholder={placeholder}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
         aria-invalid={Boolean(error)}
         {...register(name)}
       />

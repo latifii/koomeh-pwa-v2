@@ -1,7 +1,19 @@
 import type { Metadata } from "next";
 import { KeyRound } from "lucide-react";
+
 import { AuthShell } from "../_components/auth-shell";
-import { AuthSwitch, ForgotPasswordForm } from "../_components/auth-forms";
-import { routes } from "@/lib/routes";
+import { AuthUnavailable } from "../_components/auth-unavailable";
+
 export const metadata: Metadata = { title: "بازیابی رمز عبور | کومه" };
-export default function ForgotPasswordPage() { return <AuthShell icon={KeyRound} title="بازیابی رمز عبور" description="شماره همراه حساب خود را وارد کنید تا کد بازیابی ارسال شود." footer={<AuthSwitch prompt="رمز عبور را به خاطر آوردید؟" label="بازگشت به ورود" href={routes.auth.login} />}><ForgotPasswordForm /></AuthShell>; }
+
+export default function ForgotPasswordPage() {
+  return (
+    <AuthShell
+      icon={KeyRound}
+      title="بازیابی رمز عبور"
+      description="بازیابی خودکار رمز عبور هنوز فعال نشده است."
+    >
+      <AuthUnavailable note="برای بازنشانی رمز عبور با کارشناس شعبه خود تماس بگیرید. اگر وارد حساب هستید، می‌توانید رمز را از بخش «امنیت حساب» در پنل تغییر دهید." />
+    </AuthShell>
+  );
+}

@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Phone, PlusCircle, User } from "lucide-react";
+import { Menu, Phone, PlusCircle } from "lucide-react";
 
+import { AccountMenu } from "@/app/auth/_components/account-menu";
+import { DrawerAccountAction } from "@/app/auth/_components/drawer-account-action";
 import logoDark from "@/assets/images/logo/logo-new-dark.png";
 import logoLight from "@/assets/images/logo/logo-new-light.png";
 import { Container } from "@/components/layout/container";
@@ -117,20 +119,7 @@ export function SiteHeader() {
             <PlusCircle />
             ثبت ملک
           </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className={cn(
-              "hidden sm:inline-flex",
-              transparent &&
-                "border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white",
-            )}
-            nativeButton={false}
-            render={<Link href={routes.auth.login} />}
-          >
-            <User className="hidden md:block" />
-            ورود
-          </Button>
+          <AccountMenu transparent={transparent} />
           <Drawer swipeDirection="left">
             <DrawerTrigger
               render={
@@ -195,19 +184,7 @@ export function SiteHeader() {
                     </Button>
                   }
                 />
-                <DrawerClose
-                  nativeButton={false}
-                  render={
-                    <Button
-                      variant="outline"
-                      nativeButton={false}
-                      render={<Link href={routes.auth.login} />}
-                    >
-                      <User />
-                      ورود / ثبت‌نام
-                    </Button>
-                  }
-                />
+                <DrawerAccountAction />
                 <a
                   href="tel:02533123456"
                   className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground"

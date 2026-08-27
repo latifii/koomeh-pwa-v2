@@ -2,21 +2,37 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, Home, PlusCircle, Search, User } from "lucide-react";
+import { Heart, Home, type LucideIcon, PlusCircle, Search, User } from "lucide-react";
 
+import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 
-const items = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  accent?: boolean;
+};
+
+const items: NavItem[] = [
   { href: routes.home, label: "خانه", icon: Home },
   { href: routes.properties(), label: "جستجو", icon: Search },
   { href: routes.panel.newProperty, label: "ثبت ملک", icon: PlusCircle, accent: true },
   { href: routes.panel.favorites, label: "علاقه‌مندی", icon: Heart },
-  { href: routes.auth.login, label: "حساب", icon: User },
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const status = useSessionStore((state) => state.status);
+
+  // Signed in, the account tab is the panel; signed out it is the login screen.
+  const account: NavItem = {
+    href:
+      status === "authenticated" ? routes.panel.dashboard : routes.auth.login,
+    label: "حساب",
+    icon: User,
+  };
 
   return (
     <nav
@@ -24,7 +40,7 @@ export function MobileBottomNav() {
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-md lg:hidden"
     >
       <div className="mx-auto flex max-w-content items-stretch justify-between px-2">
-        {items.map((item) => {
+        {[...items, account].map((item) => {
           const active = pathname === item.href;
 
           if (item.accent) {

@@ -24,7 +24,8 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,15 +37,24 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
+import type { SessionUser } from "@/lib/auth/session.types";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 
-const panelUser = {
-  firstName: "حامد",
-  lastName: "کریمی",
-  role: "کاربر عادی",
+/** Roles come back as slugs; the sidebar badge needs a label. */
+const roleLabels: Record<string, string> = {
+  admin: "مدیر",
+  expert: "کارشناس",
+  user: "کاربر عادی",
 };
+
+function roleLabel(user: SessionUser): string {
+  if (user.isAdmin) return roleLabels.admin;
+  if (user.isExpert) return roleLabels.expert;
+  return roleLabels[user.roles[0]] ?? roleLabels.user;
+}
 
 const panelLinks = [
   {
@@ -146,27 +156,39 @@ const panelLinks = [
 ];
 
 export function PanelProfile() {
+  const user = useSessionStore((state) => state.session?.user);
+
   return (
     <div className="rounded-lg border border-sidebar-border bg-sidebar-accent/80 p-3">
       <div className="flex items-center gap-3">
         <Avatar className="size-12 border border-sidebar-border">
+          {user?.photo && <AvatarImage src={user.photo} alt={user.fullName} />}
           <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
-            <UserRound className="size-5" />
+            {user ? user.fullName.charAt(0) : <UserRound className="size-5" />}
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <Typography
-            variant="body"
-            className="truncate text-sm font-semibold text-sidebar-foreground"
-          >
-            {panelUser.firstName} {panelUser.lastName}
-          </Typography>
-          <Badge
-            variant="secondary"
-            className="h-5 mt-1 rounded-lg bg-secondary text-secondary-foreground"
-          >
-            {panelUser.role}
-          </Badge>
+          {user ? (
+            <>
+              <Typography
+                variant="body"
+                className="truncate text-sm font-semibold text-sidebar-foreground"
+              >
+                {user.fullName}
+              </Typography>
+              <Badge
+                variant="secondary"
+                className="h-5 mt-1 rounded-lg bg-secondary text-secondary-foreground"
+              >
+                {roleLabel(user)}
+              </Badge>
+            </>
+          ) : (
+            <>
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="mt-2 h-5 w-16 rounded-lg" />
+            </>
+          )}
         </div>
       </div>
     </div>

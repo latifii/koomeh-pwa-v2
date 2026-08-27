@@ -55,6 +55,64 @@ with and without map coordinates — so optional and nullable fields are covered
 observation rather than by guessing. When the spec and a live response disagree,
 the live response wins.
 
+# Authentication
+
+The API is token-based: `POST /api/login` returns an access/refresh pair and 102
+of its 146 operations require `Authorization: Bearer <access_token>`. Its CORS
+policy is `Access-Control-Allow-Origin: *` with no `allow-credentials`, so the
+backend's own session cookie is unusable cross-origin — the Bearer token is the
+only way in.
+
+## How a session flows
+
+```
+sign in    browser → signInAction (server) → POST /api/login
+                     ↓ builds session, writes the cookie
+           koomeh-session  (JWT signed with AUTH_SECRET, httpOnly)
+
+read       server → getSession() from next/headers
+           browser → GET /api/auth/session → zustand store → axios interceptor
+
+renew      navigation → src/proxy.ts refreshes before the page renders
+           mid-session 401 → axios interceptor → POST /api/auth/refresh → retry once
+```
+
+| file | role |
+| --- | --- |
+| `src/lib/auth/session.ts` | `jose` sign/verify + cookie flags. Edge-safe: no `next/headers`, no axios |
+| `src/lib/auth/session-cookie.ts` | `getSession` / `setSessionCookie` / `clearSessionCookie` — server only |
+| `src/lib/auth/routes.ts` | which paths are protected, and the open-redirect guard on `callbackUrl` |
+| `src/proxy.ts` | route guard + pre-render token renewal (Next 16 renamed this from `middleware.ts`) |
+| `src/app/auth/_actions/auth-actions.ts` | `signInAction` / `signOutAction` — credentials never leave the server |
+| `src/app/auth/_api/auth.service.ts` | the four endpoints, over `fetch` so the Edge proxy can use them too |
+| `src/app/auth/_stores/auth.store.ts` | the browser's mirror of the cookie |
+| `src/lib/api/access-token.ts` | the token the axios interceptor attaches |
+
+## Rules
+
+- **`AUTH_SECRET` is required.** At least 32 characters, different per
+  environment. `.env.local` is gitignored; `.env.example` documents it.
+- **Refresh tokens rotate — each one works exactly once.** Never refresh from
+  two places at once: the axios interceptor keeps a single in-flight promise and
+  the proxy refreshes once per request. Adding a third caller will invalidate
+  live sessions.
+- **Never read the session cookie from client code.** It is httpOnly by design.
+  Use `useSessionStore`; on the server use `getSession()`.
+- **Server-side API calls must pass their own token.** The axios interceptor
+  only has one in the browser. In a server component or route handler, take it
+  from `getSession()`.
+- **Adding a protected route?** Add its prefix to `PROTECTED_PREFIXES` in
+  `src/lib/auth/routes.ts` and to the `matcher` in `src/proxy.ts`. The proxy only
+  runs on paths its matcher lists.
+
+## Not built yet
+
+The API has no register, OTP or password-reset service — only
+`POST /api/site3/profile/password` for a signed-in user. `/auth/register`,
+`/auth/verify`, `/auth/forgot-password` and `/auth/reset-password` therefore
+render `AuthUnavailable` instead of a form that cannot work. Wire them up when
+the services land; do not build fake flows in the meantime.
+
 # Project UI rules
 
 - Before creating any UI component, helper component, form control, or styled native element, inspect `src/components/ui` and `src/components/shared` and reuse an existing project component whenever it covers the need.
