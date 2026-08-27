@@ -18,13 +18,26 @@ export const SESSION_COOKIE_OPTIONS = {
   path: "/",
 } as const;
 
+/**
+ * Thrown when the app is deployed without a signing key. Its own class so the
+ * sign-in action can tell a misconfigured server apart from a wrong password —
+ * they are not the same problem and must not read the same to the operator.
+ */
+export class AuthConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AuthConfigError";
+  }
+}
+
 function secretKey(): Uint8Array {
   const secret = process.env.AUTH_SECRET;
 
   if (!secret || secret.length < 32) {
-    throw new Error(
-      "AUTH_SECRET is missing or too short. Set a value of at least 32 characters " +
-        "in .env.local — see .env.example.",
+    throw new AuthConfigError(
+      "AUTH_SECRET is missing or shorter than 32 characters. Set it in the " +
+        "hosting environment (Vercel → Settings → Environment Variables) and " +
+        "redeploy — see .env.example.",
     );
   }
 

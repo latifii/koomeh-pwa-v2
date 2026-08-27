@@ -90,8 +90,13 @@ renew      navigation → src/proxy.ts refreshes before the page renders
 
 ## Rules
 
-- **`AUTH_SECRET` is required.** At least 32 characters, different per
-  environment. `.env.local` is gitignored; `.env.example` documents it.
+- **`AUTH_SECRET` is required, in every environment.** At least 32 characters,
+  different per environment. `.env.local` is gitignored, so a fresh deployment
+  has none: set it on the host (Vercel → Settings → Environment Variables) and
+  redeploy. Without it the API login succeeds and then signing the session
+  cookie throws, which is why the symptom is a failed sign-in on a site whose
+  public pages work fine. Generate one with:
+  `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`
 - **Refresh tokens rotate — each one works exactly once.** Never refresh from
   two places at once: the axios interceptor keeps a single in-flight promise and
   the proxy refreshes once per request. Adding a third caller will invalidate

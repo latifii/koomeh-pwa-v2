@@ -9,6 +9,7 @@ import {
   getSession,
   setSessionCookie,
 } from "@/lib/auth/session-cookie";
+import { AuthConfigError } from "@/lib/auth/session";
 
 /**
  * Credentials never reach the browser's network tab and the tokens never leave
@@ -33,6 +34,18 @@ export async function signInAction(values: SignInValues): Promise<ActionResult> 
     await setSessionCookie(await buildSession(tokens));
     return { ok: true };
   } catch (error) {
+    // A missing signing key is a deployment problem, not a bad password, and
+    // must not be reported as one. The detail goes to the server log where an
+    // operator will actually see it.
+    if (error instanceof AuthConfigError) {
+      console.error("[auth] sign-in blocked by configuration:", error.message);
+      return {
+        ok: false,
+        message: "سرویس ورود پیکربندی نشده است. با مدیر سامانه تماس بگیرید.",
+      };
+    }
+
+    console.error("[auth] sign-in failed:", error);
     return { ok: false, message: getApiErrorMessage(error) };
   }
 }
