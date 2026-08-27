@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
-import type { TourScene } from "@/data/virtual-tour";
-import { drawPanorama } from "@/lib/panorama";
+import { optimizedImageUrl } from "@/lib/optimized-image";
 
 /**
  * A self-contained equirectangular 360° viewer built on Three.js: the panorama
@@ -13,17 +12,20 @@ import { drawPanorama } from "@/lib/panorama";
  * keeps the bundle small and gives full control over the interaction feel.
  */
 export function PanoramaViewer({
-  scene,
+  imageUrl,
   autoRotate,
   gyro,
   fov,
+  onLoadingChange,
 }: {
-  scene: TourScene;
+  imageUrl: string;
   autoRotate: boolean;
   gyro: boolean;
   fov: number;
+  onLoadingChange?: (loading: boolean) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [failed, setFailed] = useState(false);
 
   // Live control values kept in a ref so the animation loop reads the latest
   // without being torn down and rebuilt on every prop change.
@@ -33,20 +35,45 @@ export function PanoramaViewer({
   }, [autoRotate, gyro, fov]);
 
   const meshRef = useRef<THREE.Mesh | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
-  // Rebuild only the texture when the scene changes — the renderer persists.
+  // Rebuild only the texture when the panorama changes — the renderer persists.
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    const canvas = drawPanorama(scene.tone, scene.name);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    const material = mesh.material as THREE.MeshBasicMaterial;
-    material.map?.dispose();
-    material.map = texture;
-    material.needsUpdate = true;
-  }, [scene]);
+
+    let cancelled = false;
+    setFailed(false);
+    onLoadingChange?.(true);
+
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      optimizedImageUrl(imageUrl),
+      (texture) => {
+        if (cancelled) {
+          texture.dispose();
+          return;
+        }
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const material = mesh.material as THREE.MeshBasicMaterial;
+        material.map?.dispose();
+        material.map = texture;
+        material.needsUpdate = true;
+        onLoadingChange?.(false);
+      },
+      undefined,
+      () => {
+        if (cancelled) return;
+        setFailed(true);
+        onLoadingChange?.(false);
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+    // `onLoadingChange` is a stable callback from the parent's state setter.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageUrl]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -57,9 +84,8 @@ export function PanoramaViewer({
       fov,
       container.clientWidth / container.clientHeight,
       0.1,
-      1100
+      1100,
     );
-    cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -69,10 +95,7 @@ export function PanoramaViewer({
     // Sphere flipped inside-out so the texture faces the centred camera.
     const geometry = new THREE.SphereGeometry(500, 60, 40);
     geometry.scale(-1, 1, 1);
-    const canvas = drawPanorama(scene.tone, scene.name);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const material = new THREE.MeshBasicMaterial({ color: 0x101a2c });
     const mesh = new THREE.Mesh(geometry, material);
     meshRef.current = mesh;
     scene3d.add(mesh);
@@ -178,11 +201,19 @@ export function PanoramaViewer({
         container.removeChild(renderer.domElement);
       }
       meshRef.current = null;
-      cameraRef.current = null;
     };
-    // Mount once; scene texture and live controls are handled via refs/effects.
+    // Mount once; the texture and live controls are handled via refs/effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <div ref={containerRef} className="size-full" />;
+  return (
+    <div className="relative size-full">
+      <div ref={containerRef} className="size-full" />
+      {failed && (
+        <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-white/70">
+          بارگذاری این نما ممکن نشد.
+        </p>
+      )}
+    </div>
+  );
 }

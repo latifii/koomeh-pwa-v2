@@ -4,25 +4,26 @@ import { ArrowLeft, Expand, Move, Smartphone } from "lucide-react";
 
 import introImage from "@/assets/images/intro/intro1.webp";
 import { Icon360 } from "@/components/icons/icon-360";
+import { ApiImage } from "@/components/shared/api-image";
 import { Typography } from "@/components/ui/typography";
 import { routes } from "@/lib/routes";
 
 /**
- * The "360° box" on the detail page: a preview of the space with a pulsing tour
- * badge and simulated hotspots that reads as an invitation to step inside, then
- * hands off to the full-screen tour route.
+ * The "360° box" on the detail page: the tour's own first panorama behind a
+ * pulsing badge and simulated hotspots, reading as an invitation to step
+ * inside, then handing off to the full-screen tour route.
  */
 export function EstateTourCard({
   estateId,
   title,
-  sceneCount,
+  imageCount,
+  previewImage,
 }: {
   estateId: string;
   title: string;
-  sceneCount: number;
+  imageCount: number;
+  previewImage?: string;
 }) {
-  const preview = introImage;
-
   return (
     <Link
       href={routes.propertyVirtualTour(estateId)}
@@ -30,13 +31,24 @@ export function EstateTourCard({
       className="group relative block overflow-hidden rounded-2xl border sm:rounded-3xl"
     >
       <div className="relative aspect-16/9 w-full sm:aspect-21/9">
-        <Image
-          src={preview}
-          alt={`تور مجازی ${title}`}
-          fill
-          sizes="(min-width: 1024px) 66vw, 100vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-        />
+        {previewImage ? (
+          <ApiImage
+            src={previewImage}
+            fallbackSrc={introImage}
+            alt={`تور مجازی ${title}`}
+            fill
+            sizes="(min-width: 1024px) 66vw, 100vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        ) : (
+          <Image
+            src={introImage}
+            alt={`تور مجازی ${title}`}
+            fill
+            sizes="(min-width: 1024px) 66vw, 100vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        )}
         <div className="absolute inset-0 bg-linear-to-t from-primary-deep/90 via-primary-deep/45 to-primary-deep/25" />
 
         {/* Faint blueprint grid for a tech feel */}
@@ -84,14 +96,16 @@ export function EstateTourCard({
               تور مجازی این ملک
             </Typography>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <Typography
-                as="span"
-                variant="small"
-                className="flex items-center gap-1 text-[11px] text-white/75"
-              >
-                <Expand className="size-3.5 text-secondary" />
-                {sceneCount.toLocaleString("fa-IR")} فضای قابل بازدید
-              </Typography>
+              {imageCount > 0 && (
+                <Typography
+                  as="span"
+                  variant="small"
+                  className="flex items-center gap-1 text-[11px] text-white/75"
+                >
+                  <Expand className="size-3.5 text-secondary" />
+                  {imageCount.toLocaleString("fa-IR")} فضای قابل بازدید
+                </Typography>
+              )}
               <Typography
                 as="span"
                 variant="small"

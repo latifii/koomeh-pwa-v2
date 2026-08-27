@@ -7,7 +7,7 @@ import type {
 } from "@/app/_home/_types/home-estates.types";
 import type { PropertyType } from "@/data/home";
 import { routes } from "@/lib/routes";
-import { toAbsoluteMediaUrl, toAbsoluteSiteUrl } from "@/lib/api/config";
+import { toAbsoluteMediaUrl } from "@/lib/api/config";
 import type {
   LatestRentEstatesResponse,
   LatestSaleEstatesResponse,
@@ -34,26 +34,34 @@ function formatMoney(value: number | null): string {
   return `${moneyFormatter.format(value)} تومان`;
 }
 
-function propertyTypeFrom(dto: HomeEstateDto): PropertyType {
-  const label = dto.estate_type_label;
+/**
+ * Estate types arrive as an id plus a Persian label. The label is the more
+ * reliable signal, so it is matched first and the id is only the fallback.
+ */
+export function propertyTypeFrom(
+  label: string,
+  estateType: number,
+): PropertyType {
   if (label.includes("آپارتمان") || label.includes("پیش فروش")) return "apartment";
   if (label.includes("ویلا") || label.includes("باغ")) return "villa";
   if (label.includes("زمین")) return "land";
   if (label.includes("مغازه") || label.includes("تجاری")) return "commercial";
   if (label.includes("اداری") || label.includes("دفتر")) return "office";
   if (label.includes("صنعتی")) return "industrial";
-  return propertyTypeById[dto.estate_type] ?? "apartment";
+  return propertyTypeById[estateType] ?? "apartment";
 }
 
 export function mapHomeEstate(dto: HomeEstateDto) {
   return {
     id: String(dto.id),
-    href: toAbsoluteSiteUrl(dto.url),
+    // `dto.url` points at the legacy site; every card stays inside the PWA and
+    // lands on our own detail route, which serves the same file from the API.
+    href: routes.property(dto.id),
     title: dto.title,
     district: dto.district?.name ?? "قم",
     locationLabel: dto.location_label,
     dealType: dto.deal_type === 2 ? ("rent" as const) : ("sale" as const),
-    propertyType: propertyTypeFrom(dto),
+    propertyType: propertyTypeFrom(dto.estate_type_label, dto.estate_type),
     price: formatMoney(dto.price),
     deposit: formatMoney(dto.mortgage),
     monthlyRent: formatMoney(dto.rent),

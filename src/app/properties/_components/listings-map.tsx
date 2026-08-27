@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import Link from "next/link";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
@@ -130,13 +131,9 @@ export function ListingsMap({
         >
           <Popup>
             <div dir="rtl" className="min-w-44 font-sans text-right">
-              {marker.href ? (
-                <a href={marker.href} className="font-semibold text-brand">
-                  {marker.title}
-                </a>
-              ) : (
-                <strong>{marker.title}</strong>
-              )}
+              <Link href={marker.href} className="font-semibold text-brand">
+                {marker.title}
+              </Link>
               <div className="mt-1 text-xs text-muted-foreground">
                 {marker.place} · {marker.area.toLocaleString("fa-IR")} متر
                 {marker.roomLabel ? ` · ${marker.roomLabel} خواب` : ""}

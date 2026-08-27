@@ -1,31 +1,38 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  BadgeCheck,
   ChevronLeft,
   Clock,
   Eye,
   FileText,
   Hash,
-  LayoutPanelTop,
   ListChecks,
   MapPin,
+  Repeat2,
   Sparkles,
   SquareStack,
+  Video,
 } from "lucide-react";
 
+import {
+  getEstateDetail,
+  getEstateGallery,
+  getEstateVirtualTour,
+  getSimilarEstates,
+} from "@/app/properties/_api/estate-detail.service";
+import {
+  mapEstateDetail,
+  mapEstateGallery,
+  mapEstateVirtualTour,
+  mapSimilarEstates,
+} from "@/app/properties/_mappers/estate-detail.mapper";
 import { Container } from "@/components/layout/container";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import { propertyTypeLabels } from "@/data/home";
-import {
-  formatPublished,
-  getAllEstateIds,
-  getEstateDetail,
-  getSimilarListings,
-} from "@/data/estate-detail";
-import { getEstateTour } from "@/data/virtual-tour";
+import { ApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 
 import { DetailSection } from "../_components/detail-section";
@@ -33,11 +40,10 @@ import { EstateActions } from "../_components/estate-actions";
 import { EstateContactCard } from "../_components/estate-contact-card";
 import { EstateDescription } from "../_components/estate-description";
 import {
-  EstateAmenities,
   EstateConditions,
+  EstateFeatures,
   EstateHighlights,
   EstateSpecs,
-  EstateTrustNotes,
 } from "../_components/estate-facts";
 import { EstateGallery } from "../_components/estate-gallery";
 import { EstateMapPanel } from "../_components/estate-map-panel";
@@ -46,9 +52,27 @@ import { EstatePriceCard } from "../_components/estate-price-card";
 import { EstateTourCard } from "../_components/estate-tour-card";
 import { SimilarEstates } from "../_components/similar-estates";
 
-export function generateStaticParams() {
-  return getAllEstateIds().map((id) => ({ id }));
+export const revalidate = 300;
+
+/** Anything but the detail call is optional — a page still renders without it. */
+async function optional<T>(promise: Promise<T>): Promise<T | undefined> {
+  try {
+    return await promise;
+  } catch {
+    return undefined;
+  }
 }
+
+const getDetail = cache(async (id: string) => {
+  if (!/^\d+$/.test(id)) notFound();
+
+  try {
+    return mapEstateDetail(await getEstateDetail(id));
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) notFound();
+    throw error;
+  }
+});
 
 export async function generateMetadata({
   params,
@@ -56,14 +80,20 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const detail = getEstateDetail(id);
 
-  if (!detail) return { title: "ملک یافت نشد | کومه" };
+  try {
+    const detail = await getDetail(id);
+    const location = detail.location.addressLabel ?? detail.location.cityName;
 
-  return {
-    title: `${detail.title} در ${detail.district} ${detail.city} | کومه`,
-    description: detail.description.split("\n\n")[0],
-  };
+    return {
+      title: location
+        ? `${detail.title} در ${location} | کومه`
+        : `${detail.title} | کومه`,
+      description: detail.description ?? undefined,
+    };
+  } catch {
+    return { title: "ملک یافت نشد | کومه" };
+  }
 }
 
 export default async function EstatePage({
@@ -72,19 +102,34 @@ export default async function EstatePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const detail = getEstateDetail(id);
+  const detail = await getDetail(id);
 
-  if (!detail) notFound();
+  const [galleryResponse, tourResponse, similarResponse] = await Promise.all([
+    optional(getEstateGallery(id)),
+    detail.media.hasVirtualTour
+      ? optional(getEstateVirtualTour(id))
+      : Promise.resolve(undefined),
+    optional(getSimilarEstates(id, { per_page: 4 })),
+  ]);
 
-  const similar = getSimilarListings(detail, 4);
-  const tour = getEstateTour(id);
+  const gallery = galleryResponse ? mapEstateGallery(galleryResponse) : undefined;
+  const tour = tourResponse ? mapEstateVirtualTour(tourResponse) : undefined;
+  const similar = similarResponse ? mapSimilarEstates(similarResponse) : undefined;
+
+  // Plans are photos of the same file, so they extend the gallery rather than
+  // living in a section that would sit empty for most listings.
+  const photos = [...(gallery?.photos ?? []), ...(gallery?.plans ?? [])];
 
   const badges = [
-    propertyTypeLabels[detail.propertyType],
-    detail.dealType === "sale" ? "فروش" : "رهن و اجاره",
-    ...(detail.isNew ? ["نوساز"] : []),
-    ...(detail.isUrgent ? ["فوری"] : []),
+    detail.estateTypeLabel,
+    detail.dealTypeLabel,
+    ...(detail.isSpecial ? ["ویژه"] : []),
+    ...(detail.status.stamp ? [detail.status.stamp] : []),
   ];
+
+  const districtHref = detail.location.districtId
+    ? routes.properties({ districts: detail.location.districtId })
+    : routes.properties();
 
   return (
     // The mobile action bar and the global bottom nav both float over the page,
@@ -102,13 +147,14 @@ export default async function EstatePage({
           <Link href={routes.properties()} className="shrink-0 hover:text-brand">
             جستجوی ملک
           </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Link
-            href={routes.properties({ district: detail.district })}
-            className="shrink-0 hover:text-brand"
-          >
-            {detail.district}
-          </Link>
+          {detail.location.districtName && (
+            <>
+              <ChevronLeft className="size-3.5 shrink-0" />
+              <Link href={districtHref} className="shrink-0 hover:text-brand">
+                {detail.location.districtName}
+              </Link>
+            </>
+          )}
           <ChevronLeft className="size-3.5 shrink-0" />
           <Typography
             as="span"
@@ -123,11 +169,15 @@ export default async function EstatePage({
       {/* Full-bleed on phones, inset from `md` where the mosaic takes over. */}
       <Container className="max-md:px-0">
         <EstateGallery
-          estateId={detail.id}
+          photos={photos}
           propertyType={detail.propertyType}
           title={detail.title}
           badges={badges}
-          hasTour={detail.hasTour}
+          tourHref={
+            detail.media.hasVirtualTour
+              ? routes.propertyVirtualTour(detail.id)
+              : undefined
+          }
         />
       </Container>
 
@@ -143,38 +193,54 @@ export default async function EstatePage({
             </Typography>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-              <Typography
-                as="span"
-                variant="small"
-                className="flex items-center gap-1"
-              >
-                <MapPin className="size-3.5 text-brand/70" />
-                {detail.district}، {detail.city}
-              </Typography>
+              {detail.location.addressLabel && (
+                <Typography
+                  as="span"
+                  variant="small"
+                  className="flex items-center gap-1"
+                >
+                  <MapPin className="size-3.5 text-brand/70" />
+                  {detail.location.addressLabel}
+                </Typography>
+              )}
               <Typography
                 as="span"
                 variant="small"
                 className="flex items-center gap-1"
               >
                 <Hash className="size-3.5 text-brand/70" />
-                کد آگهی {Number(detail.code).toLocaleString("fa-IR")}
+                کد آگهی {detail.numericId.toLocaleString("fa-IR")}
               </Typography>
-              <Typography
-                as="span"
-                variant="small"
-                className="flex items-center gap-1"
-              >
-                <Clock className="size-3.5 text-brand/70" />
-                {formatPublished(detail.publishedDaysAgo)}
-              </Typography>
-              <Typography
-                as="span"
-                variant="small"
-                className="flex items-center gap-1"
-              >
-                <Eye className="size-3.5 text-brand/70" />
-                {detail.views.toLocaleString("fa-IR")} بازدید
-              </Typography>
+              {detail.publishedLabel && (
+                <Typography
+                  as="span"
+                  variant="small"
+                  className="flex items-center gap-1"
+                >
+                  <Clock className="size-3.5 text-brand/70" />
+                  {detail.publishedLabel}
+                </Typography>
+              )}
+              {detail.visitCount !== undefined && (
+                <Typography
+                  as="span"
+                  variant="small"
+                  className="flex items-center gap-1"
+                >
+                  <Eye className="size-3.5 text-brand/70" />
+                  {detail.visitCount.toLocaleString("fa-IR")} بازدید
+                </Typography>
+              )}
+              {detail.status.isVerified && (
+                <Typography
+                  as="span"
+                  variant="small"
+                  className="flex items-center gap-1 text-brand"
+                >
+                  <BadgeCheck className="size-3.5" />
+                  {detail.status.confirmationLabel}
+                </Typography>
+              )}
             </div>
           </div>
 
@@ -182,7 +248,7 @@ export default async function EstatePage({
         </header>
 
         <div className="mt-4">
-          <EstateHighlights detail={detail} />
+          <EstateHighlights facts={detail.facts} />
         </div>
 
         {tour && (
@@ -190,111 +256,122 @@ export default async function EstatePage({
             <EstateTourCard
               estateId={detail.id}
               title={detail.title}
-              sceneCount={tour.scenes.length}
+              imageCount={tour.imageCount}
+              previewImage={tour.images[0]?.url ?? detail.media.coverImage}
             />
           </div>
         )}
 
         <div className="mt-5 grid items-start gap-5 lg:grid-cols-3">
           <div className="grid gap-4 lg:col-span-2">
-            <DetailSection title="توضیحات" icon={FileText}>
-              <EstateDescription text={detail.description} />
-              <div className="mt-4">
-                <EstateTrustNotes />
-              </div>
-            </DetailSection>
+            {detail.description && (
+              <DetailSection title="توضیحات" icon={FileText}>
+                <EstateDescription text={detail.description} />
+              </DetailSection>
+            )}
 
             <DetailSection title="مشخصات ملک" icon={SquareStack}>
               <EstateSpecs detail={detail} />
             </DetailSection>
 
-            <DetailSection title="امکانات ملک" icon={Sparkles}>
-              <EstateAmenities detail={detail} />
-            </DetailSection>
+            {detail.featureGroups.length > 0 && (
+              <DetailSection title="امکانات ملک" icon={Sparkles}>
+                <EstateFeatures groups={detail.featureGroups} />
+              </DetailSection>
+            )}
 
-            <DetailSection
-              title="شرایط ملک"
-              icon={ListChecks}
-              action={
-                detail.hasExchange ? (
-                  <Badge variant="secondary">قابل معاوضه</Badge>
-                ) : null
-              }
-            >
-              <EstateConditions conditions={detail.conditions} />
-            </DetailSection>
+            {detail.conditions.length > 0 && (
+              <DetailSection title="شرایط ملک" icon={ListChecks}>
+                <EstateConditions conditions={detail.conditions} />
+              </DetailSection>
+            )}
 
-            {detail.hasPlan && (
-              <DetailSection
-                title="پلان واحد"
-                icon={LayoutPanelTop}
-                action={
-                  <Typography as="span" variant="small">
-                    {detail.area.toLocaleString("fa-IR")} مترمربع
-                  </Typography>
-                }
-              >
-                <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-muted/40 px-4 py-10 text-center">
-                  <LayoutPanelTop
-                    className="size-8 text-brand/50"
-                    strokeWidth={1.5}
+            {detail.exchange && (
+              <DetailSection title="معاوضه" icon={Repeat2}>
+                <Typography variant="muted" className="leading-7">
+                  {detail.exchange.description ??
+                    "این ملک قابل معاوضه است؛ شرایط را با کارشناس پرونده هماهنگ کنید."}
+                </Typography>
+              </DetailSection>
+            )}
+
+            {detail.media.video && (
+              <DetailSection title="ویدیوی ملک" icon={Video}>
+                <div className="aspect-video w-full overflow-hidden rounded-2xl border">
+                  <iframe
+                    src={detail.media.video.embedUrl}
+                    title={`ویدیوی ${detail.title}`}
+                    allowFullScreen
+                    className="size-full"
                   />
-                  <Typography variant="h4" as="p" className="sm:text-sm">
-                    پلان این واحد در دفتر شعبه موجود است
-                  </Typography>
-                  <Typography variant="small" className="max-w-sm leading-5">
-                    برای دریافت فایل پلان و ابعاد دقیق فضاها با کارشناس پرونده
-                    هماهنگ کنید.
-                  </Typography>
                 </div>
               </DetailSection>
             )}
 
-            <DetailSection
-              title="موقعیت روی نقشه"
-              icon={MapPin}
-              action={
-                <Typography as="span" variant="small">
-                  موقعیت تقریبی
-                </Typography>
-              }
-            >
-              <EstateMapPanel lat={detail.lat} lng={detail.lng} />
-              <Typography variant="small" className="mt-3 leading-6">
-                به منظور حفظ حریم مالک، محدوده تقریبی ملک نمایش داده می‌شود.
-                نشانی دقیق هنگام هماهنگی بازدید در اختیار شما قرار می‌گیرد.
-              </Typography>
-            </DetailSection>
+            {detail.location.hasMap && (
+              <DetailSection
+                title="موقعیت روی نقشه"
+                icon={MapPin}
+                action={
+                  !detail.location.isFullAddress ? (
+                    <Typography as="span" variant="small">
+                      موقعیت تقریبی
+                    </Typography>
+                  ) : null
+                }
+              >
+                <EstateMapPanel
+                  lat={detail.location.lat!}
+                  lng={detail.location.lng!}
+                />
+                {!detail.location.isFullAddress && (
+                  <Typography variant="small" className="mt-3 leading-6">
+                    به منظور حفظ حریم مالک، محدوده تقریبی ملک نمایش داده می‌شود.
+                    نشانی دقیق هنگام هماهنگی بازدید در اختیار شما قرار می‌گیرد.
+                  </Typography>
+                )}
+              </DetailSection>
+            )}
           </div>
 
           {/* Sticky rail: price and contact stay reachable through a long read. */}
           <aside className="hidden lg:sticky lg:top-20 lg:grid lg:gap-4">
             <EstatePriceCard detail={detail} />
-            <EstateContactCard agent={detail.agent} />
+            <EstateContactCard
+              estateId={detail.id}
+              agent={detail.agent}
+              contact={detail.contact}
+              requestVisitHref={detail.links.request_visit}
+            />
 
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full"
-              nativeButton={false}
-              render={
-                <Link
-                  href={routes.properties({ district: detail.district })}
-                />
-              }
-            >
-              فایل‌های دیگر {detail.district}
-            </Button>
+            {detail.location.districtName && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full"
+                nativeButton={false}
+                render={<Link href={districtHref} />}
+              >
+                فایل‌های دیگر {detail.location.districtName}
+              </Button>
+            )}
           </aside>
         </div>
 
         {/* Below `lg` the rail unstacks and lands here, after the content. */}
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:hidden">
           <EstatePriceCard detail={detail} />
-          <EstateContactCard agent={detail.agent} />
+          <EstateContactCard
+            estateId={detail.id}
+            agent={detail.agent}
+            contact={detail.contact}
+            requestVisitHref={detail.links.request_visit}
+          />
         </div>
 
-        <SimilarEstates listings={similar} city="qom" />
+        {similar && (
+          <SimilarEstates similar={similar} viewAllHref={districtHref} />
+        )}
       </Container>
 
       <EstateMobileBar detail={detail} />

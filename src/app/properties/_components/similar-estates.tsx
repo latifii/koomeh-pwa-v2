@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
+import type { EstateSimilarView } from "@/app/properties/_types/estate-detail.types";
 import { PropertyCard } from "@/components/features/property/property-card";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import type { Listing } from "@/data/search";
 import { routes } from "@/lib/routes";
 
 /**
@@ -12,31 +12,33 @@ import { routes } from "@/lib/routes";
  * homepage uses for its listing rows, so the page ends on familiar ground.
  */
 export function SimilarEstates({
-  listings,
-  city,
+  similar,
+  viewAllHref = routes.properties(),
 }: {
-  listings: Listing[];
-  city: string;
+  similar: EstateSimilarView;
+  viewAllHref?: string;
 }) {
-  if (listings.length === 0) return null;
+  if (similar.items.length === 0) return null;
 
   return (
     <section className="mt-8">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
           <Typography variant="h3" as="h2" className="text-lg font-bold sm:text-lg">
-            ملک‌های مشابه
+            {similar.title}
           </Typography>
-          <Typography variant="small" className="mt-0.5">
-            فایل‌هایی با متراژ و موقعیت نزدیک به این ملک
-          </Typography>
+          {similar.total > 0 && (
+            <Typography variant="small" className="mt-0.5">
+              {similar.total.toLocaleString("fa-IR")} فایل نزدیک به این ملک
+            </Typography>
+          )}
         </div>
         <Button
           variant="ghost"
           size="sm"
           className="text-brand"
           nativeButton={false}
-          render={<Link href={routes.properties({ city })} />}
+          render={<Link href={viewAllHref} />}
         >
           همه فایل‌ها
           <ArrowLeft data-icon="inline-end" />
@@ -44,7 +46,7 @@ export function SimilarEstates({
       </div>
 
       <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
-        {listings.map((listing) => (
+        {similar.items.map((listing) => (
           <PropertyCard
             key={listing.id}
             estate={listing}

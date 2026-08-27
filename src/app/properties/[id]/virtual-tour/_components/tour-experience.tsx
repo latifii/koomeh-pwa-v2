@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ChevronLeft,
@@ -19,8 +20,8 @@ import {
   X,
 } from "lucide-react";
 
+import type { EstateTourView } from "@/app/properties/_types/estate-detail.types";
 import { Typography } from "@/components/ui/typography";
-import type { EstateTour } from "@/data/virtual-tour";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 
@@ -34,7 +35,7 @@ const PanoramaViewer = dynamic(
         <LoaderCircle className="size-8 animate-spin text-white/60" />
       </div>
     ),
-  }
+  },
 );
 
 const MIN_FOV = 40;
@@ -42,19 +43,23 @@ const MAX_FOV = 90;
 
 /**
  * The full-screen tour: a fixed overlay covering the site chrome, with the 360
- * stage front and centre and a scene rail plus a control cluster over it.
+ * stage front and centre and a rail of the file's own panoramas plus a control
+ * cluster over it.
  */
-export function TourExperience({ tour }: { tour: EstateTour }) {
+export function TourExperience({ tour }: { tour: EstateTourView }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
   const [gyro, setGyro] = useState(false);
   const [fov, setFov] = useState(70);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showHint, setShowHint] = useState(true);
+  const [loading, setLoading] = useState(true);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const active = tour.scenes[activeIndex];
-  const multiScene = tour.scenes.length > 1;
+  const active = tour.images[activeIndex];
+  const multiScene = tour.images.length > 1;
+
+  const onLoadingChange = useCallback((value: boolean) => setLoading(value), []);
 
   // Lock the page behind the overlay while the tour is open.
   useEffect(() => {
@@ -104,7 +109,7 @@ export function TourExperience({ tour }: { tour: EstateTour }) {
 
   const step = (delta: number) =>
     setActiveIndex(
-      (index) => (index + delta + tour.scenes.length) % tour.scenes.length
+      (index) => (index + delta + tour.images.length) % tour.images.length,
     );
 
   return (
@@ -113,16 +118,20 @@ export function TourExperience({ tour }: { tour: EstateTour }) {
       className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-primary-deep select-none"
     >
       {/* Stage */}
-      <div
-        className="relative flex-1"
-        onPointerDown={() => setShowHint(false)}
-      >
+      <div className="relative flex-1" onPointerDown={() => setShowHint(false)}>
         <PanoramaViewer
-          scene={active}
+          imageUrl={active.url}
           autoRotate={autoRotate && !gyro}
           gyro={gyro}
           fov={fov}
+          onLoadingChange={onLoadingChange}
         />
+
+        {loading && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <LoaderCircle className="size-8 animate-spin text-white/60" />
+          </div>
+        )}
 
         {/* Top gradient + header */}
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 bg-linear-to-b from-black/60 to-transparent p-4">
@@ -182,7 +191,7 @@ export function TourExperience({ tour }: { tour: EstateTour }) {
             <button
               type="button"
               onClick={() => step(1)}
-              aria-label="فضای بعدی"
+              aria-label="نمای بعدی"
               className="absolute inset-s-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/55"
             >
               <ChevronRight className="size-6 rtl:rotate-180" />
@@ -190,7 +199,7 @@ export function TourExperience({ tour }: { tour: EstateTour }) {
             <button
               type="button"
               onClick={() => step(-1)}
-              aria-label="فضای قبلی"
+              aria-label="نمای قبلی"
               className="absolute inset-e-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/55"
             >
               <ChevronLeft className="size-6 rtl:rotate-180" />
@@ -237,63 +246,40 @@ export function TourExperience({ tour }: { tour: EstateTour }) {
         </div>
       </div>
 
-      {/* Scene rail */}
+      {/* Panorama rail */}
       {multiScene && (
         <div className="shrink-0 border-t border-white/10 bg-black/40 backdrop-blur-md">
-          <div className="flex items-center justify-between gap-3 px-4 pt-2.5">
-            <Typography
-              variant="h4"
-              as="p"
-              className="text-white sm:text-[13px]"
-            >
-              {active.name}
-            </Typography>
-            <Typography
-              as="span"
-              variant="small"
-              className="text-[11px] text-white/60"
-            >
+          <div className="flex items-center justify-end gap-3 px-4 pt-2.5">
+            <Typography as="span" variant="small" className="text-[11px] text-white/60">
               <span className="text-secondary">
                 {(activeIndex + 1).toLocaleString("fa-IR")}
               </span>{" "}
-              از {tour.scenes.length.toLocaleString("fa-IR")} فضا
+              از {tour.images.length.toLocaleString("fa-IR")} نما
             </Typography>
           </div>
 
           <div className="flex gap-2 overflow-x-auto p-4 pt-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {tour.scenes.map((scene, index) => (
+            {tour.images.map((image, index) => (
               <button
-                key={scene.id}
+                key={image.id}
                 type="button"
                 onClick={() => setActiveIndex(index)}
+                aria-label={`نمای ${index + 1}`}
                 aria-pressed={index === activeIndex}
                 className={cn(
-                  "flex shrink-0 flex-col items-center gap-1.5 rounded-xl border p-2 transition-colors",
+                  "relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition-colors",
                   index === activeIndex
-                    ? "border-secondary bg-white/10"
-                    : "border-white/15 bg-white/5 hover:border-white/30"
+                    ? "border-secondary"
+                    : "border-white/15 hover:border-white/40",
                 )}
               >
-                <span
-                  className={cn(
-                    "flex size-9 items-center justify-center rounded-lg",
-                    index === activeIndex
-                      ? "bg-secondary text-secondary-foreground"
-                      : "bg-white/10 text-white/70"
-                  )}
-                >
-                  <Rotate3d className="size-4.5" />
-                </span>
-                <Typography
-                  as="span"
-                  variant="small"
-                  className={cn(
-                    "whitespace-nowrap text-[11px]",
-                    index === activeIndex ? "text-white" : "text-white/60"
-                  )}
-                >
-                  {scene.name}
-                </Typography>
+                <Image
+                  src={image.url}
+                  alt={`نمای ${index + 1}`}
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
               </button>
             ))}
           </div>
@@ -327,7 +313,7 @@ function ControlButton({
         "flex size-10 items-center justify-center rounded-full border backdrop-blur-md transition-colors disabled:opacity-40",
         active
           ? "border-secondary bg-secondary text-secondary-foreground"
-          : "border-white/20 bg-black/35 text-white hover:bg-black/55"
+          : "border-white/20 bg-black/35 text-white hover:bg-black/55",
       )}
     >
       {children}
