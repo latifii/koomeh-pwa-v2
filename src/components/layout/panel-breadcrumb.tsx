@@ -21,10 +21,10 @@ const routeLabels: Record<string, string> = {
   [routes.panel.matches]: "تطبیق هوشمند",
   [routes.panel.activities]: "فعالیت‌ها",
   [routes.panel.tasks]: "وظایف",
-  [routes.panel.newTask]: "وظیفه جدید",
   [routes.panel.conversations]: "گفت‌وگوها",
   [routes.panel.contacts]: "مخاطبان",
-  [routes.panel.appointments]: "قرارهای بازدید",
+  [routes.panel.appointments]: "تقویم قرارها",
+  [routes.panel.agentStats]: "لیگ ستارگان",
   [routes.panel.notifications]: "اعلان‌ها",
   [routes.panel.profile]: "تنظیمات حساب",
   [routes.panel.security]: "امنیت حساب",
@@ -72,7 +72,6 @@ function getCurrentLabel(pathname: string): string {
     return "ویرایش تقاضا";
   }
   if (pathname.startsWith(`${routes.panel.requests}/`)) return "جزئیات تقاضا";
-  if (pathname.startsWith(`${routes.panel.tasks}/`)) return "جزئیات وظیفه";
   if (pathname.startsWith(`${routes.panel.conversations}/`)) return "گفت‌وگو";
   if (pathname.startsWith(`${routes.panel.properties}/`)) return "مدیریت ملک";
   return "داشبورد";

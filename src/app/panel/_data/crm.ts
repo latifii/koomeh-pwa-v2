@@ -40,11 +40,3 @@ export const crmContacts:CrmContact[]=[
   {id:"p4",name:"علی محمدی",mobile:"09120001122",type:"agent",description:"کارشناس شعبه مرکزی",lastContact:"امروز"},
 ];
 
-export type AppointmentStatus="scheduled"|"done"|"cancelled";
-export interface CrmAppointment {id:string;title:string;date:string;time:string;location:string;customer:string;agent:string;status:AppointmentStatus;}
-export const crmAppointments:CrmAppointment[]=[
-  {id:"ap1",title:"بازدید آپارتمان پردیسان",date:"امروز",time:"۱۷:۰۰",location:"پردیسان، بلوار امام علی",customer:"مهدی احمدی",agent:"حامد کریمی",status:"scheduled"},
-  {id:"ap2",title:"جلسه مشاوره خرید",date:"فردا",time:"۱۰:۳۰",location:"شعبه مرکزی کومه",customer:"علی رضایی",agent:"علی محمدی",status:"scheduled"},
-  {id:"ap3",title:"بازدید ویلایی سالاریه",date:"شنبه",time:"۱۶:۰۰",location:"سالاریه، خیابان اقاقیا",customer:"زهرا موسوی",agent:"حامد کریمی",status:"scheduled"},
-  {id:"ap4",title:"کارشناسی قیمت ملک",date:"دیروز",time:"۱۲:۰۰",location:"زنبیل‌آباد",customer:"رضا اکبری",agent:"حامد کریمی",status:"done"},
-];

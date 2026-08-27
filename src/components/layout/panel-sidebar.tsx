@@ -18,6 +18,7 @@ import {
   SearchCheck,
   Settings,
   StickyNote,
+  Trophy,
   ListTodo,
   Activity,
   ContactRound,
@@ -119,8 +120,14 @@ const panelLinks = [
   },
   {
     href: routes.panel.appointments,
-    label: "قرارهای بازدید",
+    label: "تقویم قرارها",
     icon: CalendarDays,
+    enabled: true,
+  },
+  {
+    href: routes.panel.agentStats,
+    label: "لیگ ستارگان",
+    icon: Trophy,
     enabled: true,
   },
   {

@@ -49,6 +49,8 @@ import { EstateGallery } from "../_components/estate-gallery";
 import { EstateMapPanel } from "../_components/estate-map-panel";
 import { EstateMobileBar } from "../_components/estate-mobile-bar";
 import { EstatePriceCard } from "../_components/estate-price-card";
+import { EstateChatCard } from "../_components/estate-chat-card";
+import { EstateStaffPanel } from "../_components/estate-staff-panel";
 import { EstateTourCard } from "../_components/estate-tour-card";
 import { EstateViewTracker } from "../_components/estate-view-tracker";
 import { SimilarEstates } from "../_components/similar-estates";
@@ -379,6 +381,11 @@ export default async function EstatePage({
             requestVisitHref={detail.links.request_visit}
           />
         </div>
+
+        <EstateChatCard estateId={detail.numericId} />
+
+        {/* Renders nothing — and calls nothing — unless the viewer is staff. */}
+        <EstateStaffPanel estateId={detail.numericId} />
 
         {similar && (
           <SimilarEstates similar={similar} viewAllHref={districtHref} />

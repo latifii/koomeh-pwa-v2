@@ -1,10 +1,30 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { crmConversations,getConversation } from "@/app/panel/_data/crm";
-import { PanelPageHeader } from "@/components/layout/panel-page-header";
-import { Card,CardContent } from "@/components/ui/card";
-import { ChatThread } from "./_components/chat-thread";
-export function generateStaticParams(){return crmConversations.map(({id})=>({id}))}
-export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{const item=getConversation((await params).id);return{title:item?`گفت‌وگو با ${item.name}`:"گفت‌وگو یافت نشد"}}
-export default async function ConversationPage({params}:{params:Promise<{id:string}>}){const item=getConversation((await params).id);if(!item)notFound();return <div><PanelPageHeader title={item.name} description={item.context} /><Card><CardContent className="p-4"><ChatThread conversation={item} /></CardContent></Card></div>}
 
+import { ChatThread } from "@/app/panel/conversations/_components/chat-thread";
+import { PanelPageHeader } from "@/components/layout/panel-page-header";
+
+export const metadata: Metadata = { title: "گفت‌وگو | پنل کومه" };
+
+/**
+ * The thread itself is loaded in the client, because it polls and because the
+ * whole panel is per-user anyway. The route only validates the id.
+ */
+export default async function ConversationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const chatId = Number((await params).id);
+  if (!Number.isInteger(chatId) || chatId <= 0) notFound();
+
+  return (
+    <div>
+      <PanelPageHeader
+        title="گفت‌وگو"
+        description="پیام‌های این گفتگو و پاسخ به طرف مقابل."
+      />
+      <ChatThread chatId={chatId} />
+    </div>
+  );
+}
