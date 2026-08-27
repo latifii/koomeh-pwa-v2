@@ -6,8 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/provider/theme-provider";
 import { QueryProvider } from "@/provider/query-provider";
 import { SessionProvider } from "@/provider/session-provider";
-import { getSession } from "@/lib/auth/session-cookie";
-import { toClientSession } from "@/lib/auth/session.types";
 import { cn } from "@/lib/utils";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -71,13 +69,11 @@ export const metadata: Metadata = {
     "املاک قم؛ خرید، فروش و اجاره انواع ملک در قم با پوشش کامل مناطق پردیسان، سالاریه، زنبیل‌آباد، صفاشهر، شهرک قدس، جمهوری، کریمی و فردوسی.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getSession();
-
   return (
     <html
       lang="fa"
@@ -88,9 +84,7 @@ export default async function RootLayout({
       <DirectionProvider direction="rtl">
         <body className="min-h-full flex flex-col">
           <QueryProvider>
-            <SessionProvider
-              initialSession={session ? toClientSession(session) : null}
-            >
+            <SessionProvider>
               <ThemeProvider>
                 <TooltipProvider>
                   <SiteHeader />

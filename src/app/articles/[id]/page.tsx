@@ -23,6 +23,12 @@ import { RichText } from "@/components/shared/rich-text";
 
 export const revalidate = 900;
 
+// Signals that this route can be statically generated; without it Next treats
+// every dynamic segment as fully dynamic and never caches the result.
+export function generateStaticParams() {
+  return [];
+}
+
 const getCachedBlogPost = cache((id: string) => getBlogPost(id));
 
 async function resolveBlogPost(id: string) {

@@ -41,9 +41,13 @@ export function useEstateActions(estateId: string) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isAuthenticated = useSessionStore(
-    (state) => state.status === "authenticated",
-  );
+  const status = useSessionStore((state) => state.status);
+  const isAuthenticated = status === "authenticated";
+
+  // The session is fetched after mount, so for a moment nobody knows whether
+  // this visitor is signed in. Acting on that guess would send a signed-in
+  // visitor to the login screen, so the buttons wait instead.
+  const isSessionPending = status === "loading";
 
   const favorites = useQuery(favoriteIdsQueryOptions(isAuthenticated));
   const compare = useQuery(compareIdsQueryOptions(isAuthenticated));
@@ -100,8 +104,11 @@ export function useEstateActions(estateId: string) {
 
   return {
     isAuthenticated,
+    isSessionPending,
     /** True until membership is known, so the button can avoid a wrong first state. */
-    isLoading: isAuthenticated && (favorites.isPending || compare.isPending),
+    isLoading:
+      isSessionPending ||
+      (isAuthenticated && (favorites.isPending || compare.isPending)),
 
     isSaved,
     isCompared,
@@ -109,10 +116,12 @@ export function useEstateActions(estateId: string) {
     isComparing: compareMutation.isPending,
 
     toggleSaved: () => {
+      if (isSessionPending) return;
       if (!isAuthenticated) return requireSignIn();
       favoriteMutation.mutate(!isSaved);
     },
     toggleCompared: () => {
+      if (isSessionPending) return;
       if (!isAuthenticated) return requireSignIn();
       compareMutation.mutate(!isCompared);
     },

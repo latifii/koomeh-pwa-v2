@@ -9,6 +9,14 @@ import { AgentProfileView } from "./_components/agent-profile-view";
 
 type PageProps = { params: Promise<{ id: string }> };
 
+export const revalidate = 3600;
+
+// Signals that this route can be statically generated; without it Next treats
+// every dynamic segment as fully dynamic and never caches the result.
+export function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
 

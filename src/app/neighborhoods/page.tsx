@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, MapPinned } from "lucide-react";
 
-import { getNeighborhoods } from "@/app/neighborhoods/_api/neighborhoods.service";
+import { getCachedNeighborhoods } from "@/app/neighborhoods/_cache/neighborhoods.cache";
 import { mapNeighborhoodList } from "@/app/neighborhoods/_mappers/neighborhoods.mapper";
 import { Container } from "@/components/layout/container";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AreasPage() {
-  const initialPage = await getNeighborhoods({ per_page: 21 })
+  const initialPage = await getCachedNeighborhoods(21)
     .then(mapNeighborhoodList)
     .catch(() => undefined);
 

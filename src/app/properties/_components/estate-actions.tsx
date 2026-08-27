@@ -29,6 +29,7 @@ export function EstateActions({
     isCompared,
     isSaving,
     isComparing,
+    isSessionPending,
     toggleSaved,
     toggleCompared,
   } = useEstateActions(estateId);
@@ -64,7 +65,7 @@ export function EstateActions({
           variant="outline"
           size="sm"
           onClick={toggleSaved}
-          disabled={isSaving}
+          disabled={isSaving || isSessionPending}
           aria-pressed={isSaved}
           className={cn(isSaved && "border-secondary text-secondary-foreground")}
         >
@@ -83,7 +84,7 @@ export function EstateActions({
           variant="outline"
           size="sm"
           onClick={toggleCompared}
-          disabled={isComparing}
+          disabled={isComparing || isSessionPending}
           aria-pressed={isCompared}
           className={cn(isCompared && "border-brand text-brand")}
         >

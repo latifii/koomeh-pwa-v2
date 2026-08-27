@@ -49,6 +49,12 @@ import { BranchStrengths } from "../_components/branch-strengths";
 
 export const revalidate = 900;
 
+// Signals that this route can be statically generated; without it Next treats
+// every dynamic segment as fully dynamic and never caches the result.
+export function generateStaticParams() {
+  return [];
+}
+
 const getCachedBranches = cache(() => getBranches({ page: 1, per_page: 60 }));
 
 async function optional<T>(promise: Promise<T>): Promise<T | undefined> {

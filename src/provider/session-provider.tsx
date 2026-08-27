@@ -1,36 +1,29 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
-import type { ClientSession } from "@/lib/auth/session.types";
 
 /**
- * Seeds the session store from the server render, so the header knows who is
- * signed in on the first paint instead of flashing a login button. The cookie
- * remains the source of truth; this only mirrors it into the browser.
+ * Loads the session into the browser store.
+ *
+ * This deliberately does *not* read the cookie during the server render.
+ * `cookies()` in the root layout opts the entire route tree into dynamic
+ * rendering, which silently made every `export const revalidate` in the app
+ * inert — the whole public site was server-rendered on demand to save one
+ * round trip in the header. Fetching it here instead keeps those routes
+ * static and revalidated.
+ *
+ * The store therefore starts in `loading`, and the header shows its skeleton
+ * until the answer arrives. It never shows a signed-out state to a signed-in
+ * visitor, which is what a seeded-with-null store would have done.
  */
-export function SessionProvider({
-  initialSession,
-  children,
-}: {
-  initialSession: ClientSession | null;
-  children: ReactNode;
-}) {
-  const applySession = useSessionStore((state) => state.applySession);
+export function SessionProvider({ children }: { children: ReactNode }) {
   const refreshSession = useSessionStore((state) => state.refreshSession);
 
-  // Seeded during the first render, not in an effect: child effects run before
-  // the parent's, so waiting would let a child fire a request before axios has
-  // the token. A lazy `useState` initializer is React's once-per-instance hook.
-  useState(() => {
-    applySession(initialSession);
-    return null;
-  });
-
   useEffect(() => {
-    applySession(initialSession);
-  }, [applySession, initialSession]);
+    void refreshSession();
+  }, [refreshSession]);
 
   // A session can change in another tab — signing out there should not leave
   // this one holding a token it no longer owns.

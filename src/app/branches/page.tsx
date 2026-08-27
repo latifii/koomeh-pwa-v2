@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Building2, ChevronLeft, MapPin, Phone, Users } from "lucide-react";
 
 import businessImage from "@/assets/images/card/business.webp";
-import { getBranches } from "@/app/branches/_api/branch.service";
+import { getCachedBranches } from "@/app/branches/_cache/branches.cache";
 import { mapBranchesPage } from "@/app/branches/_mappers/branch.mapper";
 import { Container } from "@/components/layout/container";
 import { ApiImage } from "@/components/shared/api-image";
@@ -20,7 +20,7 @@ export const revalidate = 900;
 
 async function getBranchesPage() {
   try {
-    return mapBranchesPage(await getBranches({ page: 1, per_page: 60 }));
+    return mapBranchesPage(await getCachedBranches(1, 60));
   } catch (error) {
     if (error instanceof ApiError && error.code === "NOT_FOUND") {
       return { total: 0, page: 1, per_page: 60, last_page: 0, has_more: false, items: [] };

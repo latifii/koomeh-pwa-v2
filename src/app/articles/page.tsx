@@ -5,9 +5,9 @@ import { BookOpen, ChevronLeft } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Typography } from "@/components/ui/typography";
 import {
-  getBlogCategories,
-  getBlogPosts,
-} from "@/app/articles/_api/blog.service";
+  getCachedBlogCategories,
+  getCachedBlogPosts,
+} from "@/app/articles/_cache/blog.cache";
 import { mapBlogCategories } from "@/app/articles/_mappers/blog.mapper";
 
 import { BlogList } from "./_components/blog-list";
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 
 export default async function BlogsPage() {
   const [initialPosts, categoriesResponse] = await Promise.all([
-    getBlogPosts({ page: 1, per_page: 21, sort: 1 }),
-    getBlogCategories(),
+    getCachedBlogPosts(1, 21),
+    getCachedBlogCategories(),
   ]);
   const categories = mapBlogCategories(categoriesResponse);
 

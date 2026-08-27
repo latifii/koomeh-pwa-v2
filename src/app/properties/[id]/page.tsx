@@ -1,4 +1,4 @@
-import { Suspense, cache } from "react";
+import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -54,6 +54,12 @@ import { EstateViewTracker } from "../_components/estate-view-tracker";
 import { SimilarEstates } from "../_components/similar-estates";
 
 export const revalidate = 300;
+
+// Signals that this route can be statically generated; without it Next treats
+// every dynamic segment as fully dynamic and never caches the result.
+export function generateStaticParams() {
+  return [];
+}
 
 /** Anything but the detail call is optional — a page still renders without it. */
 async function optional<T>(promise: Promise<T>): Promise<T | undefined> {
@@ -381,10 +387,8 @@ export default async function EstatePage({
 
       <EstateMobileBar detail={detail} />
 
-      {/* Records the visit; reads `?he=` from the URL, so it needs Suspense. */}
-      <Suspense fallback={null}>
-        <EstateViewTracker estateId={detail.id} />
-      </Suspense>
+      {/* Records the visit. */}
+      <EstateViewTracker estateId={detail.id} />
     </div>
   );
 }

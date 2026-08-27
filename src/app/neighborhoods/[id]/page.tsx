@@ -30,6 +30,12 @@ import { AreaPriceCard } from "./_components/area-price-card";
 
 export const revalidate = 3600;
 
+// Signals that this route can be statically generated; without it Next treats
+// every dynamic segment as fully dynamic and never caches the result.
+export function generateStaticParams() {
+  return [];
+}
+
 const getArea = cache(async (id: string) => {
   if (!/^\d+$/.test(id)) notFound();
 

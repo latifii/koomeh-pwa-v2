@@ -6,7 +6,7 @@ import { Container } from "@/components/layout/container";
 import { Typography } from "@/components/ui/typography";
 
 import { AgentsSearch } from "./_components/agents-search";
-import { getAgentFilters, getAgents } from "./_api/agents.service";
+import { getCachedAgentFilters, getCachedAgents } from "./_cache/agents.cache";
 
 /**
  * The default agents catalogue changes infrequently, so render it ahead of
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 
 export default async function AgentsSearchPage() {
   const [initialAgents, initialFilters] = await Promise.all([
-    getAgents({ city_id: 1, page: 1, per_page: 20 }),
-    getAgentFilters({ cityId: 1 }),
+    getCachedAgents(1, 1, 20),
+    getCachedAgentFilters(1),
   ]);
 
   return (

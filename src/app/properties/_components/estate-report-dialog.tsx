@@ -47,7 +47,8 @@ export function EstateReportDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { isAuthenticated, requireSignIn } = useEstateActions(estateId);
+  const { isAuthenticated, isSessionPending, requireSignIn } =
+    useEstateActions(estateId);
 
   // Only fetched once the visitor actually opens the dialog.
   const reasons = useQuery(reportReasonsQueryOptions(open && isAuthenticated));
@@ -111,7 +112,8 @@ export function EstateReportDialog({
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 
-  if (!isAuthenticated) {
+  // Until the session is known, do not claim the visitor is signed out.
+  if (!isAuthenticated && !isSessionPending) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">

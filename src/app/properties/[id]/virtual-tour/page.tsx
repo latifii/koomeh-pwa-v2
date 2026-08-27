@@ -9,6 +9,12 @@ import { TourExperience } from "./_components/tour-experience";
 
 export const revalidate = 300;
 
+// Signals that this route can be statically generated; without it Next treats
+// every dynamic segment as fully dynamic and never caches the result.
+export function generateStaticParams() {
+  return [];
+}
+
 /** The service 404s for files without a tour, so failure means "no tour". */
 const getTour = cache(async (id: string) => {
   if (!/^\d+$/.test(id)) notFound();
