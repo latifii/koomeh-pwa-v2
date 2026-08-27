@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { cache, Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -18,16 +18,14 @@ import {
 } from "lucide-react";
 
 import {
-  getEstateDetail,
-  getEstateGallery,
-  getEstateVirtualTour,
-  getSimilarEstates,
-} from "@/app/properties/_api/estate-detail.service";
+  getCachedEstateDetail,
+  getCachedEstateGallery,
+  getCachedEstateVirtualTour,
+} from "@/app/properties/_cache/estate-detail.cache";
 import {
   mapEstateDetail,
   mapEstateGallery,
   mapEstateVirtualTour,
-  mapSimilarEstates,
 } from "@/app/properties/_mappers/estate-detail.mapper";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
@@ -53,7 +51,7 @@ import { EstateChatCard } from "../_components/estate-chat-card";
 import { EstateStaffPanel } from "../_components/estate-staff-panel";
 import { EstateTourCard } from "../_components/estate-tour-card";
 import { EstateViewTracker } from "../_components/estate-view-tracker";
-import { SimilarEstates } from "../_components/similar-estates";
+import { SimilarEstatesServer } from "../_components/similar-estates-server";
 
 export const revalidate = 300;
 
@@ -76,7 +74,7 @@ const getDetail = cache(async (id: string) => {
   if (!/^\d+$/.test(id)) notFound();
 
   try {
-    return mapEstateDetail(await getEstateDetail(id));
+    return mapEstateDetail(await getCachedEstateDetail(id));
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;
@@ -113,17 +111,15 @@ export default async function EstatePage({
   const { id } = await params;
   const detail = await getDetail(id);
 
-  const [galleryResponse, tourResponse, similarResponse] = await Promise.all([
-    optional(getEstateGallery(id)),
+  const [galleryResponse, tourResponse] = await Promise.all([
+    optional(getCachedEstateGallery(id)),
     detail.media.hasVirtualTour
-      ? optional(getEstateVirtualTour(id))
+      ? optional(getCachedEstateVirtualTour(id))
       : Promise.resolve(undefined),
-    optional(getSimilarEstates(id, { per_page: 4 })),
   ]);
 
   const gallery = galleryResponse ? mapEstateGallery(galleryResponse) : undefined;
   const tour = tourResponse ? mapEstateVirtualTour(tourResponse) : undefined;
-  const similar = similarResponse ? mapSimilarEstates(similarResponse) : undefined;
 
   // Plans are photos of the same file, so they extend the gallery rather than
   // living in a section that would sit empty for most listings.
@@ -387,9 +383,10 @@ export default async function EstatePage({
         {/* Renders nothing — and calls nothing — unless the viewer is staff. */}
         <EstateStaffPanel estateId={detail.numericId} />
 
-        {similar && (
-          <SimilarEstates similar={similar} viewAllHref={districtHref} />
-        )}
+        {/* Streamed: this strip sits at the bottom, so the page should not wait. */}
+        <Suspense fallback={null}>
+          <SimilarEstatesServer estateId={id} viewAllHref={districtHref} />
+        </Suspense>
       </Container>
 
       <EstateMobileBar detail={detail} />

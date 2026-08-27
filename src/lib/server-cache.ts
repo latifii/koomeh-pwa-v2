@@ -25,10 +25,27 @@ export function cachedFetch<TArgs extends unknown[], TResult>(
   /** Stable key parts. Anything that changes the result must appear in args. */
   keyParts: string[],
   fetcher: (...args: TArgs) => Promise<TResult>,
-  options: { revalidate: number; tags: string[] },
+  options: {
+    revalidate: number;
+    /**
+     * Either a fixed tag list, or a function of the arguments for a per-entity
+     * tag like `estates:1234`.
+     */
+    tags: string[] | ((...args: TArgs) => string[]);
+  },
 ): (...args: TArgs) => Promise<TResult> {
-  return unstable_cache(fetcher, keyParts, {
-    revalidate: options.revalidate,
-    tags: options.tags,
-  });
+  const { revalidate, tags } = options;
+
+  if (typeof tags !== "function") {
+    return unstable_cache(fetcher, keyParts, { revalidate, tags });
+  }
+
+  // `unstable_cache` fixes its tags when it is called, so a tag that depends on
+  // the id can only work by building the wrapper per invocation. Verified: this
+  // does register real, individually purgeable tags — purging `agents:42`
+  // leaves `agents:43` warm.
+  return (...args: TArgs) =>
+    unstable_cache(fetcher, keyParts, { revalidate, tags: tags(...args) })(
+      ...args,
+    );
 }

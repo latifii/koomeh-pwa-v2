@@ -1,9 +1,11 @@
 import {
   estateStatusResponseSchema,
   panelEstateFiltersResponseSchema,
+  panelEstateMapResponseSchema,
   panelEstatesResponseSchema,
   type EstateStatusResponse,
   type PanelEstateFiltersResponse,
+  type PanelEstateMapResponse,
   type PanelEstatesResponse,
 } from "@/app/panel/properties/_schemas/panel-estates.schema";
 import type { PanelEstateParams } from "@/app/panel/properties/_types/panel-estates.types";
@@ -17,6 +19,7 @@ import { csvParam, normalizedText, positiveInteger } from "@/lib/api/query-param
 const endpoints = {
   list: "/api/site3/properties",
   filters: "/api/site3/properties/filters",
+  map: "/api/site3/properties/map",
   estate: (id: string | number) => `/api/site3/estates/${id}`,
   confirmation: (id: string | number) =>
     `/api/site3/estates/${id}/confirmation`,
@@ -60,6 +63,27 @@ export function getPanelEstates(
       rent: normalizedText(params.rent),
       page: positiveInteger(params.page) ?? 1,
       per_page: Math.min(positiveInteger(params.per_page) ?? 12, 48),
+    },
+    signal,
+  });
+}
+
+/**
+ * The same list as map points. The API drops any listing without coordinates,
+ * so the marker count is normally lower than the list total -- the component
+ * says so rather than letting the two numbers silently disagree.
+ */
+export function getPanelEstateMap(
+  params: PanelEstateParams = {},
+  signal?: AbortSignal,
+): Promise<PanelEstateMapResponse> {
+  return getValidated(endpoints.map, panelEstateMapResponseSchema, {
+    params: {
+      type: params.type === 1 || params.type === 2 ? params.type : undefined,
+      city_id: positiveInteger(params.city_id),
+      district_id: csvParam(params.district_id),
+      confirmation: normalizedText(params.confirmation),
+      user_id: positiveInteger(params.user_id),
     },
     signal,
   });

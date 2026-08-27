@@ -1,12 +1,13 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, Users } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
+import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Typography } from "@/components/ui/typography";
 
-import { AgentsSearch } from "./_components/agents-search";
-import { getCachedAgentFilters, getCachedAgents } from "./_cache/agents.cache";
+import { AgentsSearchServer } from "./_components/agents-search-server";
 
 /**
  * The default agents catalogue changes infrequently, so render it ahead of
@@ -20,12 +21,7 @@ export const metadata: Metadata = {
     "لیست کارشناسان گروه املاک کومه در قم؛ بر اساس نوع فعالیت، تخصص ملک و امتیاز، مشاور مناسب خود را پیدا کنید.",
 };
 
-export default async function AgentsSearchPage() {
-  const [initialAgents, initialFilters] = await Promise.all([
-    getCachedAgents(1, 1, 20),
-    getCachedAgentFilters(1),
-  ]);
-
+export default function AgentsSearchPage() {
   return (
     <div className="pb-16">
       <Container className="py-3">
@@ -64,10 +60,10 @@ export default async function AgentsSearchPage() {
           </Typography>
         </header>
 
-        <AgentsSearch
-          initialAgents={initialAgents}
-          initialFilters={initialFilters}
-        />
+        {/* Streamed: everything above is sent before the API answers. */}
+        <Suspense fallback={<ListSkeleton count={9} />}>
+          <AgentsSearchServer />
+        </Suspense>
       </Container>
     </div>
   );

@@ -172,3 +172,35 @@ export type PanelEstateFiltersResponse = z.infer<
 >;
 export type EstateStatusResponse = z.infer<typeof estateStatusResponseSchema>;
 export type RowPermissions = z.infer<typeof rowPermissionsSchema>;
+
+/**
+ * The panel list as map points. Deliberately not the public map schema: this
+ * one carries a single prepared `label` rather than the separate price, area
+ * and type fields the public pins render, and it obeys the panel's role
+ * restrictions rather than the public filters.
+ */
+export const panelEstateMapResponseSchema = z.object({
+  status: z.literal("success"),
+  result: z.object({
+    count: z.number().int().nonnegative().default(0),
+    items: z
+      .array(
+        z.object({
+          id: z.number().int(),
+          latitude: z.coerce.number(),
+          longitude: z.coerce.number(),
+          title: z.string().nullable().optional(),
+          label: z.string().nullable().optional(),
+          url: z.string().nullable().optional(),
+        }),
+      )
+      .default([]),
+  }),
+});
+
+export type PanelEstateMapResponse = z.infer<
+  typeof panelEstateMapResponseSchema
+>;
+export type PanelEstateMapMarker = z.infer<
+  typeof panelEstateMapResponseSchema
+>["result"]["items"][number];

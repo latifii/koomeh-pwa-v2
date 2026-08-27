@@ -14,7 +14,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { getNeighborhood } from "@/app/neighborhoods/_api/neighborhoods.service";
+import { getCachedNeighborhood } from "@/app/neighborhoods/_cache/neighborhoods.cache";
 import { mapNeighborhoodDetail } from "@/app/neighborhoods/_mappers/neighborhoods.mapper";
 import { Container } from "@/components/layout/container";
 import { RichText } from "@/components/shared/rich-text";
@@ -40,7 +40,7 @@ const getArea = cache(async (id: string) => {
   if (!/^\d+$/.test(id)) notFound();
 
   try {
-    return mapNeighborhoodDetail(await getNeighborhood(id));
+    return mapNeighborhoodDetail(await getCachedNeighborhood(id));
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;

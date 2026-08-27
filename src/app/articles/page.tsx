@@ -1,16 +1,13 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BookOpen, ChevronLeft } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
+import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Typography } from "@/components/ui/typography";
-import {
-  getCachedBlogCategories,
-  getCachedBlogPosts,
-} from "@/app/articles/_cache/blog.cache";
-import { mapBlogCategories } from "@/app/articles/_mappers/blog.mapper";
 
-import { BlogList } from "./_components/blog-list";
+import { BlogListServer } from "./_components/blog-list-server";
 
 export const revalidate = 900;
 
@@ -20,13 +17,7 @@ export const metadata: Metadata = {
     "جدیدترین مقالات گروه املاک کومه درباره خرید، فروش و اجاره ملک در قم؛ راهنمای معامله، تحلیل بازار مسکن و نکات حقوقی قرارداد.",
 };
 
-export default async function BlogsPage() {
-  const [initialPosts, categoriesResponse] = await Promise.all([
-    getCachedBlogPosts(1, 21),
-    getCachedBlogCategories(),
-  ]);
-  const categories = mapBlogCategories(categoriesResponse);
-
+export default function BlogsPage() {
   return (
     <div className="pb-16">
       <Container className="py-3">
@@ -67,7 +58,10 @@ export default async function BlogsPage() {
           </Typography>
         </header>
 
-        <BlogList initialPosts={initialPosts} categories={categories} />
+        {/* Streamed: the heading above is sent before the API answers. */}
+        <Suspense fallback={<ListSkeleton count={9} />}>
+          <BlogListServer />
+        </Suspense>
       </Container>
     </div>
   );

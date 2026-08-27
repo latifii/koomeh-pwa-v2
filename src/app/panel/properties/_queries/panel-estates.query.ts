@@ -2,6 +2,7 @@ import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 
 import {
   getPanelEstateFilters,
+  getPanelEstateMap,
   getPanelEstates,
 } from "@/app/panel/properties/_api/panel-estates.service";
 import { panelEstatesQueryKeys } from "@/app/panel/properties/_constants/panel-estates-query-keys";
@@ -28,5 +29,23 @@ export function panelEstateFiltersQueryOptions() {
     queryKey: panelEstatesQueryKeys.filters(),
     queryFn: async ({ signal }) => (await getPanelEstateFilters(signal)).result,
     staleTime: 30 * 60 * 1_000,
+  });
+}
+
+/**
+ * The same filters as the list, rendered as map points. Only fetched while the
+ * map view is open — it is a second full request for data the list already has
+ * in another shape.
+ */
+export function panelEstateMapQueryOptions(
+  params: PanelEstateParams,
+  enabled: boolean,
+) {
+  return queryOptions({
+    queryKey: panelEstatesQueryKeys.map(params),
+    queryFn: async ({ signal }) => (await getPanelEstateMap(params, signal)).result,
+    enabled,
+    staleTime: 60 * 1_000,
+    placeholderData: (previous) => previous,
   });
 }

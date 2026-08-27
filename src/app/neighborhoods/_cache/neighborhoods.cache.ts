@@ -1,6 +1,9 @@
 import "server-only";
 
-import { getNeighborhoods } from "@/app/neighborhoods/_api/neighborhoods.service";
+import {
+  getNeighborhood,
+  getNeighborhoods,
+} from "@/app/neighborhoods/_api/neighborhoods.service";
 import { cacheTags, cacheTtl } from "@/lib/cache-policy";
 import { cachedFetch } from "@/lib/server-cache";
 
@@ -10,5 +13,17 @@ export const getCachedNeighborhoods = cachedFetch(
   {
     revalidate: cacheTtl.neighborhoods,
     tags: [cacheTags.neighborhoods.all, cacheTags.neighborhoods.list],
+  },
+);
+
+export const getCachedNeighborhood = cachedFetch(
+  ["neighborhoods", "detail"],
+  (id: string) => getNeighborhood(id),
+  {
+    revalidate: cacheTtl.neighborhoods,
+    tags: (id) => [
+      cacheTags.neighborhoods.all,
+      cacheTags.neighborhoods.detail(id),
+    ],
   },
 );

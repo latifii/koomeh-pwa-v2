@@ -5,7 +5,10 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, CalendarDays, ChevronLeft, Eye, Newspaper, Tag } from "lucide-react";
 
 import blogFallback from "@/assets/images/default/blog-default.webp";
-import { getBlogPost, getBlogPosts } from "@/app/articles/_api/blog.service";
+import {
+  getCachedBlogPost,
+  getCachedBlogPosts,
+} from "@/app/articles/_cache/blog.cache";
 import {
   mapBlogPostCard,
   mapBlogPostDetail,
@@ -29,13 +32,16 @@ export function generateStaticParams() {
   return [];
 }
 
-const getCachedBlogPost = cache((id: string) => getBlogPost(id));
+// Two layers, and both earn their place: `cache` de-duplicates the call between
+// `generateMetadata` and the page within one render, while the tagged data
+// cache underneath survives across requests and can be purged per article.
+const dedupedBlogPost = cache((id: string) => getCachedBlogPost(id));
 
 async function resolveBlogPost(id: string) {
   if (!/^\d+$/.test(id)) notFound();
 
   try {
-    return await getCachedBlogPost(id);
+    return await dedupedBlogPost(id);
   } catch (error) {
     if (error instanceof ApiError && error.code === "NOT_FOUND") notFound();
     throw error;
@@ -67,7 +73,7 @@ export default async function BlogPostPage({ params }: {
   const { id } = await params;
   const [{ result: post }, recentResponse] = await Promise.all([
     resolveBlogPost(id),
-    getBlogPosts({ page: 1, per_page: 5, sort: 1 }),
+    getCachedBlogPosts(1, 5),
   ]);
   const article = mapBlogPostDetail({ status: "success", result: post });
 

@@ -17,11 +17,11 @@ import {
 
 import businessImage from "@/assets/images/card/business.webp";
 import {
-  getBranchAgents,
-  getBranchEstates,
-  getBranches,
-  getBranchProfile,
-} from "@/app/branches/_api/branch.service";
+  getCachedBranchAgents,
+  getCachedBranchEstates,
+  getCachedBranchProfile,
+  getCachedBranches,
+} from "@/app/branches/_cache/branches.cache";
 import {
   mapBranchesPage,
   mapBranchProfile,
@@ -55,7 +55,9 @@ export function generateStaticParams() {
   return [];
 }
 
-const getCachedBranches = cache(() => getBranches({ page: 1, per_page: 60 }));
+// `cache` de-duplicates within one render; the tagged data cache underneath
+// survives across requests and can be purged per branch.
+const dedupedBranches = cache(() => getCachedBranches(1, 60));
 
 async function optional<T>(promise: Promise<T>): Promise<T | undefined> {
   try {
@@ -69,7 +71,7 @@ async function optional<T>(promise: Promise<T>): Promise<T | undefined> {
 async function getBranchContext(id: string) {
   if (!/^\d+$/.test(id)) notFound();
 
-  const branchesResponse = await getCachedBranches();
+  const branchesResponse = await dedupedBranches();
   const branchDto = branchesResponse.result.items.find(
     (branch) => branch.id === Number(id),
   );
@@ -77,13 +79,9 @@ async function getBranchContext(id: string) {
   if (!branchDto) notFound();
 
   const [profile, agents, estates] = await Promise.all([
-    optional<BranchProfileResponse>(getBranchProfile(id)),
-    optional<BranchAgentsResponse>(
-      getBranchAgents(id, { has_photo: true, page: 1, per_page: 12 }),
-    ),
-    optional<BranchEstatesResponse>(
-      getBranchEstates(id, { page: 1, per_page: 4 }),
-    ),
+    optional<BranchProfileResponse>(getCachedBranchProfile(id)),
+    optional<BranchAgentsResponse>(getCachedBranchAgents(id, 12, true)),
+    optional<BranchEstatesResponse>(getCachedBranchEstates(id, 4)),
   ]);
 
   const branch = mapBranchProfile(profile ?? branchDto, agents, estates);

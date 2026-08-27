@@ -1,15 +1,14 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, MapPinned } from "lucide-react";
 
-import { getCachedNeighborhoods } from "@/app/neighborhoods/_cache/neighborhoods.cache";
-import { mapNeighborhoodList } from "@/app/neighborhoods/_mappers/neighborhoods.mapper";
 import { Container } from "@/components/layout/container";
-import { EmptyState } from "@/components/shared/empty-state";
+import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Typography } from "@/components/ui/typography";
 import { routes } from "@/lib/routes";
 
-import { AreaList } from "./_components/area-list";
+import { AreaListServer } from "./_components/area-list-server";
 
 export const revalidate = 3600;
 
@@ -19,11 +18,7 @@ export const metadata: Metadata = {
     "راهنمای محله‌های قم؛ میانگین قیمت، تعداد فایل فعال و ویژگی‌های هر محله برای انتخاب بهتر برای زندگی و سرمایه‌گذاری.",
 };
 
-export default async function AreasPage() {
-  const initialPage = await getCachedNeighborhoods(21)
-    .then(mapNeighborhoodList)
-    .catch(() => undefined);
-
+export default function AreasPage() {
   return (
     <div className="pb-16">
       <Container className="py-3">
@@ -64,15 +59,10 @@ export default async function AreasPage() {
           </Typography>
         </header>
 
-        {initialPage ? (
-          <AreaList initialPage={initialPage} />
-        ) : (
-          <EmptyState
-            icon={MapPinned}
-            title="راهنمای محله‌ها در دسترس نیست"
-            description="سرویس محله‌ها موقتاً پاسخ نمی‌دهد. کمی بعد دوباره تلاش کنید."
-          />
-        )}
+        {/* Streamed: the heading above is sent before the API answers. */}
+        <Suspense fallback={<ListSkeleton count={9} withFilters={false} />}>
+          <AreaListServer />
+        </Suspense>
       </Container>
     </div>
   );

@@ -31,12 +31,24 @@ export const getCachedAgentFilters = cachedFetch(
 export const getCachedAgentProfile = cachedFetch(
   ["agents", "profile"],
   (id: string) => getAgentProfile(id),
-  // The per-agent tag is added by the caller, which knows the id.
-  { revalidate: cacheTtl.agents, tags: [cacheTags.agents.all] },
+  {
+    revalidate: cacheTtl.agents,
+    // Per-agent tag, so editing one profile purges only that page.
+    tags: (id) => [cacheTags.agents.all, cacheTags.agents.detail(id)],
+  },
 );
 
 export const getCachedAgentEstates = cachedFetch(
   ["agents", "estates"],
-  (id: string, perPage: number) => getAgentEstates(id, { page: 1, per_page: perPage }),
-  { revalidate: cacheTtl.latestEstates, tags: [cacheTags.agents.all] },
+  (id: string, perPage: number) =>
+    getAgentEstates(id, { page: 1, per_page: perPage }),
+  {
+    revalidate: cacheTtl.latestEstates,
+    // Also carries the estates tag: a listing changing hands changes this list.
+    tags: (id) => [
+      cacheTags.agents.all,
+      cacheTags.agents.detail(id),
+      cacheTags.estates.all,
+    ],
+  },
 );

@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { getAgentEstates, getAgentProfile, getAgents } from "@/app/agents/_api/agents.service";
+import {
+  getCachedAgentEstates,
+  getCachedAgentProfile,
+  getCachedAgents,
+} from "@/app/agents/_cache/agents.cache";
 import { mapSearchEstate } from "@/app/properties/_mappers/estate-search.mapper";
 import { ApiError, normalizeApiError } from "@/lib/api/api-error";
 
@@ -21,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params;
 
   try {
-    const { result } = await getAgentProfile(id);
+    const { result } = await getCachedAgentProfile(id);
     const description = result.agent.bio || result.agent.title || result.agent.activity_label;
     return {
       title: `${result.agent.name} | کارشناسان کومه`,
@@ -40,9 +45,9 @@ export default async function AgentProfilePage({ params }: PageProps) {
 
   try {
     [profileData, estatesData, agentsData] = await Promise.all([
-      getAgentProfile(id),
-      getAgentEstates(id, { page: 1, per_page: 6 }),
-      getAgents({ city_id: 1, per_page: 4 }),
+      getCachedAgentProfile(id),
+      getCachedAgentEstates(id, 6),
+      getCachedAgents(1, 1, 4),
     ]);
   } catch (error) {
     const apiError = normalizeApiError(error);

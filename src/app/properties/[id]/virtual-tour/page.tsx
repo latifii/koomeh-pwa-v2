@@ -2,7 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { getEstateVirtualTour } from "@/app/properties/_api/estate-detail.service";
+import { getCachedEstateVirtualTour } from "@/app/properties/_cache/estate-detail.cache";
 import { mapEstateVirtualTour } from "@/app/properties/_mappers/estate-detail.mapper";
 
 import { TourExperience } from "./_components/tour-experience";
@@ -20,7 +20,7 @@ const getTour = cache(async (id: string) => {
   if (!/^\d+$/.test(id)) notFound();
 
   try {
-    return mapEstateVirtualTour(await getEstateVirtualTour(id));
+    return mapEstateVirtualTour(await getCachedEstateVirtualTour(id));
   } catch {
     notFound();
   }

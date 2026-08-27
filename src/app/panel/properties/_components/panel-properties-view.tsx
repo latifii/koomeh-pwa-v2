@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { Building2, LoaderCircle, RotateCcw, Search } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Building2, LoaderCircle, Map, Rows3, RotateCcw, Search } from "lucide-react";
 
 import {
   actionCopy,
@@ -10,6 +11,7 @@ import {
 } from "@/app/panel/properties/_hooks/use-estate-status";
 import {
   panelEstateFiltersQueryOptions,
+  panelEstateMapQueryOptions,
   panelEstatesInfiniteQueryOptions,
 } from "@/app/panel/properties/_queries/panel-estates.query";
 import {
@@ -48,6 +50,14 @@ const ANY = "__any__";
  * role — the API answers with `scope.own_only` so the page can say whose files
  * these are without asking a second time.
  */
+const PanelEstatesMap = dynamic(
+  () => import("./panel-estates-map").then((mod) => mod.PanelEstatesMap),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[32rem] rounded-2xl" />,
+  },
+);
+
 export function PanelPropertiesView() {
   const [filters, setFilters] = useState<PanelEstateFilters>(
     defaultPanelEstateFilters,
@@ -84,7 +94,9 @@ export function PanelPropertiesView() {
     };
   }, [debouncedQuery, filters]);
 
+  const [view, setView] = useState<"list" | "map">("list");
   const list = useInfiniteQuery(panelEstatesInfiniteQueryOptions(params));
+  const mapQuery = useQuery(panelEstateMapQueryOptions(params, view === "map"));
   const status = useEstateStatus();
 
   const rows = list.data?.pages.flatMap((page) => page.items) ?? [];
@@ -158,10 +170,47 @@ export function PanelPropertiesView() {
               پاک کردن فیلترها
             </Button>
           )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setView(view === "list" ? "map" : "list")}
+          >
+            {view === "list" ? (
+              <Map data-icon="inline-start" />
+            ) : (
+              <Rows3 data-icon="inline-start" />
+            )}
+            {view === "list" ? "نمایش روی نقشه" : "نمایش فهرستی"}
+          </Button>
         </div>
       </div>
 
-      {list.isError ? (
+      {view === "map" ? (
+        <div className="space-y-2">
+          {mapQuery.isError && (
+            <EmptyState
+              icon={Map}
+              title="نقشه بارگذاری نشد"
+              description={getApiErrorMessage(mapQuery.error)}
+            />
+          )}
+
+          {mapQuery.isPending && <Skeleton className="h-[32rem] rounded-2xl" />}
+
+          {mapQuery.isSuccess && (
+            <>
+              <PanelEstatesMap markers={mapQuery.data.items} />
+              {/* The two counts differ on purpose: the API drops any listing
+                  without coordinates, and saying so beats letting the numbers
+                  quietly disagree. */}
+              <Typography variant="small" className="text-muted-foreground">
+                {`${mapQuery.data.items.length.toLocaleString("fa-IR")} از ${total.toLocaleString("fa-IR")} آگهی مختصات دارند.`}
+              </Typography>
+            </>
+          )}
+        </div>
+      ) : list.isError ? (
         <EmptyState
           icon={RotateCcw}
           title="فهرست آگهی‌ها بارگذاری نشد"
