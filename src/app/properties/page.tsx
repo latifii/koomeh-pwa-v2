@@ -6,7 +6,7 @@ import {
   defaultFilters,
 } from "@/data/search";
 
-import { SearchView } from "./_components/search-view";
+import { SearchViewServer } from "./_components/search-view-server";
 
 /** Slug → display name. Extend as more cities go live. */
 const citySlugs: Record<string, string> = {
@@ -105,9 +105,6 @@ export default async function SearchPage({
   return (
     // No wrapper here: the map fills the viewport edge to edge and, on phones,
     // top to bottom — so SearchView owns its own width and padding per mode.
-    <SearchView
-      cityName={cityName}
-      initialFilters={filters}
-    />
+    <SearchViewServer cityName={cityName} filters={filters} />
   );
 }

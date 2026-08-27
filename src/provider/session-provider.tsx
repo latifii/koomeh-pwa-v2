@@ -22,6 +22,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const refreshSession = useSessionStore((state) => state.refreshSession);
 
   useEffect(() => {
+    // The panel layout seeds the store from the cookie during its own render,
+    // so on those routes the answer is already here and asking again is a
+    // wasted round trip.
+    if (useSessionStore.getState().status !== "loading") return;
     void refreshSession();
   }, [refreshSession]);
 
