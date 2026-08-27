@@ -10,6 +10,7 @@ import {
   getSession,
   setSessionCookie,
 } from "@/lib/auth/session-cookie";
+import { forgetRefresh } from "@/lib/auth/refresh-guard";
 import { AuthConfigError } from "@/lib/auth/session";
 import { toClientSession, type ClientSession } from "@/lib/auth/session.types";
 
@@ -98,6 +99,7 @@ export async function signOutAction(
     }
   }
 
+  if (session) forgetRefresh(session.user.id);
   await clearSessionCookie();
   return { ok: true };
 }

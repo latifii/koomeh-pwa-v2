@@ -11,9 +11,10 @@ import { apiConfig } from "@/lib/api/config";
 
 /**
  * Auth calls use `fetch` rather than the shared axios client for two reasons:
- * the middleware runs on the Edge runtime where axios is unreliable, and these
- * requests must never pick up the axios `Authorization` interceptor — the token
- * they carry is decided per call.
+ * the proxy imports them and stays runtime-agnostic that way, and these requests
+ * must never pick up the axios `Authorization` interceptor — the token they
+ * carry is decided per call, and refresh in particular must go out with the
+ * right one or it spends the wrong token.
  */
 
 const endpoints = {

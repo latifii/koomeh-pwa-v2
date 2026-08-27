@@ -5,7 +5,8 @@ import { userSessionSchema, type UserSession } from "./session.types";
 /**
  * The session cookie is a JWT signed with a server-only secret, so nothing but
  * this app can mint or read one. `jose` is used rather than `node:crypto`
- * because the middleware runs on the Edge runtime.
+ * because it works in every runtime — proxy runs on Node today, but nothing
+ * here has to change if that is ever switched to Edge.
  */
 
 export const SESSION_COOKIE = "koomeh-session";

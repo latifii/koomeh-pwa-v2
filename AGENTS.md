@@ -79,12 +79,12 @@ renew      navigation → src/proxy.ts refreshes before the page renders
 
 | file | role |
 | --- | --- |
-| `src/lib/auth/session.ts` | `jose` sign/verify + cookie flags. Edge-safe: no `next/headers`, no axios |
+| `src/lib/auth/session.ts` | `jose` sign/verify + cookie flags. Runtime-agnostic: no `next/headers`, no axios |
 | `src/lib/auth/session-cookie.ts` | `getSession` / `setSessionCookie` / `clearSessionCookie` — server only |
 | `src/lib/auth/routes.ts` | which paths are protected, and the open-redirect guard on `callbackUrl` |
 | `src/proxy.ts` | route guard + pre-render token renewal (Next 16 renamed this from `middleware.ts`) |
 | `src/app/auth/_actions/auth-actions.ts` | `signInAction` / `signOutAction` — credentials never leave the server |
-| `src/app/auth/_api/auth.service.ts` | the four endpoints, over `fetch` so the Edge proxy can use them too |
+| `src/app/auth/_api/auth.service.ts` | the four endpoints, over `fetch` so the proxy can use them too |
 | `src/app/auth/_stores/auth.store.ts` | the browser's mirror of the cookie |
 | `src/lib/api/access-token.ts` | the token the axios interceptor attaches |
 
@@ -109,6 +109,45 @@ renew      navigation → src/proxy.ts refreshes before the page renders
 - **Adding a protected route?** Add its prefix to `PROTECTED_PREFIXES` in
   `src/lib/auth/routes.ts` and to the `matcher` in `src/proxy.ts`. The proxy only
   runs on paths its matcher lists.
+- **`proxy.ts` runs on the Node runtime, not Edge.** Next 16 defaults it to
+  Node and `.next/server/functions-config-manifest.json` confirms it. The code
+  still avoids axios and `next/headers` so the file stays portable, but do not
+  plan around Edge constraints that do not apply.
+- **Roles in the session cookie are a snapshot.** They are re-read from the API
+  on every token rotation, so a revoked role can linger for up to one
+  access-token lifetime — two hours on this API. Use them to decide what the UI
+  offers, never as authorization: the API answers 403 on its own.
+
+## Tests
+
+`npm test` runs Vitest over `tests/`. The suite is deliberately small and
+covers only what fails silently: the session/refresh rules
+(`tests/auth-session.test.ts`) and the purge tag guest list
+(`tests/cache-policy.test.ts`). A spent refresh token signs someone out for no
+reason; a rejected purge tag means content that never updates. Neither shows up
+as an error anywhere.
+
+Anything with a network edge is checked against the live API instead — mocking
+`koomeh.ir` would only test the mock, and the API is the source of truth
+(see above). When adding a pure decision that has to hold, put it here.
+
+## Security headers
+
+`next.config.ts` sets CSP, `X-Content-Type-Options`, `X-Frame-Options`,
+`Referrer-Policy` and `Permissions-Policy` on every route.
+
+The CSP has **no `script-src` and no `default-src`**, on purpose. Next injects
+inline bootstrap scripts, so a strict `script-src` needs a per-request nonce
+from the proxy — and the proxy only matches `/panel` and `/auth`. Widening that
+matcher to every route is what made all 51 routes dynamic once already. A
+`script-src` with `'unsafe-inline'` would pass an audit while stopping nothing,
+so the gap is left honest rather than papered over. `default-src` is absent for
+a plainer reason: it would cover `connect-src` and `img-src` too and break
+calls to koomeh.ir and the OpenStreetMap tiles.
+
+Until a nonce exists, the access token in JS memory is exposed to any XSS on
+this origin. That is the open risk; the directives that are set close
+clickjacking, base-tag injection and form-post exfiltration independently.
 
 ## Not built yet
 

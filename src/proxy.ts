@@ -26,8 +26,11 @@ import { routes } from "@/lib/routes";
  * Guards `/panel`, keeps signed-in visitors off the auth pages, and renews an
  * expired access token before the page it protects ever renders.
  *
- * Runs on the Edge runtime, so everything it touches is `fetch`- and
- * `jose`-based; `next/headers` and axios are deliberately absent.
+ * Runs in the Node runtime — Next 16 defaults `proxy` to Node, and the build
+ * manifest confirms it. Everything it touches is still `fetch`- and
+ * `jose`-based rather than axios, so the file stays portable if that default
+ * ever changes; `next/headers` is absent because proxy reads cookies off the
+ * request, not from the request store.
  */
 
 function redirect(request: NextRequest, pathname: string, callbackUrl?: string) {
