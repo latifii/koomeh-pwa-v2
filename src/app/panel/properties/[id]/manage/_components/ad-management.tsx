@@ -1,14 +1,198 @@
 "use client";
-import { useState } from "react";
+
+import { useQuery } from "@tanstack/react-query";
+import { ExternalLink, Eye, ShieldAlert, UserRound, Users } from "lucide-react";
 import Link from "next/link";
-import { BarChart3, CheckCircle2, Eye, ExternalLink, MessageSquare, Rocket, Save, TrendingUp } from "lucide-react";
-import type { PanelProperty } from "@/app/panel/_data/panel";
+
+import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import { estateManagementQueryOptions } from "@/app/properties/_queries/estate-staff.query";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card,CardContent,CardHeader,CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
-const plans=[{title:"نردبان",description:"نمایش فایل در ابتدای نتایج برای ۲۴ ساعت",price:"۹۹ هزار تومان",icon:TrendingUp},{title:"فوری",description:"افزودن نشان فوری و برجسته‌سازی برای ۷ روز",price:"۱۴۹ هزار تومان",icon:Rocket}];
-export function AdManagement({item}:{item:PanelProperty}){const [visible,setVisible]=useState(item.status!=="draft");const [saved,setSaved]=useState(false);return <div className="grid gap-4 lg:grid-cols-[1fr_300px]"><div className="grid gap-4"><Card><CardHeader className="flex-row items-center justify-between"><div><CardTitle>{item.listing.title}</CardTitle><Typography variant="small" className="mt-1">کد آگهی {item.listing.code}</Typography></div><Badge>{item.status==="published"?"منتشرشده":"در حال مدیریت"}</Badge></CardHeader><CardContent className="grid gap-3 sm:grid-cols-3">{[{icon:Eye,value:item.views,label:"بازدید"},{icon:MessageSquare,value:item.inquiries,label:"درخواست تماس"},{icon:BarChart3,value:Math.round(item.views*.34),label:"نمایش در جست‌وجو"}].map((stat)=><div key={stat.label} className="rounded-xl bg-muted p-4 text-center"><stat.icon className="mx-auto mb-2 size-5 text-brand" /><Typography as="p" variant="h3">{stat.value.toLocaleString("fa-IR")}</Typography><Typography variant="small">{stat.label}</Typography></div>)}</CardContent></Card><Card><CardHeader><CardTitle>تنظیمات نمایش</CardTitle></CardHeader><CardContent className="space-y-4"><label className="flex items-center justify-between rounded-lg border p-4"><div><Typography variant="body" className="font-medium">نمایش عمومی آگهی</Typography><Typography variant="small" className="mt-1">فایل در نتایج جست‌وجوی کاربران نمایش داده شود.</Typography></div><Switch checked={visible} onCheckedChange={setVisible} /></label><div className="flex items-center gap-3"><Button onClick={()=>setSaved(true)}><Save />ذخیره تنظیمات</Button>{saved&&<Typography variant="small" className="flex items-center gap-1 text-emerald-600"><CheckCircle2 className="size-4" />تنظیمات ذخیره شد.</Typography>}</div></CardContent></Card><Card><CardHeader><CardTitle>ارتقای آگهی</CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-2">{plans.map((plan)=><div key={plan.title} className="rounded-xl border p-4"><plan.icon className="mb-3 size-6 text-brand" /><Typography variant="h4">{plan.title}</Typography><Typography variant="small" className="mt-1 min-h-10 leading-5">{plan.description}</Typography><div className="mt-4 flex items-center justify-between"><Typography variant="body" className="font-semibold text-brand">{plan.price}</Typography><Button size="sm" variant="outline">انتخاب</Button></div></div>)}</CardContent></Card></div><aside className="grid h-fit gap-3 lg:sticky lg:top-24"><Button nativeButton={false} render={<Link href={routes.panel.propertyPreview(item.listing.id)} />}><Eye />پیش‌نمایش آگهی</Button><Button variant="outline" nativeButton={false} render={<Link href={routes.property(item.listing.id)} />}><ExternalLink />صفحه عمومی ملک</Button><Card><CardContent className="p-4"><Typography variant="h4">نکته</Typography><Typography variant="small" className="mt-2 leading-6">تا پیش از اتصال درگاه پرداخت، گزینه‌های ارتقا نمایشی هستند و تراکنشی انجام نمی‌شود.</Typography></CardContent></Card></aside></div>}
 
+/**
+ * The management view for one listing, on real data.
+ *
+ * It reads `/estates/{id}/management`, which is the same call the estate page's
+ * staff panel makes — so the two never disagree. The status actions
+ * (archive, publish, ladder…) deliberately live on the list at
+ * `/panel/properties`, where the API hands back a `permissions` object per row
+ * saying which are allowed; that flag is not on this endpoint, and guessing it
+ * here would mean offering buttons the API will refuse.
+ */
+export function AdManagement({ estateId }: { estateId: number }) {
+  const user = useSessionStore((state) => state.session?.user);
+  const isStaff = Boolean(user?.isExpert || user?.isAdmin);
+
+  const management = useQuery(estateManagementQueryOptions(estateId, isStaff));
+
+  if (!isStaff) {
+    return (
+      <EmptyState
+        icon={ShieldAlert}
+        title="این بخش برای کارشناسان است"
+        description="مدیریت آگهی به دسترسی کارشناس یا مدیر نیاز دارد."
+      />
+    );
+  }
+
+  if (management.isPending) {
+    return <Skeleton className="h-72 rounded-2xl" />;
+  }
+
+  if (management.isError) {
+    return (
+      <EmptyState
+        icon={ShieldAlert}
+        title="اطلاعات مدیریتی بارگذاری نشد"
+        description={getApiErrorMessage(management.error)}
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => management.refetch()}
+          >
+            تلاش دوباره
+          </Button>
+        }
+      />
+    );
+  }
+
+  const data = management.data;
+
+  const stats = [
+    { icon: Eye, value: data.stats?.visit_count ?? 0, label: "بازدید کاربران" },
+    {
+      icon: Users,
+      value: data.stats?.agent_visit_count ?? 0,
+      label: "بازدید کارشناسان",
+    },
+  ];
+
+  const rows: [string, string | null | undefined][] = [
+    ["ثبت", data.dates?.created_at],
+    ["آخرین بروزرسانی", data.dates?.updated_at],
+    ["آخرین نمایش", data.dates?.show_date],
+    [
+      "آخرین ویرایشگر",
+      data.last_editor?.name
+        ? `${data.last_editor.name}${data.last_editor.date ? ` · ${data.last_editor.date}` : ""}`
+        : null,
+    ],
+    [
+      "سهم کارشناس",
+      data.percent_expert === null || data.percent_expert === undefined
+        ? null
+        : `${data.percent_expert}٪`,
+    ],
+  ];
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+      <div className="grid gap-4">
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>{`فایل ${data.estate_id.toLocaleString("fa-IR")}`}</CardTitle>
+            {data.confirmation_label && (
+              <Badge>{data.confirmation_label}</Badge>
+            )}
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            {stats.map((stat) => (
+              <div key={stat.label} className="rounded-xl bg-muted p-4 text-center">
+                <stat.icon className="mx-auto mb-2 size-5 text-brand" />
+                <Typography as="p" variant="h3">
+                  {stat.value.toLocaleString("fa-IR")}
+                </Typography>
+                <Typography variant="small">{stat.label}</Typography>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>وضعیت پرونده</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rows.map(([label, value]) =>
+              value ? (
+                <div
+                  key={label}
+                  className="flex items-center justify-between gap-3 border-b py-2 last:border-b-0"
+                >
+                  <Typography as="span" variant="small" className="text-muted-foreground">
+                    {label}
+                  </Typography>
+                  <Typography as="span" variant="small" className="font-medium">
+                    {value}
+                  </Typography>
+                </div>
+              ) : null,
+            )}
+          </CardContent>
+        </Card>
+
+        {data.owner && (
+          <Card>
+            <CardHeader>
+              <CardTitle>مالک</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-3">
+              <UserRound className="size-5 text-brand" />
+              <Typography as="span" variant="body" className="font-medium">
+                {data.owner.name}
+              </Typography>
+              {data.owner.username && (
+                <Typography as="span" variant="small" className="text-muted-foreground">
+                  {data.owner.username}
+                </Typography>
+              )}
+              {data.owner.is_bongah && <Badge variant="secondary">بنگاه</Badge>}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <aside className="grid h-fit gap-3 lg:sticky lg:top-24">
+        <Button
+          nativeButton={false}
+          render={<Link href={routes.panel.propertyPreview(data.estate_id)} />}
+        >
+          <Eye />
+          پیش‌نمایش آگهی
+        </Button>
+        <Button
+          variant="outline"
+          nativeButton={false}
+          render={<Link href={routes.property(data.estate_id)} />}
+        >
+          <ExternalLink />
+          صفحه عمومی ملک
+        </Button>
+        <Button
+          variant="outline"
+          nativeButton={false}
+          render={<Link href={routes.panel.properties} />}
+        >
+          تغییر وضعیت در فهرست آگهی‌ها
+        </Button>
+        <Card>
+          <CardContent className="p-4">
+            <Typography variant="h4">آرشیو، نردبان و تأیید نمایش</Typography>
+            <Typography variant="small" className="mt-2 leading-6">
+              این عملیات در فهرست آگهی‌ها انجام می‌شوند، چون سرویس آنجا برای هر
+              ردیف می‌گوید کدام‌یک برای شما مجاز است.
+            </Typography>
+          </CardContent>
+        </Card>
+      </aside>
+    </div>
+  );
+}
