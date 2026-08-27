@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { Suspense, cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -50,6 +50,7 @@ import { EstateMapPanel } from "../_components/estate-map-panel";
 import { EstateMobileBar } from "../_components/estate-mobile-bar";
 import { EstatePriceCard } from "../_components/estate-price-card";
 import { EstateTourCard } from "../_components/estate-tour-card";
+import { EstateViewTracker } from "../_components/estate-view-tracker";
 import { SimilarEstates } from "../_components/similar-estates";
 
 export const revalidate = 300;
@@ -244,7 +245,11 @@ export default async function EstatePage({
             </div>
           </div>
 
-          <EstateActions title={detail.title} className="shrink-0" />
+          <EstateActions
+            estateId={detail.id}
+            title={detail.title}
+            className="shrink-0"
+          />
         </header>
 
         <div className="mt-4">
@@ -375,6 +380,11 @@ export default async function EstatePage({
       </Container>
 
       <EstateMobileBar detail={detail} />
+
+      {/* Records the visit; reads `?he=` from the URL, so it needs Suspense. */}
+      <Suspense fallback={null}>
+        <EstateViewTracker estateId={detail.id} />
+      </Suspense>
     </div>
   );
 }

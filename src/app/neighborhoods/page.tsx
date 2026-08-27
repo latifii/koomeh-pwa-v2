@@ -2,10 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, MapPinned } from "lucide-react";
 
+import { getNeighborhoods } from "@/app/neighborhoods/_api/neighborhoods.service";
+import { mapNeighborhoodList } from "@/app/neighborhoods/_mappers/neighborhoods.mapper";
 import { Container } from "@/components/layout/container";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Typography } from "@/components/ui/typography";
-import { AreaCard } from "./_components/area-card";
-import { getAreaSummaries } from "@/data/area-detail";
+import { routes } from "@/lib/routes";
+
+import { AreaList } from "./_components/area-list";
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "محلات قم | راهنمای خرید و اجاره ملک در هر محله",
@@ -13,8 +19,10 @@ export const metadata: Metadata = {
     "راهنمای محله‌های قم؛ میانگین قیمت، تعداد فایل فعال و ویژگی‌های هر محله برای انتخاب بهتر برای زندگی و سرمایه‌گذاری.",
 };
 
-export default function AreasPage() {
-  const areas = getAreaSummaries();
+export default async function AreasPage() {
+  const initialPage = await getNeighborhoods({ per_page: 21 })
+    .then(mapNeighborhoodList)
+    .catch(() => undefined);
 
   return (
     <div className="pb-16">
@@ -23,7 +31,7 @@ export default function AreasPage() {
           aria-label="مسیر صفحه"
           className="flex items-center gap-1 text-xs text-muted-foreground"
         >
-          <Link href="/" className="shrink-0 hover:text-brand">
+          <Link href={routes.home} className="shrink-0 hover:text-brand">
             خانه
           </Link>
           <ChevronLeft className="size-3.5 shrink-0" />
@@ -51,16 +59,20 @@ export default function AreasPage() {
             محلات قم
           </Typography>
           <Typography variant="lead" className="max-w-2xl">
-            پیش از انتخاب محله برای زندگی یا سرمایه‌گذاری، میانگین قیمت، تعداد فایل
-            فعال و ویژگی‌های هر محله را مرور کنید.
+            پیش از انتخاب محله برای زندگی یا سرمایه‌گذاری، میانگین قیمت، تعداد
+            فایل فعال و ویژگی‌های هر محله را مرور کنید.
           </Typography>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {areas.map((area) => (
-            <AreaCard key={area.id} area={area} />
-          ))}
-        </div>
+        {initialPage ? (
+          <AreaList initialPage={initialPage} />
+        ) : (
+          <EmptyState
+            icon={MapPinned}
+            title="راهنمای محله‌ها در دسترس نیست"
+            description="سرویس محله‌ها موقتاً پاسخ نمی‌دهد. کمی بعد دوباره تلاش کنید."
+          />
+        )}
       </Container>
     </div>
   );

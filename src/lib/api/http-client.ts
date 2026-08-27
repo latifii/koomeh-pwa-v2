@@ -98,3 +98,30 @@ export async function getValidated<T>(
     throw normalizeApiError(error);
   }
 }
+
+export async function postValidated<T>(
+  url: string,
+  schema: ZodType<T>,
+  body?: unknown,
+  config?: AxiosRequestConfig,
+): Promise<T> {
+  try {
+    const response = await httpClient.post<unknown>(url, body, config);
+    return schema.parse(response.data);
+  } catch (error) {
+    throw normalizeApiError(error);
+  }
+}
+
+export async function deleteValidated<T>(
+  url: string,
+  schema: ZodType<T>,
+  config?: AxiosRequestConfig,
+): Promise<T> {
+  try {
+    const response = await httpClient.delete<unknown>(url, config);
+    return schema.parse(response.data);
+  } catch (error) {
+    throw normalizeApiError(error);
+  }
+}

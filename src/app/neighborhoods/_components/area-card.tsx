@@ -1,78 +1,102 @@
 import Link from "next/link";
 import { ArrowLeft, Home, MapPinned, TrendingUp } from "lucide-react";
 
+import type { NeighborhoodCard } from "@/app/neighborhoods/_types/neighborhoods.types";
+import cityImage from "@/assets/images/city/qom.webp";
+import { ApiImage } from "@/components/shared/api-image";
 import { Typography } from "@/components/ui/typography";
-import { routes } from "@/lib/routes";
-import { type AreaDetail, formatToman } from "@/data/area-detail";
+import { formatToman } from "@/data/search";
 import { cn } from "@/lib/utils";
 
 /**
- * Neighborhood card for the list grid: a gradient cover with the name, a short
- * tagline, and the two figures a house-hunter scans for — active files and the
- * typical apartment price per metre.
+ * Neighborhood card for the list grid: the guide's own cover, its name, and the
+ * two figures a house-hunter scans for — active files and the typical price per
+ * metre. Guides with no linked place show the name alone rather than zeros.
  */
 export function AreaCard({
   area,
   className,
 }: {
-  area: AreaDetail;
+  area: NeighborhoodCard;
   className?: string;
 }) {
-  const perMeter = area.stats.avgApartmentPerMeter || area.stats.avgLandPerMeter;
+  const perMeter = area.avgApartment ?? area.avgLand;
+  const hasFigures = area.estateCount !== undefined || perMeter !== undefined;
 
   return (
     <Link
-      href={routes.neighborhood(area.id)}
+      href={area.href}
       className={cn(
         "group flex flex-col overflow-hidden rounded-2xl border bg-card transition-colors hover:border-brand/30",
-        className
+        className,
       )}
     >
-      <div className="relative flex h-28 items-center justify-center overflow-hidden bg-linear-to-br from-primary/90 via-primary to-primary-deep">
-        <div
+      <div className="relative h-28 overflow-hidden bg-linear-to-br from-primary/90 via-primary to-primary-deep">
+        {area.image ? (
+          <ApiImage
+            src={area.image}
+            fallbackSrc={cityImage}
+            alt={area.title}
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover opacity-70 transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <MapPinned
+              className="size-9 text-white/80 transition-transform duration-300 group-hover:scale-110"
+              strokeWidth={1.5}
+            />
+          </span>
+        )}
+        <span
           aria-hidden
-          className="pointer-events-none absolute -end-6 -top-8 size-28 rounded-full bg-white/10 blur-2xl"
-        />
-        <MapPinned
-          className="relative size-9 text-white/80 transition-transform duration-300 group-hover:scale-110"
-          strokeWidth={1.5}
+          className="pointer-events-none absolute inset-0 bg-linear-to-t from-primary-deep/80 to-transparent"
         />
         <Typography
           as="span"
           variant="small"
           light
-          className="absolute bottom-2.5 inset-s-3 text-[11px] text-white/75"
+          className="absolute bottom-2.5 inset-s-3 text-[11px] text-white/80"
         >
-          راهنمای محله
+          {area.area ? `راهنمای ${area.area.kindLabel}` : "راهنمای محله"}
         </Typography>
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <div className="flex items-center justify-between gap-2">
-          <Typography variant="h4" as="h3" className="sm:text-sm">
-            {area.name}
+        <div className="flex items-start justify-between gap-2">
+          <Typography variant="h4" as="h3" className="line-clamp-2 sm:text-sm">
+            {area.title}
           </Typography>
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-brand transition-colors group-hover:bg-brand group-hover:text-white">
             <ArrowLeft className="size-3.5" />
           </span>
         </div>
 
-        <Typography variant="small" className="line-clamp-1">
-          {area.tagline}
-        </Typography>
+        {area.summary && (
+          <Typography variant="small" className="line-clamp-2">
+            {area.summary}
+          </Typography>
+        )}
 
-        <div className="mt-auto grid grid-cols-2 gap-2 border-t pt-2.5">
-          <Stat
-            icon={Home}
-            label="فایل فعال"
-            value={area.stats.listingCount.toLocaleString("fa-IR")}
-          />
-          <Stat
-            icon={TrendingUp}
-            label="متری از"
-            value={perMeter ? `${formatToman(perMeter)}` : "—"}
-          />
-        </div>
+        {hasFigures && (
+          <div className="mt-auto grid grid-cols-2 gap-2 border-t pt-2.5">
+            <Stat
+              icon={Home}
+              label="فایل فعال"
+              value={
+                area.estateCount !== undefined
+                  ? area.estateCount.toLocaleString("fa-IR")
+                  : "—"
+              }
+            />
+            <Stat
+              icon={TrendingUp}
+              label="متری از"
+              value={perMeter ? formatToman(perMeter) : "—"}
+            />
+          </div>
+        )}
       </div>
     </Link>
   );

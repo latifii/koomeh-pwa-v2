@@ -1,40 +1,45 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Building2,
-  Calculator,
   ChevronLeft,
-  Home,
   Handshake,
+  Home,
   MapPin,
   MapPinned,
   Navigation,
   Search,
-  Sparkles,
   TrendingUp,
 } from "lucide-react";
 
-import { PropertyCard } from "@/components/features/property/property-card";
+import { getNeighborhood } from "@/app/neighborhoods/_api/neighborhoods.service";
+import { mapNeighborhoodDetail } from "@/app/neighborhoods/_mappers/neighborhoods.mapper";
 import { Container } from "@/components/layout/container";
+import { RichText } from "@/components/shared/rich-text";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import {
-  formatToman,
-  getAllAreaIds,
-  getAreaDetail,
-  getAreaListings,
-  getOtherAreas,
-} from "@/data/area-detail";
-import { propertyTypeLabels } from "@/data/home";
+import { formatToman } from "@/data/search";
+import { ApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 
+import { AreaEstates } from "./_components/area-estates";
 import { AreaMapPanel } from "./_components/area-map-panel";
 import { AreaPriceCard } from "./_components/area-price-card";
 
-export function generateStaticParams() {
-  return getAllAreaIds().map((id) => ({ id }));
-}
+export const revalidate = 3600;
+
+const getArea = cache(async (id: string) => {
+  if (!/^\d+$/.test(id)) notFound();
+
+  try {
+    return mapNeighborhoodDetail(await getNeighborhood(id));
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) notFound();
+    throw error;
+  }
+});
 
 export async function generateMetadata({
   params,
@@ -42,14 +47,16 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const area = getAreaDetail(id);
 
-  if (!area) return { title: "محله یافت نشد | کومه" };
-
-  return {
-    title: `خرید و اجاره ملک در ${area.name} قم | راهنمای محله`,
-    description: `${area.tagline}؛ ${area.description[0]}`,
-  };
+  try {
+    const area = await getArea(id);
+    return {
+      title: area.metaTitle ?? `${area.title} | راهنمای محله`,
+      description: area.metaDescription ?? area.summary,
+    };
+  } catch {
+    return { title: "محله یافت نشد | کومه" };
+  }
 }
 
 export default async function AreaPage({
@@ -58,38 +65,42 @@ export default async function AreaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const area = getAreaDetail(id);
+  const area = await getArea(id);
 
-  if (!area) notFound();
+  const perMeter = area.prices.avgApartment ?? area.prices.avgLand;
+  const placeName = area.area?.name ?? area.title;
 
-  const listings = getAreaListings(area, 8);
-  const otherAreas = getOtherAreas(area.id, 4);
-  const perMeter =
-    area.stats.avgApartmentPerMeter || area.stats.avgLandPerMeter;
+  // Files are listed by district id where the guide has one; otherwise the
+  // search page opens unfiltered rather than on a filter that means nothing.
+  const searchHref = area.area
+    ? routes.properties({ districts: area.area.id })
+    : routes.properties();
 
-  const searchHref = routes.properties({ district: area.name });
-  const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${area.lat},${area.lng}`;
+  const directionsUrl =
+    area.hasMap && area.lat !== undefined && area.lng !== undefined
+      ? `https://www.google.com/maps/search/?api=1&query=${area.lat},${area.lng}`
+      : undefined;
 
   const stats = [
     {
       icon: Home,
-      value: area.stats.listingCount.toLocaleString("fa-IR"),
+      value: area.counts.all.toLocaleString("fa-IR"),
       label: "فایل فعال",
     },
     {
-      icon: TrendingUp,
-      value: area.stats.saleCount.toLocaleString("fa-IR"),
-      label: "فروش",
+      icon: Building2,
+      value: area.counts.sale.toLocaleString("fa-IR"),
+      label: "خرید و فروش",
     },
     {
       icon: Handshake,
-      value: area.stats.rentCount.toLocaleString("fa-IR"),
+      value: area.counts.rent.toLocaleString("fa-IR"),
       label: "رهن و اجاره",
     },
     {
-      icon: Calculator,
+      icon: TrendingUp,
       value: perMeter ? formatToman(perMeter) : "—",
-      label: "میانگین متری",
+      label: "میانگین هر متر",
     },
   ];
 
@@ -100,7 +111,7 @@ export default async function AreaPage({
           aria-label="مسیر صفحه"
           className="flex items-center gap-1 overflow-x-auto text-xs text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          <Link href="/" className="shrink-0 hover:text-brand">
+          <Link href={routes.home} className="shrink-0 hover:text-brand">
             خانه
           </Link>
           <ChevronLeft className="size-3.5 shrink-0" />
@@ -111,23 +122,18 @@ export default async function AreaPage({
           <Typography
             as="span"
             variant="small"
-            className="shrink-0 font-medium text-foreground"
+            className="shrink-0 truncate font-medium text-foreground"
           >
-            {area.name}
+            {area.title}
           </Typography>
         </nav>
       </Container>
 
-      {/* Hero band */}
       <Container>
         <section className="relative overflow-hidden rounded-3xl bg-primary p-5 text-primary-foreground sm:p-8">
           <div
             aria-hidden
-            className="pointer-events-none absolute -top-24 inset-e-[-4rem] size-80 rounded-full bg-secondary/15 blur-[120px]"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-28 inset-s-[-6rem] size-80 rounded-full bg-white/5 blur-[120px]"
+            className="pointer-events-none absolute -end-16 -top-20 size-64 rounded-full bg-white/10 blur-3xl"
           />
 
           <div className="relative z-10 max-w-2xl">
@@ -135,32 +141,32 @@ export default async function AreaPage({
               as="span"
               variant="small"
               light
-              className="flex w-fit items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-medium backdrop-blur-md"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 font-medium backdrop-blur-md"
             >
               <MapPinned className="size-3.5 text-secondary" />
-              راهنمای محله در قم
+              راهنمای {area.area?.kindLabel ?? "محله"}
+              {area.area?.city ? ` · ${area.area.city.name}` : ""}
             </Typography>
 
-            <Typography variant="h2" as="h1" light className="mt-3 text-2xl sm:text-3xl">
-              {area.name}
-            </Typography>
-            <Typography as="p" variant="lead" light className="mt-1 text-white/80">
-              {area.tagline}
+            <Typography
+              variant="h2"
+              as="h1"
+              light
+              className="mt-3 text-2xl sm:text-3xl"
+            >
+              {area.title}
             </Typography>
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              {area.highlights.map((highlight) => (
-                <Typography
-                  as="span"
-                  variant="small"
-                  light
-                  key={highlight}
-                  className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-[11px] text-white/85 backdrop-blur-md"
-                >
-                  {highlight}
-                </Typography>
-              ))}
-            </div>
+            {area.summary && (
+              <Typography
+                as="p"
+                variant="lead"
+                light
+                className="mt-3 text-white/75"
+              >
+                {area.summary}
+              </Typography>
+            )}
 
             <div className="mt-5 flex flex-wrap gap-2.5">
               <Button
@@ -171,29 +177,31 @@ export default async function AreaPage({
                 className="font-heading"
               >
                 <Search data-icon="inline-start" />
-                فایل‌های {area.name}
+                فایل‌های {placeName}
               </Button>
-              <Button
-                size="lg"
-                nativeButton={false}
-                render={
-                  <a
-                    href={directionsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  />
-                }
-                className="border border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              >
-                <Navigation data-icon="inline-start" />
-                مسیریابی
-              </Button>
+
+              {directionsUrl && (
+                <Button
+                  size="lg"
+                  nativeButton={false}
+                  render={
+                    <a
+                      href={directionsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  }
+                  className="border border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                >
+                  <Navigation data-icon="inline-start" />
+                  مسیریابی
+                </Button>
+              )}
             </div>
           </div>
         </section>
       </Container>
 
-      {/* Stats strip */}
       <Container className="mt-4">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {stats.map((stat) => (
@@ -228,168 +236,86 @@ export default async function AreaPage({
       <Container className="mt-5">
         <div className="grid items-start gap-5 lg:grid-cols-3">
           <div className="grid min-w-0 gap-4 lg:col-span-2">
-            {/* About */}
-            <section className="rounded-2xl border bg-card p-4 sm:p-5">
-              <Typography
-                variant="h4"
-                as="h2"
-                className="mb-4 flex items-center gap-2 sm:text-base"
-              >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                  <MapPin className="size-4" />
-                </span>
-                درباره محله {area.name}
-              </Typography>
-              <div className="space-y-3">
-                {area.description.map((paragraph, index) => (
-                  <Typography key={index} variant="muted" className="leading-7">
-                    {paragraph}
-                  </Typography>
-                ))}
-              </div>
-
-              <div className="mt-4">
-                <Typography variant="small" className="mb-2 font-medium text-foreground">
-                  مناسب برای
-                </Typography>
-                <div className="flex flex-wrap gap-2">
-                  {area.popularFor.map((type) => (
-                    <Typography
-                      as="span"
-                      variant="small"
-                      key={type}
-                      className="flex items-center gap-1.5 rounded-xl border border-brand/25 bg-brand/5 px-3 py-1.5 font-medium"
-                    >
-                      <Building2 className="size-3.5 text-brand" />
-                      {propertyTypeLabels[type]}
-                    </Typography>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* Map */}
-            <section className="rounded-2xl border bg-card p-4 sm:p-5">
-              <Typography
-                variant="h4"
-                as="h2"
-                className="mb-4 flex items-center gap-2 sm:text-base"
-              >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                  <MapPinned className="size-4" />
-                </span>
-                موقعیت روی نقشه
-              </Typography>
-              <AreaMapPanel lat={area.lat} lng={area.lng} />
-            </section>
-
-            {/* Active listings */}
-            <section className="min-w-0">
-              <div className="mb-4 flex items-end justify-between gap-3">
-                <div>
-                  <Typography variant="h3" as="h2" className="text-lg sm:text-lg">
-                    فایل‌های {area.name}
-                  </Typography>
-                  <Typography variant="small" className="mt-0.5">
-                    {area.stats.listingCount.toLocaleString("fa-IR")} فایل فعال در
-                    این محله
-                  </Typography>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-brand"
-                  nativeButton={false}
-                  render={<Link href={searchHref} />}
-                >
-                  همه فایل‌ها
-                  <ChevronLeft data-icon="inline-end" />
-                </Button>
-              </div>
-
-              {listings.length > 0 ? (
-                <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
-                  {listings.map((listing) => (
-                    <PropertyCard
-                      key={listing.id}
-                      estate={listing}
-                      className="w-[70vw] shrink-0 snap-start sm:w-auto"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-muted/30 px-6 py-14 text-center">
-                  <span className="flex size-12 items-center justify-center rounded-full bg-muted text-brand">
-                    <Home className="size-6" strokeWidth={1.5} />
-                  </span>
-                  <Typography variant="h4" as="p">
-                    فعلاً فایلی در این محله ثبت نشده است
-                  </Typography>
-                  <Typography variant="small" className="max-w-xs">
-                    برای اطلاع از فایل‌های جدید این محله با کارشناسان ما در تماس
-                    باشید.
-                  </Typography>
-                </div>
-              )}
-            </section>
-          </div>
-
-          {/* Sticky sidebar */}
-          <aside className="grid gap-4 lg:sticky lg:top-20">
-            <div className="rounded-2xl border bg-card p-4">
-              <Typography
-                variant="h4"
-                as="h2"
-                className="mb-3 flex items-center gap-1.5 sm:text-sm"
-              >
-                <Calculator className="size-4 text-brand" />
-                میانگین قیمت در {area.name}
-              </Typography>
-              <AreaPriceCard area={area} />
-            </div>
-
-            {otherAreas.length > 0 && (
-              <div className="rounded-2xl border bg-card p-4">
+            {area.body && (
+              <section className="rounded-2xl border bg-card p-4 sm:p-5">
                 <Typography
                   variant="h4"
                   as="h2"
-                  className="mb-3 flex items-center gap-1.5 sm:text-sm"
+                  className="mb-4 flex items-center gap-2 sm:text-base"
                 >
-                  <Sparkles className="size-4 text-brand" />
-                  محله‌های دیگر
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                    <MapPin className="size-4" />
+                  </span>
+                  درباره {placeName}
                 </Typography>
-                <ul className="grid gap-1.5">
-                  {otherAreas.map((other) => (
-                    <li key={other.id}>
-                      <Link
-                        href={routes.neighborhood(other.id)}
-                        className="group flex items-center gap-3 rounded-xl border border-transparent p-2 transition-colors hover:border-border hover:bg-muted/50"
-                      >
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-brand">
-                          <MapPinned className="size-4" />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <Typography
-                            as="span"
-                            variant="h4"
-                            className="block truncate text-[13px] font-medium sm:text-[13px]"
-                          >
-                            {other.name}
-                          </Typography>
-                          <Typography
-                            as="span"
-                            variant="small"
-                            className="block truncate text-[11px]"
-                          >
-                            {other.tagline}
-                          </Typography>
-                        </span>
-                        <ChevronLeft className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:-translate-x-0.5" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                <RichText html={area.body} />
+              </section>
+            )}
+
+            {area.hasMap && (
+              <section className="rounded-2xl border bg-card p-4 sm:p-5">
+                <Typography
+                  variant="h4"
+                  as="h2"
+                  className="mb-4 flex items-center gap-2 sm:text-base"
+                >
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                    <MapPinned className="size-4" />
+                  </span>
+                  موقعیت روی نقشه
+                </Typography>
+                <AreaMapPanel lat={area.lat!} lng={area.lng!} />
+              </section>
+            )}
+
+            <section className="min-w-0">
+              <div className="mb-4">
+                <Typography variant="h3" as="h2" className="text-lg sm:text-lg">
+                  فایل‌های فعال {placeName}
+                </Typography>
+                <Typography variant="small" className="mt-0.5">
+                  ملک‌هایی که هم‌اکنون در این محدوده ثبت شده‌اند
+                </Typography>
               </div>
+              <AreaEstates postId={area.id} counts={area.counts} />
+            </section>
+          </div>
+
+          <aside className="grid gap-4 lg:sticky lg:top-20">
+            <section className="rounded-2xl border bg-card p-4">
+              <Typography
+                variant="h4"
+                as="h2"
+                className="mb-3 flex items-center gap-1.5"
+              >
+                <TrendingUp className="size-4 text-brand" />
+                میانگین قیمت
+              </Typography>
+              <AreaPriceCard prices={area.prices} />
+            </section>
+
+            {area.adjacent.length > 0 && (
+              <section className="rounded-2xl border bg-card p-4">
+                <Typography
+                  variant="h4"
+                  as="h2"
+                  className="mb-3 flex items-center gap-1.5"
+                >
+                  <MapPinned className="size-4 text-brand" />
+                  محله‌های مجاور
+                </Typography>
+                <div className="flex flex-wrap gap-2">
+                  {area.adjacent.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      className="rounded-full border bg-muted/50 px-3 py-1.5 text-sm font-medium transition-colors hover:border-brand/40 hover:text-brand"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              </section>
             )}
           </aside>
         </div>

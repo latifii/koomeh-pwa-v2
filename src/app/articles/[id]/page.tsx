@@ -19,7 +19,7 @@ import { routes } from "@/lib/routes";
 
 import { BlogCard, BlogRow, CategoryChip } from "../_components/blog-card";
 import { BlogActions } from "./_components/blog-actions";
-import { BlogContent } from "./_components/blog-content";
+import { RichText } from "@/components/shared/rich-text";
 
 export const revalidate = 900;
 
@@ -126,7 +126,7 @@ export default async function BlogPostPage({ params }: {
               />
             </div>
 
-            <div className="mt-6"><BlogContent html={article.body} /></div>
+            <div className="mt-6"><RichText html={article.body} /></div>
 
             {article.tags.length > 0 && (
               <div className="mt-6 flex flex-wrap items-center gap-2">

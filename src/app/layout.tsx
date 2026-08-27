@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { Toaster } from "@/components/ui/sonner";
 
 const vazirmatn = localFont({
   src: [
@@ -96,6 +97,7 @@ export default async function RootLayout({
                   <main className="flex flex-1 flex-col">{children}</main>
                   <SiteFooter />
                   <MobileBottomNav />
+                  <Toaster position="top-center" richColors />
                 </TooltipProvider>
               </ThemeProvider>
             </SessionProvider>

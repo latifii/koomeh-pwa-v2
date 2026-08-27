@@ -1,47 +1,50 @@
-import {
-  Building2,
-  type LucideIcon,
-  Ruler,
-  Trees,
-  Wallet,
-} from "lucide-react";
+import { Building2, type LucideIcon, Trees } from "lucide-react";
 
+import type { NeighborhoodPrices } from "@/app/neighborhoods/_types/neighborhoods.types";
 import { Typography } from "@/components/ui/typography";
-import { type AreaDetail, formatToman } from "@/data/area-detail";
+import { formatToman } from "@/data/search";
 
 /**
  * The neighborhood's price snapshot — the numbers a buyer uses to sanity-check
- * a listing against the area. Rows with no data are dropped rather than shown as
- * an empty zero.
+ * a listing against the area. Rows the API has no average for are dropped
+ * rather than shown as an empty zero, which is common for smaller streets.
  */
-export function AreaPriceCard({ area }: { area: AreaDetail }) {
-  const { stats } = area;
+export function AreaPriceCard({ prices }: { prices: NeighborhoodPrices }) {
+  const rows: { icon: LucideIcon; label: string; value?: number }[] = [
+    {
+      icon: Building2,
+      label: "میانگین هر متر آپارتمان",
+      value: prices.avgApartment,
+    },
+    {
+      icon: Building2,
+      label: "آپارتمان تا ۵ سال ساخت",
+      value: prices.avgApartment5,
+    },
+    {
+      icon: Building2,
+      label: "آپارتمان تا ۱۰ سال ساخت",
+      value: prices.avgApartment10,
+    },
+    { icon: Trees, label: "میانگین هر متر زمین", value: prices.avgLand },
+  ];
 
-  const rows: { icon: LucideIcon; label: string; value: number; unit: string }[] =
-    [
-      {
-        icon: Building2,
-        label: "میانگین قیمت هر متر آپارتمان",
-        value: stats.avgApartmentPerMeter,
-        unit: "تومان",
-      },
-      {
-        icon: Trees,
-        label: "میانگین قیمت هر متر زمین",
-        value: stats.avgLandPerMeter,
-        unit: "تومان",
-      },
-      {
-        icon: Wallet,
-        label: "میانگین ودیعه اجاره",
-        value: stats.avgRentDeposit,
-        unit: "تومان",
-      },
-    ].filter((row) => row.value > 0);
+  const available = rows.filter(
+    (row): row is { icon: LucideIcon; label: string; value: number } =>
+      row.value !== undefined,
+  );
+
+  if (available.length === 0) {
+    return (
+      <Typography variant="small" className="leading-6">
+        هنوز معامله‌ی کافی برای محاسبه‌ی میانگین قیمت در این محدوده ثبت نشده است.
+      </Typography>
+    );
+  }
 
   return (
     <div className="grid gap-2.5">
-      {rows.map((row) => (
+      {available.map((row) => (
         <div
           key={row.label}
           className="flex items-center gap-3 rounded-xl border bg-card/60 p-3"
@@ -55,35 +58,11 @@ export function AreaPriceCard({ area }: { area: AreaDetail }) {
             </Typography>
             <Typography variant="h4" as="p" className="sm:text-sm">
               {formatToman(row.value)}{" "}
-              <span className="font-normal text-muted-foreground">
-                {row.unit}
-              </span>
-            </Typography>
-          </div>
-        </div>
-      ))}
-
-      {stats.minPrice > 0 && (
-        <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
-            <Ruler className="size-4.5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <Typography variant="small" className="text-[11px]">
-              بازه قیمت فروش در این محله
-            </Typography>
-            <Typography variant="h4" as="p" className="sm:text-sm">
-              {formatToman(stats.minPrice)} تا {formatToman(stats.maxPrice)}{" "}
               <span className="font-normal text-muted-foreground">تومان</span>
             </Typography>
           </div>
         </div>
-      )}
-
-      <Typography variant="small" className="text-[11px] leading-5">
-        ارقام بر پایه فایل‌های فعال {area.name} در کومه محاسبه شده و صرفاً جنبه
-        راهنما دارد.
-      </Typography>
+      ))}
     </div>
   );
 }
