@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Calculator, ChevronLeft, Percent, ShieldCheck, Zap } from "lucide-react";
+import { Calculator, Percent, ShieldCheck, Zap } from "lucide-react";
 
+import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { routes } from "@/lib/routes";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
 import { Typography } from "@/components/ui/typography";
@@ -36,24 +37,9 @@ const highlights = [
 export default function CommissionPage() {
   return (
     <div className="pb-16">
-      <Container className="py-3">
-        <nav
-          aria-label="مسیر صفحه"
-          className="flex items-center gap-1 text-xs text-muted-foreground"
-        >
-          <Link href="/" className="shrink-0 hover:text-brand">
-            خانه
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography
-            as="span"
-            variant="small"
-            className="shrink-0 font-medium text-foreground"
-          >
-            محاسبه کمیسیون
-          </Typography>
-        </nav>
-      </Container>
+      <Breadcrumb
+        items={[{ label: "خانه", href: routes.home }, { label: "محاسبه کمیسیون" }]}
+      />
 
       <Container>
         <header className="mb-8 flex flex-col gap-2">

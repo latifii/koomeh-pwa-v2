@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Phone, PlusCircle } from "lucide-react";
 
 import { AccountMenu } from "@/app/auth/_components/account-menu";
-import { NotificationBell } from "@/app/panel/notifications/_components/notification-bell";
+import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { DrawerAccountAction } from "@/app/auth/_components/drawer-account-action";
-import logoDark from "@/assets/images/logo/logo-new-dark.png";
-import logoLight from "@/assets/images/logo/logo-new-light.png";
+import logoDark from "@/assets/images/logo/logo-new-dark.webp";
+import logoLight from "@/assets/images/logo/logo-new-light.webp";
 import { Container } from "@/components/layout/container";
-import { PanelNav, PanelProfile } from "@/components/layout/panel-sidebar";
 import { ModeToggle } from "@/components/shared/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,29 @@ import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 
+/**
+ * Panel chrome, kept out of the shared bundle.
+ *
+ * This header renders on every route, so a static import here puts the
+ * panel sidebar and the notifications feed — query, service and schema — into
+ * the first-load JS of every visitor, signed in or not. Neither is needed for
+ * first paint: both only render once the session store reports someone signed
+ * in, which is after hydration either way.
+ */
+const NotificationBell = dynamic(() =>
+  import("@/app/panel/notifications/_components/notification-bell").then(
+    (mod) => mod.NotificationBell,
+  ),
+);
+
+const PanelNav = dynamic(() =>
+  import("@/components/layout/panel-sidebar").then((mod) => mod.PanelNav),
+);
+
+const PanelProfile = dynamic(() =>
+  import("@/components/layout/panel-sidebar").then((mod) => mod.PanelProfile),
+);
+
 const navLinks = [
   { href: routes.properties(), label: "جستجوی ملک" },
   { href: routes.agents, label: "کارشناسان" },
@@ -39,7 +62,7 @@ const navLinks = [
 export function SiteHeader() {
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const isPanel = pathname.startsWith("/panel");
+  const isAuthenticated = useSessionStore((state) => state.status === "authenticated");
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -64,11 +87,21 @@ export function SiteHeader() {
       )}
     >
       <Container className="flex h-16 items-center justify-between">
+        {/*
+          Both variants sit in the DOM because the active one depends on the
+          theme, which is only known in the browser. That makes their loading
+          strategy matter: `priority` on each emitted two `<link rel="preload">`
+          at the top of every page in the app, ahead of the LCP image, and
+          without `sizes` those preloads asked for `w=1920` — 54 KB of logo for
+          a 26px-tall mark. `loading="eager"` still fetches them as soon as the
+          markup is parsed; it just does not claim a preload slot.
+        */}
         <Link href={routes.home} className="flex shrink-0 items-center">
           <Image
             src={logoLight}
             alt="گروه املاک کومه"
-            priority
+            loading="eager"
+            sizes="200px"
             className={cn(
               "h-6.5 w-auto object-contain sm:h-7.5",
               transparent ? "block" : "hidden dark:block",
@@ -77,7 +110,8 @@ export function SiteHeader() {
           <Image
             src={logoDark}
             alt="گروه املاک کومه"
-            priority
+            loading="eager"
+            sizes="200px"
             className={cn(
               "h-6.5 w-auto object-contain sm:h-7.5",
               transparent ? "hidden" : "block dark:hidden",
@@ -139,40 +173,57 @@ export function SiteHeader() {
                 </Button>
               }
             />
-            <DrawerContent className="p-4">
-              <DrawerHeader className="px-0">
+            <DrawerContent className="flex flex-col p-0">
+              <DrawerHeader className="px-4 pb-3">
                 <DrawerTitle>منوی کومه</DrawerTitle>
               </DrawerHeader>
-              <nav className="mt-4 flex flex-1 flex-col gap-1">
-                {navLinks.map((link) => (
-                  <DrawerClose
-                    key={link.href}
-                    nativeButton={false}
-                    render={
-                      <Link
-                        href={link.href}
-                        className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
-                      >
-                        {link.label}
-                      </Link>
-                    }
-                  />
-                ))}
-              </nav>
-              {isPanel && (
-                <>
-                  <Separator className="my-4" />
-                  <div className="space-y-3">
-                    <div className="px-1">
-                      <Typography variant="eyebrow">پنل کاربری</Typography>
-                    </div>
+
+              {/*
+               * The drawer is full-height and the panel adds seventeen links,
+               * so the middle scrolls and the actions below stay put. Reaching
+               * "sign out" should never mean scrolling past the whole panel.
+               */}
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3">
+                {isAuthenticated && (
+                  <div className="mb-4">
                     <PanelProfile />
-                    <PanelNav closeOnNavigate />
                   </div>
-                </>
-              )}
-              <Separator className="my-3" />
-              <div className="flex flex-col gap-2">
+                )}
+
+                <nav className="flex flex-col gap-1" aria-label="منوی اصلی">
+                  {navLinks.map((link) => (
+                    <DrawerClose
+                      key={link.href}
+                      nativeButton={false}
+                      render={
+                        <Link
+                          href={link.href}
+                          className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
+                        >
+                          {link.label}
+                        </Link>
+                      }
+                    />
+                  ))}
+                </nav>
+
+                {/*
+                 * Keyed on the session, not on the route: a signed-in visitor
+                 * reading a listing had no way back to their own panel, because
+                 * this only used to render while already inside `/panel`.
+                 */}
+                {isAuthenticated && (
+                  <>
+                    <Separator className="my-4" />
+                    <Typography variant="eyebrow" className="mb-2 px-1">
+                      پنل کاربری
+                    </Typography>
+                    <PanelNav closeOnNavigate />
+                  </>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2 border-t p-4">
                 <DrawerClose
                   nativeButton={false}
                   render={
@@ -189,7 +240,7 @@ export function SiteHeader() {
                 <DrawerAccountAction />
                 <a
                   href="tel:02533123456"
-                  className="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground"
+                  className="flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground"
                 >
                   <Phone className="size-4" />
                   ۰۲۵-۳۳۱۲۳۴۵۶

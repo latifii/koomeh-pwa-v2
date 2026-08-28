@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Award, Building2, ChevronLeft, Home, Languages, MapPin } from "lucide-react";
+import { Award, Building2, Home, Languages, MapPin } from "lucide-react";
 
 import type { AgentDto, AgentProfileResponse } from "@/app/agents/_schemas/agents.schema";
 import { AgentCard } from "@/app/agents/_components/agent-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PropertyCard } from "@/components/features/property/property-card";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
 import { Typography } from "@/components/ui/typography";
 import type { Listing } from "@/data/search";
@@ -30,15 +31,13 @@ export function AgentProfileView({
 }) {
   return (
     <div className="pb-16">
-      <Container className="py-3">
-        <nav aria-label="مسیر صفحه" className="flex items-center gap-1 overflow-x-auto">
-          <Link href="/" className="shrink-0 hover:text-brand"><Typography as="span" variant="small">خانه</Typography></Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Link href={routes.agents} className="shrink-0 hover:text-brand"><Typography as="span" variant="small">کارشناسان</Typography></Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography as="span" variant="small" className="shrink-0 font-medium text-foreground">{agent.name}</Typography>
-        </nav>
-      </Container>
+      <Breadcrumb
+        items={[
+          { label: "خانه", href: routes.home },
+          { label: "کارشناسان", href: routes.agents },
+          { label: agent.name },
+        ]}
+      />
 
       <AgentProfileHero agent={agent} contact={contact} />
 
@@ -89,7 +88,7 @@ function Listings({ agent, counts, listings }: { agent: AgentDto; counts: { all:
         <div className="flex gap-1.5"><Typography as="span" variant="small" className="rounded-full bg-brand/10 px-2.5 py-1 text-brand">فروش {counts.sale.toLocaleString("fa-IR")}</Typography><Typography as="span" variant="small" className="rounded-full bg-secondary/15 px-2.5 py-1 text-foreground">اجاره {counts.rent.toLocaleString("fa-IR")}</Typography></div>
       </div>
       {listings.length ? (
-        <div className="-mx-page flex gap-3 overflow-x-auto px-page pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0">{listings.map((listing) => <PropertyCard key={listing.id} estate={listing} className="w-[70vw] shrink-0 sm:w-auto" />)}</div>
+        <div className="-mx-page flex gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0">{listings.map((listing) => <PropertyCard key={listing.id} estate={listing} className="w-[70vw] shrink-0 sm:w-auto" />)}</div>
       ) : (
         <EmptyState icon={Home} title="در حال حاضر فایل فعالی ندارد" description="برای دریافت فایل‌های جدید با این کارشناس در تماس باشید." />
       )}

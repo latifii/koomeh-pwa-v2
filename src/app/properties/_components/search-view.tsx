@@ -10,9 +10,10 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { RotateCcw, SlidersHorizontal } from "lucide-react";
 
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
 import { PropertyCard } from "@/components/features/property/property-card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,14 @@ const ListingsMap = dynamic(
 type Status = "loading" | "ready" | "error";
 type ViewMode = "grid" | "map";
 
+/**
+ * How many pins the map asks for. Every marker is a DOM node with a border, a
+ * shadow and a rounded price label, so a phone pays to build and paint the
+ * whole set while showing a fraction of it at a time — and the badge over the
+ * map already tells the visitor when the set has been truncated.
+ */
+const MAP_MARKER_LIMIT = { desktop: 500, phone: 150 } as const;
+
 export function SearchView({
   cityName,
   initialFilters,
@@ -76,7 +85,6 @@ export function SearchView({
   const [sheetSnap, setSheetSnap] = useState<SheetSnap>(SHEET_SPLIT);
   const isDesktop = useMediaQuery("(min-width: 64rem)");
   const pathname = usePathname();
-  const router = useRouter();
   const requestedCityId = Number(filters.cityId) || undefined;
   const lookupsQuery = useEstateFilters(requestedCityId);
   const lookups = lookupsQuery.data?.result;
@@ -87,7 +95,10 @@ export function SearchView({
   );
   const searchQuery = useEstateSearch({ ...apiParams, per_page: 12 });
   const mapQuery = useEstateMap(
-    { ...apiParams, limit: 500 },
+    {
+      ...apiParams,
+      limit: isDesktop ? MAP_MARKER_LIMIT.desktop : MAP_MARKER_LIMIT.phone,
+    },
     { enabled: !isDesktop || view === "map" },
   );
 
@@ -163,9 +174,14 @@ export function SearchView({
     const search = params.toString();
     const nextUrl = search ? `${pathname}?${search}` : pathname;
     if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
-      router.replace(nextUrl, { scroll: false });
+      // Deliberately not `router.replace`. This route reads `searchParams`, so
+      // that asked the server for a fresh RSC payload and re-rendered the whole
+      // page on every filter change — on every keystroke in the search field —
+      // for a URL nobody navigated to. `replaceState` is the shallow update
+      // Next supports for exactly this; the results come from React Query.
+      window.history.replaceState(null, "", nextUrl);
     }
-  }, [deferredFilters, pathname, router]);
+  }, [deferredFilters, pathname]);
   const results = useMemo(
     () => searchQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [searchQuery.data],
@@ -353,28 +369,16 @@ export function SearchView({
           vertical space to the map instead. */}
       {view === "grid" && (
         <Container className="mb-5">
-          <nav aria-label="مسیر صفحه" className="mb-4">
-            <ol className="flex items-center gap-1 text-xs text-muted-foreground">
-              <li>
-                <Link href="/" className="transition-colors hover:text-brand">
-                  خانه
-                </Link>
-              </li>
-              <ChevronLeft className="size-3.5" aria-hidden />
-              <li>
-                <Link
-                  href={routes.properties()}
-                  className="transition-colors hover:text-brand"
-                >
-                  جستجوی ملک
-                </Link>
-              </li>
-              <ChevronLeft className="size-3.5" aria-hidden />
-              <li aria-current="page" className="font-medium text-foreground">
-                {cityName}
-              </li>
-            </ol>
-          </nav>
+          {/* No Container of its own: it already sits inside one here. */}
+          <Breadcrumb
+            inContainer={false}
+            className="mb-4"
+            items={[
+              { label: "خانه", href: routes.home },
+              { label: "جستجوی ملک", href: routes.properties() },
+              { label: cityName },
+            ]}
+          />
 
           <div className="flex flex-col gap-1">
             <Typography as="h1" variant="h2">

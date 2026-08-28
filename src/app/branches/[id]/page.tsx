@@ -32,6 +32,7 @@ import type {
   BranchProfileResponse,
 } from "@/app/branches/_schemas/branch.schema";
 import { PropertyCard } from "@/components/features/property/property-card";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
 import { ApiImage } from "@/components/shared/api-image";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -147,21 +148,13 @@ export default async function BranchPage({ params }: {
 
   return (
     <div className="pb-16">
-      <Container className="py-3">
-        <nav aria-label="مسیر صفحه" className="flex items-center gap-1 overflow-x-auto text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <Link href="/" className="shrink-0 hover:text-brand">
-            <Typography as="span" variant="small">خانه</Typography>
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Link href={routes.branches} className="shrink-0 hover:text-brand">
-            <Typography as="span" variant="small">شعب کومه</Typography>
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography as="span" variant="small" className="shrink-0 font-medium text-foreground">
-            {branch.name}
-          </Typography>
-        </nav>
-      </Container>
+      <Breadcrumb
+        items={[
+          { label: "خانه", href: routes.home },
+          { label: "شعب کومه", href: routes.branches },
+          { label: branch.name },
+        ]}
+      />
 
       <Container>
         <section className="relative min-h-80 overflow-hidden rounded-3xl bg-primary px-5 py-7 text-primary-foreground sm:px-8 sm:py-10">
@@ -320,7 +313,7 @@ export default async function BranchPage({ params }: {
 
             {branch.images.length > 0 && (
               <BranchSection title="تصاویر شعبه" icon={ImageIcon} bare>
-                <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+                <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
                   {branch.images.map((image) => (
                     <div key={image.id} className="relative aspect-4/3 w-[76vw] shrink-0 snap-start overflow-hidden rounded-2xl border bg-muted sm:w-auto">
                       <ApiImage
@@ -356,7 +349,7 @@ export default async function BranchPage({ params }: {
                   </Button>
                 }
               >
-                <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+                <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
                   {branch.estates.map((listing) => (
                     <PropertyCard
                       key={listing.id}

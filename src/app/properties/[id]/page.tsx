@@ -1,10 +1,9 @@
-import { cache, Suspense } from "react";
+import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   BadgeCheck,
-  ChevronLeft,
   Clock,
   Eye,
   FileText,
@@ -27,11 +26,14 @@ import {
   mapEstateGallery,
   mapEstateVirtualTour,
 } from "@/app/properties/_mappers/estate-detail.mapper";
+import { Breadcrumb, type Crumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
+import { JsonLd } from "@/components/shared/json-ld";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import { ApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
+import { breadcrumbSchema, estateListingSchema } from "@/lib/structured-data";
 
 import { DetailSection } from "../_components/detail-section";
 import { EstateActions } from "../_components/estate-actions";
@@ -51,7 +53,7 @@ import { EstateChatCard } from "../_components/estate-chat-card";
 import { EstateStaffPanel } from "../_components/estate-staff-panel";
 import { EstateTourCard } from "../_components/estate-tour-card";
 import { EstateViewTracker } from "../_components/estate-view-tracker";
-import { SimilarEstatesServer } from "../_components/similar-estates-server";
+import { SimilarEstatesClient } from "../_components/similar-estates-client";
 
 export const revalidate = 300;
 
@@ -136,40 +138,33 @@ export default async function EstatePage({
     ? routes.properties({ districts: detail.location.districtId })
     : routes.properties();
 
+  // The district step only exists when the listing has one, so the trail is
+  // built here rather than branching inside the markup.
+  const crumbs: Crumb[] = [
+    { label: "خانه", href: routes.home },
+    { label: "جستجوی ملک", href: routes.properties() },
+    ...(detail.location.districtName
+      ? [{ label: detail.location.districtName, href: districtHref }]
+      : []),
+    { label: detail.title, href: routes.property(detail.id) },
+  ];
+
+  // Derived from the same array, not written out again: Google asks that the
+  // trail in the result match the trail on the page, and two hand-kept copies
+  // are how that stops being true.
+  const breadcrumb = crumbs.map((crumb) => ({
+    name: crumb.label,
+    path: crumb.href ?? routes.property(detail.id),
+  }));
+
   return (
     // The mobile action bar and the global bottom nav both float over the page,
     // so the last section needs room to clear them.
     <div className="pb-40 lg:pb-16">
-      <Container className="py-3">
-        <nav
-          aria-label="مسیر صفحه"
-          className="flex items-center gap-1 overflow-x-auto text-xs text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          <Link href={routes.home} className="shrink-0 hover:text-brand">
-            خانه
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Link href={routes.properties()} className="shrink-0 hover:text-brand">
-            جستجوی ملک
-          </Link>
-          {detail.location.districtName && (
-            <>
-              <ChevronLeft className="size-3.5 shrink-0" />
-              <Link href={districtHref} className="shrink-0 hover:text-brand">
-                {detail.location.districtName}
-              </Link>
-            </>
-          )}
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography
-            as="span"
-            variant="small"
-            className="shrink-0 truncate font-medium text-foreground"
-          >
-            {detail.title}
-          </Typography>
-        </nav>
-      </Container>
+      <JsonLd data={estateListingSchema(detail)} />
+      <JsonLd data={breadcrumbSchema(breadcrumb)} />
+
+      <Breadcrumb items={crumbs} />
 
       {/* Full-bleed on phones, inset from `md` where the mosaic takes over. */}
       <Container className="max-md:px-0">
@@ -383,10 +378,13 @@ export default async function EstatePage({
         {/* Renders nothing — and calls nothing — unless the viewer is staff. */}
         <EstateStaffPanel estateId={detail.numericId} />
 
-        {/* Streamed: this strip sits at the bottom, so the page should not wait. */}
-        <Suspense fallback={null}>
-          <SimilarEstatesServer estateId={id} viewAllHref={districtHref} />
-        </Suspense>
+        {/*
+          Loaded in the browser, not here. `/similar` takes ~3.6s and this route
+          is ISR: static generation resolves every Suspense boundary before it
+          replies, so a boundary around a server fetch does not stream — it just
+          makes that endpoint the TTFB of the page. See `estate-similar.query.ts`.
+        */}
+        <SimilarEstatesClient estateId={id} viewAllHref={districtHref} />
       </Container>
 
       <EstateMobileBar detail={detail} />

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ChevronLeft, MapPinned } from "lucide-react";
+import { MapPinned } from "lucide-react";
 
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Typography } from "@/components/ui/typography";
@@ -21,24 +21,7 @@ export const metadata: Metadata = {
 export default function AreasPage() {
   return (
     <div className="pb-16">
-      <Container className="py-3">
-        <nav
-          aria-label="مسیر صفحه"
-          className="flex items-center gap-1 text-xs text-muted-foreground"
-        >
-          <Link href={routes.home} className="shrink-0 hover:text-brand">
-            خانه
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography
-            as="span"
-            variant="small"
-            className="shrink-0 font-medium text-foreground"
-          >
-            محلات
-          </Typography>
-        </nav>
-      </Container>
+      <Breadcrumb items={[{ label: "خانه", href: routes.home }, { label: "محلات" }]} />
 
       <Container>
         <header className="mb-6 flex flex-col gap-2">

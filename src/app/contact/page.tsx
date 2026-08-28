@@ -1,18 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import {
-  Building2,
-  Camera,
-  ChevronLeft,
-  Mail,
-  MapPin,
-  MessageSquareText,
-  Navigation,
-  Phone,
-} from "lucide-react";
+import { Building2, Camera, Mail, MapPin, MessageSquareText, Navigation, Phone } from "lucide-react";
 
 import contactImage from "@/assets/images/others/contact.webp";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { routes } from "@/lib/routes";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
@@ -70,24 +62,7 @@ const branches = [
 export default function ContactPage() {
   return (
     <div className="pb-16">
-      <Container className="py-3">
-        <nav
-          aria-label="مسیر صفحه"
-          className="flex items-center gap-1 text-xs text-muted-foreground"
-        >
-          <Link href="/" className="shrink-0 hover:text-brand">
-            خانه
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography
-            as="span"
-            variant="small"
-            className="shrink-0 font-medium text-foreground"
-          >
-            تماس با ما
-          </Typography>
-        </nav>
-      </Container>
+      <Breadcrumb items={[{ label: "خانه", href: routes.home }, { label: "تماس با ما" }]} />
 
       <Container>
         <section className="grid items-center gap-5 rounded-3xl border bg-card p-4 sm:p-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(400px,0.75fr)] lg:p-6">

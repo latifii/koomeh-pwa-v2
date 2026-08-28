@@ -2,9 +2,11 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 
 import { BranchesGridServer } from "@/app/branches/_components/branches-grid-server";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Typography } from "@/components/ui/typography";
+import { routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "شعب املاک کومه در قم",
@@ -16,7 +18,9 @@ export const revalidate = 900;
 export default function BranchesPage() {
   return (
     <div className="pb-16">
-      <Container className="py-section-sm">
+      <Breadcrumb items={[{ label: "خانه", href: routes.home }, { label: "شعب کومه" }]} />
+
+      <Container className="pb-section-sm">
         <header className="mb-7 max-w-2xl">
           <Typography variant="eyebrow" className="text-brand">
             نزدیک‌ترین دفتر به شما

@@ -2,7 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, CalendarDays, ChevronLeft, Eye, Newspaper, Tag } from "lucide-react";
+import { ArrowLeft, CalendarDays, Eye, Newspaper, Tag } from "lucide-react";
 
 import blogFallback from "@/assets/images/default/blog-default.webp";
 import {
@@ -13,12 +13,15 @@ import {
   mapBlogPostCard,
   mapBlogPostDetail,
 } from "@/app/articles/_mappers/blog.mapper";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
 import { ApiImage } from "@/components/shared/api-image";
+import { JsonLd } from "@/components/shared/json-ld";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import { ApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
+import { articleSchema, breadcrumbSchema } from "@/lib/structured-data";
 
 import { BlogCard, BlogRow, CategoryChip } from "../_components/blog-card";
 import { BlogActions } from "./_components/blog-actions";
@@ -87,21 +90,30 @@ export default async function BlogPostPage({ params }: {
 
   return (
     <div className="pb-16">
-      <Container className="py-3">
-        <nav aria-label="مسیر صفحه" className="flex items-center gap-1 overflow-x-auto text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <Link href="/" className="shrink-0 hover:text-brand">
-            <Typography as="span" variant="small">خانه</Typography>
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Link href={routes.articles} className="shrink-0 hover:text-brand">
-            <Typography as="span" variant="small">مجله املاک</Typography>
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography as="span" variant="small" className="shrink-0 truncate font-medium text-foreground">
-            {article.title}
-          </Typography>
-        </nav>
-      </Container>
+      <JsonLd
+        data={articleSchema({
+          id: article.id,
+          title: article.title,
+          summary: article.excerpt,
+          image: article.image,
+          publishedAt: article.createdAt,
+        })}
+      />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "خانه", path: routes.home },
+          { name: "مجله املاک", path: routes.articles },
+          { name: article.title, path: routes.article(article.id) },
+        ])}
+      />
+
+      <Breadcrumb
+        items={[
+          { label: "خانه", href: routes.home },
+          { label: "مجله املاک", href: routes.articles },
+          { label: article.title },
+        ]}
+      />
 
       <Container>
         <div className="grid items-start gap-6 lg:grid-cols-3">
@@ -164,7 +176,7 @@ export default async function BlogPostPage({ params }: {
                     همه مقالات<ArrowLeft data-icon="inline-end" />
                   </Button>
                 </div>
-                <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+                <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
                   {related.map((item) => (
                     <BlogCard key={item.id} post={item} className="w-[70vw] shrink-0 snap-start sm:w-auto" />
                   ))}

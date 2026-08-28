@@ -4,7 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Building2,
-  ChevronLeft,
   Handshake,
   Home,
   MapPin,
@@ -16,6 +15,7 @@ import {
 
 import { getCachedNeighborhood } from "@/app/neighborhoods/_cache/neighborhoods.cache";
 import { mapNeighborhoodDetail } from "@/app/neighborhoods/_mappers/neighborhoods.mapper";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
 import { RichText } from "@/components/shared/rich-text";
 import { Button } from "@/components/ui/button";
@@ -112,28 +112,13 @@ export default async function AreaPage({
 
   return (
     <div className="pb-16">
-      <Container className="py-3">
-        <nav
-          aria-label="مسیر صفحه"
-          className="flex items-center gap-1 overflow-x-auto text-xs text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          <Link href={routes.home} className="shrink-0 hover:text-brand">
-            خانه
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Link href={routes.neighborhoods} className="shrink-0 hover:text-brand">
-            محلات
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography
-            as="span"
-            variant="small"
-            className="shrink-0 truncate font-medium text-foreground"
-          >
-            {area.title}
-          </Typography>
-        </nav>
-      </Container>
+      <Breadcrumb
+        items={[
+          { label: "خانه", href: routes.home },
+          { label: "محلات", href: routes.neighborhoods },
+          { label: area.title },
+        ]}
+      />
 
       <Container>
         <section className="relative overflow-hidden rounded-3xl bg-primary p-5 text-primary-foreground sm:p-8">

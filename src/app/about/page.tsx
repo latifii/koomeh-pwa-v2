@@ -1,21 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import {
-  BadgeCheck,
-  Building2,
-  ChevronLeft,
-  ClipboardCheck,
-  FileSignature,
-  MapPinned,
-  SearchCheck,
-  ShieldCheck,
-  Sparkles,
-  UsersRound,
-} from "lucide-react";
+import { BadgeCheck, Building2, ClipboardCheck, FileSignature, MapPinned, SearchCheck, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 
 import heroImage from "@/assets/images/others/about.webp";
 import qomImage from "@/assets/images/city/qom.webp";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { routes } from "@/lib/routes";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
 import { Card, CardContent } from "@/components/ui/card";
@@ -82,24 +72,7 @@ const process = [
 export default function AboutPage() {
   return (
     <div className="pb-16">
-      <Container className="py-3">
-        <nav
-          aria-label="مسیر صفحه"
-          className="flex items-center gap-1 text-xs text-muted-foreground"
-        >
-          <Link href="/" className="shrink-0 hover:text-brand">
-            خانه
-          </Link>
-          <ChevronLeft className="size-3.5 shrink-0" />
-          <Typography
-            as="span"
-            variant="small"
-            className="shrink-0 font-medium text-foreground"
-          >
-            درباره ما
-          </Typography>
-        </nav>
-      </Container>
+      <Breadcrumb items={[{ label: "خانه", href: routes.home }, { label: "درباره ما" }]} />
 
       <Container>
         <section className="grid overflow-hidden rounded-3xl border bg-card lg:grid-cols-[1.02fr_0.98fr]">
