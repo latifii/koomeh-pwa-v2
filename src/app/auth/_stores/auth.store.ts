@@ -7,6 +7,7 @@ import type {
   SessionStatus,
 } from "@/lib/auth/session.types";
 import { setAccessToken } from "@/lib/api/access-token";
+import { clearServiceWorkerCaches } from "@/lib/service-worker";
 
 type SessionState = {
   session: ClientSession | null;
@@ -78,6 +79,11 @@ export const useSessionStore = create<SessionState>((set) => ({
 
   clearSession: () => {
     setAccessToken(undefined);
+    // Every sign-out path runs through here, so the service worker is told to
+    // drop what it holds here too rather than in each of the three buttons.
+    // Nothing private is cached by design, but a listing someone opened while
+    // signed in is still their browsing history on what may be a shared phone.
+    clearServiceWorkerCaches();
     set({ session: null, status: "unauthenticated" });
   },
 }));

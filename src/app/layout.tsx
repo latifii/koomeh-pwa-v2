@@ -12,6 +12,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { Toaster } from "@/components/ui/sonner";
 import { JsonLd } from "@/components/shared/json-ld";
+import { ServiceWorkerRegister } from "@/components/shared/service-worker-register";
 import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 import { siteUrl } from "@/lib/site-url";
 
@@ -123,6 +124,7 @@ export default function RootLayout({
                   <Toaster position="top-center" richColors />
                   <JsonLd data={organizationSchema()} />
                   <JsonLd data={websiteSchema()} />
+                  <ServiceWorkerRegister />
                 </TooltipProvider>
               </ThemeProvider>
             </SessionProvider>
