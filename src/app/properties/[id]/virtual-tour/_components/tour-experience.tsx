@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
@@ -42,6 +48,23 @@ const MIN_FOV = 40;
 const MAX_FOV = 90;
 
 /**
+ * Both controls are gated on real support rather than offered and ignored: an
+ * iPhone has no Fullscreen API for anything but a `<video>`, and a desktop
+ * browser reports a `DeviceOrientationEvent` it will never fire — turning gyro
+ * on there froze the view, auto-rotate disabled and nothing driving it, with
+ * no way to tell what had gone wrong.
+ *
+ * Read through `useSyncExternalStore` so the server renders them as absent and
+ * the browser fills them in on hydration, the way `useMediaQuery` does.
+ */
+const noSubscribe = () => () => {};
+const unsupported = () => false;
+const readFullscreenSupport = () => Boolean(document.fullscreenEnabled);
+const readGyroSupport = () =>
+  "DeviceOrientationEvent" in window &&
+  window.matchMedia("(pointer: coarse)").matches;
+
+/**
  * The full-screen tour: a fixed overlay covering the site chrome, with the 360
  * stage front and centre and a rail of the file's own panoramas plus a control
  * cluster over it.
@@ -55,9 +78,21 @@ export function TourExperience({ tour }: { tour: EstateTourView }) {
   const [showHint, setShowHint] = useState(true);
   const [loading, setLoading] = useState(true);
   const rootRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
+  const canFullscreen = useSyncExternalStore(
+    noSubscribe,
+    readFullscreenSupport,
+    unsupported,
+  );
+  const canGyro = useSyncExternalStore(
+    noSubscribe,
+    readGyroSupport,
+    unsupported,
+  );
 
   const active = tour.images[activeIndex];
   const multiScene = tour.images.length > 1;
+  const rotating = autoRotate && !gyro;
 
   const onLoadingChange = useCallback((value: boolean) => setLoading(value), []);
 
@@ -85,43 +120,81 @@ export function TourExperience({ tour }: { tour: EstateTourView }) {
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) {
-      document.exitFullscreen();
+      void document.exitFullscreen();
     } else {
-      rootRef.current?.requestFullscreen?.();
+      void rootRef.current?.requestFullscreen?.();
     }
   };
 
-  const enableGyro = async () => {
+  const toggleGyro = async () => {
+    // Turning it back off is ours to do; only turning it on needs the prompt.
+    if (gyro) {
+      setGyro(false);
+      return;
+    }
     // iOS gates device orientation behind an explicit permission prompt.
     const DOE = window.DeviceOrientationEvent as unknown as {
       requestPermission?: () => Promise<"granted" | "denied">;
     };
     if (typeof DOE?.requestPermission === "function") {
       try {
-        const result = await DOE.requestPermission();
-        if (result !== "granted") return;
+        if ((await DOE.requestPermission()) !== "granted") return;
       } catch {
         return;
       }
     }
-    setGyro((value) => !value);
+    setGyro(true);
   };
 
-  const step = (delta: number) =>
-    setActiveIndex(
-      (index) => (index + delta + tour.images.length) % tour.images.length,
-    );
+  const step = useCallback(
+    (delta: number) =>
+      setActiveIndex(
+        (index) => (index + delta + tour.images.length) % tour.images.length,
+      ),
+    [tour.images.length],
+  );
+
+  // The rail reads right to left, so the arrow key that matches the on-screen
+  // arrow on that side is the one that moves that way.
+  useEffect(() => {
+    if (!multiScene) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") step(1);
+      else if (event.key === "ArrowRight") step(-1);
+      else return;
+      event.preventDefault();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [multiScene, step]);
+
+  // Keep the active thumbnail in the rail. Stepping with the arrows or the
+  // keyboard used to walk straight past the edge of it, leaving no sign of
+  // which scene was on screen.
+  useEffect(() => {
+    const thumbnail = railRef.current?.children[activeIndex];
+    thumbnail?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [activeIndex]);
 
   return (
     <div
       ref={rootRef}
       className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-primary-deep select-none"
     >
-      {/* Stage */}
-      <div className="relative flex-1" onPointerDown={() => setShowHint(false)}>
+      {/* Stage. `min-h-0` so it can give the rail its height back: a flex item
+          defaults to its content's minimum, and the WebGL canvas inside is a
+          replaced element with a size of its own. */}
+      <div
+        className="relative min-h-0 flex-1"
+        onPointerDown={() => setShowHint(false)}
+      >
         <PanoramaViewer
           imageUrl={active.url}
-          autoRotate={autoRotate && !gyro}
+          autoRotate={rotating}
           gyro={gyro}
           fov={fov}
           onLoadingChange={onLoadingChange}
@@ -161,18 +234,23 @@ export function TourExperience({ tour }: { tour: EstateTourView }) {
             </Typography>
           </div>
 
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            aria-label={isFullscreen ? "خروج از تمام‌صفحه" : "نمای تمام‌صفحه"}
-            className="pointer-events-auto flex size-10 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-black/50"
-          >
-            {isFullscreen ? (
-              <Minimize className="size-5" />
-            ) : (
-              <Maximize className="size-5" />
-            )}
-          </button>
+          {canFullscreen ? (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label={isFullscreen ? "خروج از تمام‌صفحه" : "نمای تمام‌صفحه"}
+              className="pointer-events-auto flex size-10 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-black/50"
+            >
+              {isFullscreen ? (
+                <Minimize className="size-5" />
+              ) : (
+                <Maximize className="size-5" />
+              )}
+            </button>
+          ) : (
+            // Balances the close button so the title stays centred.
+            <span aria-hidden className="size-10 shrink-0" />
+          )}
         </div>
 
         {/* Drag hint */}
@@ -185,24 +263,32 @@ export function TourExperience({ tour }: { tour: EstateTourView }) {
           </div>
         )}
 
-        {/* Scene arrows (multi-scene only) */}
+        {/*
+         * Scene arrows (multi-scene only).
+         *
+         * Each arrow sits on the side it takes you towards. The scenes run in
+         * reading order, so in RTL the next one is to the *end* — the left —
+         * and `rtl:rotate-180` turns the chevron to match. They were the other
+         * way round, which left both arrows pointing at each other and each
+         * button moving away from where it pointed.
+         */}
         {multiScene && (
           <>
             <button
               type="button"
-              onClick={() => step(1)}
-              aria-label="نمای بعدی"
+              onClick={() => step(-1)}
+              aria-label="نمای قبلی"
               className="absolute inset-s-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/55"
             >
-              <ChevronRight className="size-6 rtl:rotate-180" />
+              <ChevronLeft className="size-6 rtl:rotate-180" />
             </button>
             <button
               type="button"
-              onClick={() => step(-1)}
-              aria-label="نمای قبلی"
+              onClick={() => step(1)}
+              aria-label="نمای بعدی"
               className="absolute inset-e-3 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur-md transition-colors hover:bg-black/55"
             >
-              <ChevronLeft className="size-6 rtl:rotate-180" />
+              <ChevronRight className="size-6 rtl:rotate-180" />
             </button>
           </>
         )}
@@ -210,26 +296,33 @@ export function TourExperience({ tour }: { tour: EstateTourView }) {
         {/* Control cluster */}
         <div className="absolute bottom-4 inset-e-4 flex flex-col gap-2">
           <ControlButton
-            active={autoRotate && !gyro}
+            active={rotating}
             disabled={gyro}
             onClick={() => setAutoRotate((v) => !v)}
-            label={autoRotate ? "توقف چرخش" : "چرخش خودکار"}
+            label={rotating ? "توقف چرخش" : "چرخش خودکار"}
           >
-            {autoRotate && !gyro ? (
+            {rotating ? (
               <Pause className="size-4.5" />
             ) : (
               <Play className="size-4.5" />
             )}
           </ControlButton>
-          <ControlButton active={gyro} onClick={enableGyro} label="حالت ژیروسکوپ">
-            <Compass className="size-4.5" />
-          </ControlButton>
+          {canGyro && (
+            <ControlButton
+              active={gyro}
+              onClick={toggleGyro}
+              label={gyro ? "خروج از حالت ژیروسکوپ" : "حالت ژیروسکوپ"}
+            >
+              <Compass className="size-4.5" />
+            </ControlButton>
+          )}
           <div className="flex flex-col overflow-hidden rounded-full border border-white/20 bg-black/35 backdrop-blur-md">
             <button
               type="button"
               onClick={() => setFov((f) => Math.max(MIN_FOV, f - 8))}
+              disabled={fov <= MIN_FOV}
               aria-label="بزرگ‌نمایی"
-              className="flex size-10 items-center justify-center text-white transition-colors hover:bg-white/15"
+              className="flex size-10 items-center justify-center text-white transition-colors hover:bg-white/15 disabled:opacity-40"
             >
               <Plus className="size-4.5" />
             </button>
@@ -237,8 +330,9 @@ export function TourExperience({ tour }: { tour: EstateTourView }) {
             <button
               type="button"
               onClick={() => setFov((f) => Math.min(MAX_FOV, f + 8))}
+              disabled={fov >= MAX_FOV}
               aria-label="کوچک‌نمایی"
-              className="flex size-10 items-center justify-center text-white transition-colors hover:bg-white/15"
+              className="flex size-10 items-center justify-center text-white transition-colors hover:bg-white/15 disabled:opacity-40"
             >
               <Minus className="size-4.5" />
             </button>
@@ -258,7 +352,10 @@ export function TourExperience({ tour }: { tour: EstateTourView }) {
             </Typography>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto overflow-y-hidden p-4 pt-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            ref={railRef}
+            className="flex gap-2 overflow-x-auto overflow-y-hidden p-4 pt-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {tour.images.map((image, index) => (
               <button
                 key={image.id}
