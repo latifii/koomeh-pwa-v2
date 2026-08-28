@@ -6,8 +6,13 @@
 | --- | --- | --- |
 | `AUTH_SECRET` | **yes** | The server refuses to boot. See AGENTS.md. |
 | `NEXT_PUBLIC_API_BASE_URL` | yes | Falls back to `https://koomeh.ir`. |
-| `NEXT_PUBLIC_SITE_URL` | yes | Sitemap, canonical links and JSON-LD advertise the wrong host. |
+| `NEXT_PUBLIC_SITE_URL` | on the real domain | Sitemap, canonical links and JSON-LD advertise the wrong host. |
 | `REVALIDATE_SECRET` | yes | `POST /api/revalidate` refuses every request; caches only expire on their timers. |
+
+`NEXT_PUBLIC_SITE_URL` is optional on Vercel: `src/lib/site-url.ts` falls back to
+`NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL`, so the preview deployment resolves
+its own host. **Set it explicitly the day the real domain goes live** — the
+fallback would keep naming the Vercel URL in the sitemap and in JSON-LD ids.
 
 ## Put a cache in front of `/_next/image`
 
@@ -74,3 +79,65 @@ once — the shard count adjusts itself as inventory grows.
 
 Not `/sitemap.xml`: Next reserves that path for its metadata convention and
 serves nothing there once `generateSitemaps` shards the sitemap.
+
+## PWA
+
+Installable, with an offline fallback. Deliberately **no** push notifications
+and **no** background sync — see below.
+
+| piece | where |
+| --- | --- |
+| manifest | `src/app/manifest.ts` → served at `/manifest.webmanifest` |
+| icons | `public/icon-{192,512}.png`, `icon-maskable-512x512.png`, `apple-touch-icon.png` |
+| service worker | `public/sw.js` (hand-written) |
+| registration + update prompt | `src/components/shared/service-worker-register.tsx` |
+| offline fallback | `src/app/offline/page.tsx` |
+
+### Why the worker is hand-written
+
+The job a Workbox/Serwist plugin does is generate a precache manifest with
+revisioning. This app does not need one — every asset Next emits under
+`/_next/static/` is content-hashed and immutable, so a plain cache-first rule is
+equivalent. What is left is ~150 lines, no dependency, and no bet on a plugin
+keeping pace with Next 16 and Turbopack.
+
+### The three rules the worker must keep
+
+These are not style preferences; each one maps to a way this specific app breaks.
+
+1. **Never touch a request carrying `Authorization`.** Refresh tokens here
+   rotate and are single-use. Anything that replays, retries or caches an
+   authorised call becomes a third party spending them, which is what AGENTS.md
+   warns invalidates live sessions.
+2. **Never cache `/panel`, `/auth` or `/api`.** The panel is private and fetches
+   its data in the browser; a cached response would outlive sign-out on a shared
+   phone.
+3. **Never queue mutations.** A replayed "create listing" is a duplicate
+   listing, and a replay days later carries a dead token.
+
+`src/app/auth/_stores/auth.store.ts` also messages the worker to drop its page
+and image caches on sign-out.
+
+Navigations are network-first, which is what keeps the server authoritative:
+anyone online gets whatever `s-maxage` and `/api/revalidate` decided, and the
+worker's copy is only ever the fallback for someone who is not.
+
+### Changing `public/sw.js`
+
+`tests/sw-routing.test.ts` asserts all three rules above by running the worker
+in a stub scope and checking what it intercepts. Re-run it before deploying:
+
+```bash
+npm test
+```
+
+Bump `VERSION` in `sw.js` whenever the cache shape changes; `activate` deletes
+every `koomeh-*` cache that is not in the current set.
+
+### Not built, on purpose
+
+- **Push notifications** need VAPID keys, subscription storage and a send
+  endpoint on the backend. The in-app feed (`NotificationBell`) covers this
+  until that exists.
+- **Background sync** — see rule 3.
+- **Offline editing in the panel** — conflict resolution for near-zero value.

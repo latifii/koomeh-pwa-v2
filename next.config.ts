@@ -76,7 +76,28 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      {
+        // The worker decides what every other request does, so a stale copy is
+        // the one cache entry that can pin all the others. Browsers already
+        // revalidate a worker script at most every 24h; this makes it every
+        // load, and stops a CDN holding one for longer than that.
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        ],
+      },
+      {
+        // Read once at install time, so a stale one gets baked into the
+        // installed app — including its icons and start_url.
+        source: "/manifest.webmanifest",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+    ];
   },
 };
 
