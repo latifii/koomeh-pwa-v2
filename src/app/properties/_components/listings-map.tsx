@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import Link from "next/link";
 import L from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
@@ -74,7 +74,54 @@ function MapController({
   return null;
 }
 
-export function ListingsMap({
+/**
+ * One pin.
+ *
+ * Split out and memoised because Leaflet redraws a marker whose icon identity
+ * changes: building the icon map for the whole set in one `useMemo` keyed on
+ * `selectedId` handed every marker a fresh `divIcon` each time the selection
+ * moved, so tapping one pin re-rendered all of them. Here only the two markers
+ * whose `active` actually flipped do any work.
+ */
+const ListingMarker = memo(function ListingMarker({
+  marker,
+  active,
+  onSelect,
+}: {
+  marker: EstateMapMarker;
+  active: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const icon = useMemo(() => priceIcon(marker, active), [marker, active]);
+
+  return (
+    <Marker
+      position={[marker.lat, marker.lng]}
+      icon={icon}
+      eventHandlers={{ click: () => onSelect(marker.id) }}
+      zIndexOffset={active ? 1000 : 0}
+    >
+      <Popup>
+        <div dir="rtl" className="min-w-44 font-sans text-right">
+          <Link href={marker.href} className="font-semibold text-brand">
+            {marker.title}
+          </Link>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {marker.place} · {marker.area.toLocaleString("fa-IR")} متر
+            {marker.roomLabel ? ` · ${marker.roomLabel} خواب` : ""}
+          </div>
+          <div className="mt-1 font-semibold">{marker.priceLabel}</div>
+        </div>
+      </Popup>
+    </Marker>
+  );
+});
+
+/**
+ * Memoised: the search view rebuilds this element on every keystroke in the
+ * filter bar, and re-rendering it walks the whole marker set.
+ */
+export const ListingsMap = memo(function ListingsMap({
   markers,
   city,
   selectedId,
@@ -86,18 +133,6 @@ export function ListingsMap({
   onSelect: (id: string) => void;
 }) {
   const center = cityCenters[city] ?? cityCenters["قم"];
-  // Leaflet redraws every marker whose icon identity changes, so only rebuild
-  // the two that actually change when the selection moves.
-  const icons = useMemo(
-    () =>
-      new Map(
-        markers.map((marker) => [
-          marker.id,
-          priceIcon(marker, marker.id === selectedId),
-        ])
-      ),
-    [markers, selectedId]
-  );
 
   // `isolate` traps Leaflet's internal z-indexes (its panes and controls climb
   // as high as 1000) inside their own stacking context, so drawers, modals and
@@ -122,27 +157,13 @@ export function ListingsMap({
       />
 
       {markers.map((marker) => (
-        <Marker
+        <ListingMarker
           key={marker.id}
-          position={[marker.lat, marker.lng]}
-          icon={icons.get(marker.id)}
-          eventHandlers={{ click: () => onSelect(marker.id) }}
-          zIndexOffset={marker.id === selectedId ? 1000 : 0}
-        >
-          <Popup>
-            <div dir="rtl" className="min-w-44 font-sans text-right">
-              <Link href={marker.href} className="font-semibold text-brand">
-                {marker.title}
-              </Link>
-              <div className="mt-1 text-xs text-muted-foreground">
-                {marker.place} · {marker.area.toLocaleString("fa-IR")} متر
-                {marker.roomLabel ? ` · ${marker.roomLabel} خواب` : ""}
-              </div>
-              <div className="mt-1 font-semibold">{marker.priceLabel}</div>
-            </div>
-          </Popup>
-        </Marker>
+          marker={marker}
+          active={marker.id === selectedId}
+          onSelect={onSelect}
+        />
       ))}
     </MapContainer>
   );
-}
+});

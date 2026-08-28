@@ -1,11 +1,12 @@
 "use client";
 
-import type { FormEvent } from "react";
+import { useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, Home, Key, MapPin, Ruler, Search, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Select,
   SelectContent,
@@ -67,6 +68,10 @@ export function HeroSearchForm({
 }) {
   const trigger = compact ? compactFieldTrigger : fieldTrigger;
   const router = useRouter();
+  // /properties is the one public route rendered per request, so this push
+  // can take a moment. Without a pending flag the button looks inert and the
+  // visitor submits the form again.
+  const [isPending, startTransition] = useTransition();
   const lookups = useEstateFilters().data?.result;
   const dealTypes = lookups?.deal_types.items.map((item) => ({
     value: item.value === "2" ? "rent" : "sale",
@@ -108,7 +113,9 @@ export function HeroSearchForm({
     const maxArea = data.get("maxArea");
     if (maxArea) params.set("maxArea", String(maxArea));
 
-    router.push(`${routes.properties()}?${params.toString()}`);
+    startTransition(() => {
+      router.push(`${routes.properties()}?${params.toString()}`);
+    });
   }
 
   return (
@@ -263,17 +270,23 @@ export function HeroSearchForm({
           type="submit"
           size="icon"
           aria-label="جستجوی ملک"
+          disabled={isPending}
           className={cn(
             "shrink-0 rounded-full",
             compact ? "hidden" : "hidden size-12 md:inline-flex"
           )}
         >
-          <Search className="size-5 text-white" />
+          {isPending ? (
+            <Spinner className="size-5 text-white" />
+          ) : (
+            <Search className="size-5 text-white" />
+          )}
         </Button>
 
         <Button
           type="submit"
           size={"lg"}
+          disabled={isPending}
           className={cn(
             "w-full gap-2 font-semibold",
             compact
@@ -281,7 +294,7 @@ export function HeroSearchForm({
               : "rounded-2xl py-2.5 text-sm md:hidden"
           )}
         >
-          <Search className="size-4" />
+          {isPending ? <Spinner className="size-4" /> : <Search className="size-4" />}
           جستجوی ملک
         </Button>
       </div>

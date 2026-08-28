@@ -138,7 +138,7 @@ export function CalendarMonth() {
             </Button>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-hidden">
             <div className="min-w-[42rem]">
               <div className="grid grid-cols-7 gap-1 pb-1">
                 {month.data.weekdays.map((weekday) => (

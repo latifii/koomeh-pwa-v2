@@ -12,7 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import logoLight from "@/assets/images/logo/logo-new-light.png";
+import logoLight from "@/assets/images/logo/logo-new-light.webp";
 import { Container } from "@/components/layout/container";
 import { routes } from "@/lib/routes";
 
@@ -97,6 +97,9 @@ export function SiteFooter() {
               <Image
                 src={logoLight}
                 alt="گروه املاک کومه"
+                // Same reason as the header: the source is 1258px wide and
+                // without `sizes` it is requested at `w=1920` for a 32px mark.
+                sizes="200px"
                 className="h-8 w-auto object-contain"
               />
             </Link>

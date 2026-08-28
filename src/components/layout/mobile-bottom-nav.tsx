@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Heart, Home, type LucideIcon, PlusCircle, Search, User } from "lucide-react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import { LinkPending } from "@/components/shared/link-pending";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 
@@ -51,7 +52,11 @@ export function MobileBottomNav() {
                 className="flex flex-1 flex-col items-center justify-center gap-1 py-2"
               >
                 <span className="-mt-6 flex size-11 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-md ring-4 ring-background">
-                  <item.icon className="size-5" />
+                  {/* The icon itself becomes the spinner: on a phone this bar is
+                      often the only thing on screen while a tap waits. */}
+                  <LinkPending className="size-5">
+                    <item.icon className="size-5" />
+                  </LinkPending>
                 </span>
                 <span className="text-[11px] font-medium text-muted-foreground">
                   {item.label}
@@ -69,7 +74,9 @@ export function MobileBottomNav() {
                 active ? "text-brand" : "text-muted-foreground"
               )}
             >
-              <item.icon className="size-5" />
+              <LinkPending className="size-5">
+                <item.icon className="size-5" />
+              </LinkPending>
               {item.label}
             </Link>
           );

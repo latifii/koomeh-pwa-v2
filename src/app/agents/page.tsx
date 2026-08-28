@@ -1,13 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Users } from "lucide-react";
 
-import { Breadcrumb } from "@/components/layout/breadcrumb";
-import { routes } from "@/lib/routes";
 import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
-import { Typography } from "@/components/ui/typography";
 
+import { AgentsIntro } from "./_components/agents-intro";
 import { AgentsSearchServer } from "./_components/agents-search-server";
 
 /**
@@ -25,28 +22,11 @@ export const metadata: Metadata = {
 export default function AgentsSearchPage() {
   return (
     <div className="pb-16">
-      <Breadcrumb items={[{ label: "خانه", href: routes.home }, { label: "کارشناسان" }]} />
+      <AgentsIntro />
 
       <Container>
-        <header className="mb-6 flex flex-col gap-2">
-          <Typography
-            as="span"
-            variant="small"
-            className="flex items-center gap-1.5 font-medium text-brand"
-          >
-            <Users className="size-4" />
-            تیم حرفه‌ای کومه
-          </Typography>
-          <Typography variant="h2" as="h1">
-            کارشناسان املاک کومه
-          </Typography>
-          <Typography variant="lead" className="max-w-2xl">
-            بر اساس تخصص، نوع فعالیت و امتیاز، مشاور مناسب خرید، فروش یا اجاره ملک
-            خود را در قم پیدا کنید.
-          </Typography>
-        </header>
-
-        {/* Streamed: everything above is sent before the API answers. */}
+        {/* Streamed: the intro above is sent before the API answers. The
+            fallback matches `loading.tsx` so the handover is invisible. */}
         <Suspense fallback={<ListSkeleton count={9} />}>
           <AgentsSearchServer />
         </Suspense>

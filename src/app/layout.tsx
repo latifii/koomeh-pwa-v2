@@ -11,24 +11,28 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { Toaster } from "@/components/ui/sonner";
+import { JsonLd } from "@/components/shared/json-ld";
+import { organizationSchema, websiteSchema } from "@/lib/structured-data";
+import { siteUrl } from "@/lib/site-url";
 
+/**
+ * Only the weights the design actually uses.
+ *
+ * `next/font` emits a `<link rel="preload">` for every weight declared here,
+ * so an unused one is not free: it is fetched at highest priority on the first
+ * paint of every page, competing with the LCP image. Thin, ExtraLight, Light
+ * and ExtraBold matched zero rules anywhere in `src` and cost 192 KB a visit
+ * between them.
+ *
+ * Black (900) is reachable from exactly one place — the decorative watermark in
+ * `story-section` — and is kept for it. Dropping that usage to `font-bold`
+ * would save another 47 KB on every page.
+ *
+ * Before adding a weight back, check something reaches it:
+ * `grep -r "font-light" src`.
+ */
 const vazirmatn = localFont({
   src: [
-    {
-      path: "../assets/fonts/Vazirmatn-FD-Thin.woff2",
-      weight: "100",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/Vazirmatn-FD-ExtraLight.woff2",
-      weight: "200",
-      style: "normal",
-    },
-    {
-      path: "../assets/fonts/Vazirmatn-FD-Light.woff2",
-      weight: "300",
-      style: "normal",
-    },
     {
       path: "../assets/fonts/Vazirmatn-FD-Regular.woff2",
       weight: "400",
@@ -50,11 +54,6 @@ const vazirmatn = localFont({
       style: "normal",
     },
     {
-      path: "../assets/fonts/Vazirmatn-FD-ExtraBold.woff2",
-      weight: "800",
-      style: "normal",
-    },
-    {
       path: "../assets/fonts/Vazirmatn-FD-Black.woff2",
       weight: "900",
       style: "normal",
@@ -64,6 +63,9 @@ const vazirmatn = localFont({
 });
 
 export const metadata: Metadata = {
+  // Without this, every relative Open Graph and canonical URL resolves against
+  // localhost in production — which is how share cards break silently.
+  metadataBase: new URL(siteUrl),
   title: "کومه - خرید و فروش املاک قم",
   description:
     "املاک قم؛ خرید، فروش و اجاره انواع ملک در قم با پوشش کامل مناطق پردیسان، سالاریه، زنبیل‌آباد، صفاشهر، شهرک قدس، جمهوری، کریمی و فردوسی.",
@@ -92,6 +94,8 @@ export default function RootLayout({
                   <SiteFooter />
                   <MobileBottomNav />
                   <Toaster position="top-center" richColors />
+                  <JsonLd data={organizationSchema()} />
+                  <JsonLd data={websiteSchema()} />
                 </TooltipProvider>
               </ThemeProvider>
             </SessionProvider>

@@ -177,7 +177,10 @@ export function ActiveFilters({
   onReset,
   /**
    * `wrap` stacks chips over several lines (results column); `scroll` keeps them
-   * on one swipeable line, for the map's fixed top bar.
+   * on one swipeable line, for the map's fixed top bar. That line pins
+   * `overflow-y`, or CSS would compute the axis it left alone to `auto` and let
+   * the chip row eat the vertical drags aimed at the results sheet behind it —
+   * see `BranchExperts` for the whole story.
    */
   layout = "wrap",
   className,
@@ -199,7 +202,7 @@ export function ActiveFilters({
         "flex items-center gap-2",
         layout === "wrap"
           ? "flex-wrap"
-          : "overflow-x-auto [scrollbar-width:none]",
+          : "overflow-x-auto overflow-y-hidden [scrollbar-width:none]",
         className
       )}
     >

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 
-import heroImage from "@/assets/images/hero.png";
+import heroImage from "@/assets/images/hero.webp";
 import { Typography } from "@/components/ui/typography";
 
 import { HeroSearchForm } from "./hero-search-form";
@@ -14,17 +14,31 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden text-white">
+      {/*
+        One image for both layouts. It used to be rendered twice — once per
+        breakpoint block — with `priority` on each and a `1px` branch in `sizes`
+        meant to keep the hidden copy cheap. That does not work: `1px` makes the
+        browser pick the *smallest* candidate in the srcset, which is 640w, so
+        every visit downloaded a 28 KB hero it never displayed and spent a
+        second preload slot competing with the one that mattered.
+
+        The section is sized by whichever breakpoint block is visible, so a
+        single absolutely-positioned image fills both.
+      */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src={heroImage}
+          alt="نمای املاک قم"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+      </div>
+
       {/* Mobile: square image with overlaid text and stat bar, no search form */}
-      <div className="md:hidden">
+      <div className="relative z-10 md:hidden">
         <div className="relative aspect-square w-full overflow-hidden">
-          <Image
-            src={heroImage}
-            alt="نمای املاک قم"
-            fill
-            priority
-            sizes="(max-width: 767px) 100vw, 1px"
-            className="object-cover"
-          />
           <div className="absolute inset-0 bg-linear-to-b from-primary/60 via-black/35 to-primary/85" />
 
           {/* Text is centred in the space above the stat bar, not the whole image */}
@@ -51,18 +65,8 @@ export function Hero() {
       </div>
 
       {/* Desktop: full-bleed immersive hero with everything centered over the image */}
-      <div className="hidden min-h-[90vh] items-center md:flex lg:min-h-184">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={heroImage}
-            alt="نمای املاک قم"
-            fill
-            priority
-            sizes="(min-width: 768px) 100vw, 1px"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-linear-to-b from-primary/70 via-black/45 to-primary/85" />
-        </div>
+      <div className="relative z-10 hidden min-h-[90vh] items-center md:flex lg:min-h-184">
+        <div className="absolute inset-0 bg-linear-to-b from-primary/70 via-black/45 to-primary/85" />
 
         <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center gap-7 px-page py-24 text-center">
           <Typography

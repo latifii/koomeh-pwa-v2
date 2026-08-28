@@ -109,13 +109,18 @@ export type EstateStatusView = {
 };
 
 export type EstatePriceView = {
+  /** Toman, unformatted. For structured data — render `label` instead. */
+  amount?: number;
   label: string;
   perMeterLabel?: string;
   isNegotiable: boolean;
 };
 
 export type EstateRentView = {
+  /** Toman, unformatted. For structured data — render the labels instead. */
+  mortgage?: number;
   mortgageLabel: string;
+  amount?: number;
   rentLabel: string;
 };
 

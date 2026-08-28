@@ -19,7 +19,7 @@ export function SaleSection({ section }: { section: HomeSaleEstateSection }) {
       />
 
       {section.items.length > 0 ? (
-        <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
+        <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
           {section.items.map((estate) => (
             <PropertyCard
               key={estate.id}

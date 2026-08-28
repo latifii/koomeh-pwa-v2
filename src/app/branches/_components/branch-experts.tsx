@@ -7,9 +7,21 @@ import { Typography } from "@/components/ui/typography";
 import { defaultAvatars } from "@/data/avatars";
 import { cn } from "@/lib/utils";
 
+/**
+ * A swipeable rail of the branch's agents on phones, a grid from `sm` up.
+ *
+ * `overflow-y` has to be pinned, here and in every other rail on the site. Left
+ * alone it is `visible`, and CSS computes `visible` to `auto` when the other
+ * axis is not visible — so a rail meant to move sideways was quietly a vertical
+ * scroller too. It needs only a sub-pixel of slack to matter, and a card sized
+ * in `vw` with an `aspect-*` image almost never lands on a whole pixel: the
+ * rail then swallowed the vertical drag meant for the page, and the page would
+ * not move while a finger was on a card. `hidden` changes nothing visually —
+ * an `auto` axis already clipped what overflowed it.
+ */
 export function BranchExperts({ experts }: { experts: AgentDto[] }) {
   return (
-    <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+    <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
       {experts.map((expert) => (
         <AgentCard
           key={expert.id}

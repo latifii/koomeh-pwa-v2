@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 
-import logoDark from "@/assets/images/logo/logo-new-dark.png";
-import logoLight from "@/assets/images/logo/logo-new-light.png";
+import logoDark from "@/assets/images/logo/logo-new-dark.webp";
+import logoLight from "@/assets/images/logo/logo-new-light.webp";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { routes } from "@/lib/routes";
@@ -26,8 +26,10 @@ export function AuthShell({
       <Card className="w-full max-w-md border-border/80 shadow-sm">
         <CardHeader className="items-center text-center">
           <Link href={routes.home} aria-label="خانه کومه">
-            <Image src={logoDark} alt="گروه املاک کومه" className="mb-4 h-8 w-auto dark:hidden" />
-            <Image src={logoLight} alt="گروه املاک کومه" className="mb-4 hidden h-8 w-auto dark:block" />
+            {/* `sizes` for the same reason as the site header: without it these
+                1900px-wide sources are requested at `w=1920` for a 32px mark. */}
+            <Image src={logoDark} alt="گروه املاک کومه" sizes="200px" className="mb-4 h-8 w-auto dark:hidden" />
+            <Image src={logoLight} alt="گروه املاک کومه" sizes="200px" className="mb-4 hidden h-8 w-auto dark:block" />
           </Link>
           <span className="mb-2 flex size-11 items-center justify-center rounded-xl bg-brand/10 text-brand">
             <Icon className="size-5" />

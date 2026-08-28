@@ -59,7 +59,7 @@ export function BlogList({ initialPosts, categories }: {
 
       <div className={featured ? "mt-8" : undefined}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="-mx-page flex gap-2 overflow-x-auto px-page pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
+          <div className="-mx-page flex gap-2 overflow-x-auto overflow-y-hidden px-page pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
             <Button
               type="button"
               size="lg"

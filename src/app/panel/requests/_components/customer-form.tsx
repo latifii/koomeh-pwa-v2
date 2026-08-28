@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,6 +62,10 @@ const numericLabels: Record<string, string> = {
  */
 export function CustomerForm({ customerId }: { customerId?: string }) {
   const router = useRouter();
+  // The mutation stops being pending the moment the API answers, but the
+  // navigation that follows is a dynamic panel route and takes its own time.
+  // Without this the button re-enables mid-flight and invites a second submit.
+  const [isNavigating, startNavigation] = useTransition();
   const queryClient = useQueryClient();
   const isEdit = Boolean(customerId);
 
@@ -204,8 +208,10 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
       toast.success(isEdit ? "تقاضا به‌روزرسانی شد." : "تقاضا ثبت شد.");
 
       const id = customerId ?? response.result?.id;
-      router.push(id ? routes.panel.request(id) : routes.panel.requests);
-      router.refresh();
+      startNavigation(() => {
+        router.push(id ? routes.panel.request(id) : routes.panel.requests);
+        router.refresh();
+      });
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
@@ -412,8 +418,8 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button size="lg" disabled={mutation.isPending}>
-          {mutation.isPending ? (
+        <Button size="lg" disabled={mutation.isPending || isNavigating}>
+          {mutation.isPending || isNavigating ? (
             <Spinner data-icon="inline-start" />
           ) : (
             <Save data-icon="inline-start" />

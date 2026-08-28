@@ -54,7 +54,7 @@ function ScoreGroup({
                 {score(section.subtotal)}
               </Typography>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-hidden">
               <table className="w-full min-w-80 text-sm [font-variant-numeric:tabular-nums]">
                 <tbody>
                   {rows.map((row) => (

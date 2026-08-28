@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import { Bath, BedDouble, Heart, MapPin, Rotate3d, Ruler } from "lucide-react";
@@ -27,8 +28,11 @@ const propertyImages: Record<PropertyType, StaticImageData> = {
  * little vertical room — the mobile map results sheet stacks many of these in
  * a short scroll area, where the homepage's tall image-on-top card would let
  * only one or two show at a time.
+ *
+ * Memoised: that sheet re-renders on every keystroke in the search field above
+ * it, and by then the list can hold several pages of cards.
  */
-export function ListingCard({
+export const ListingCard = memo(function ListingCard({
   listing,
   className,
 }: {
@@ -128,4 +132,4 @@ export function ListingCard({
       />
     </Card>
   );
-}
+});

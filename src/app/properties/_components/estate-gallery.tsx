@@ -182,7 +182,7 @@ export function EstateGallery({
       <div className="relative md:hidden">
         <div
           onScroll={onRailScroll}
-          className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {photos.map((photo, photoIndex) => (
             <button

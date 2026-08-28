@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,6 +63,10 @@ const numericLabels: Record<string, string> = {
  */
 export function PropertyForm() {
   const router = useRouter();
+  // The mutation stops being pending the moment the API answers, but the
+  // navigation that follows is a dynamic panel route and takes its own time.
+  // Without this the button re-enables mid-flight and invites a second submit.
+  const [isNavigating, startNavigation] = useTransition();
   const options = useQuery(estateFormOptionsQueryOptions());
   const [debouncedPhone, setDebouncedPhone] = useState("");
 
@@ -166,8 +170,10 @@ export function PropertyForm() {
           ? "ملک ثبت شد و در فهرست‌ها نمایش داده می‌شود."
           : "ملک ثبت شد و پس از بازبینی نمایش داده می‌شود.",
       );
-      router.push(routes.panel.properties);
-      router.refresh();
+      startNavigation(() => {
+        router.push(routes.panel.properties);
+        router.refresh();
+      });
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
@@ -420,8 +426,8 @@ export function PropertyForm() {
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button size="lg" disabled={mutation.isPending}>
-          {mutation.isPending ? (
+        <Button size="lg" disabled={mutation.isPending || isNavigating}>
+          {mutation.isPending || isNavigating ? (
             <Spinner data-icon="inline-start" />
           ) : (
             <Save data-icon="inline-start" />

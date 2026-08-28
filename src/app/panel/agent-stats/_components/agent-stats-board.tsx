@@ -156,7 +156,7 @@ export function AgentStatsBoard() {
       {league.isSuccess && (
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-hidden">
               <table className="w-full min-w-[36rem] text-sm">
                 <thead>
                   <tr className="border-b text-muted-foreground">

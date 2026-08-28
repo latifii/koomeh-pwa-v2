@@ -33,7 +33,7 @@ export function ArticlesSection({
       />
 
       {/* Mobile: horizontal snap carousel, same pattern as the property sections */}
-      <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none] lg:hidden">
+      <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] lg:hidden">
         {section.items.map((article) => (
           <ArticleCard
             key={article.id}

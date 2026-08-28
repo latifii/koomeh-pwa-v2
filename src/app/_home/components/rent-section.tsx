@@ -37,7 +37,7 @@ export function RentSection({ section }: { section: HomeRentEstateSection }) {
         ))}
       </div>
 
-      <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none]">
+      <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none]">
         {section.items.map((estate) => (
           <PropertyCard
             key={estate.id}

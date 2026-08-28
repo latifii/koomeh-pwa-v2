@@ -1,14 +1,14 @@
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 
-import icon360 from "@/assets/images/card/quick/360.png";
-import iconBlog from "@/assets/images/card/quick/blog.png";
-import iconBranch from "@/assets/images/card/quick/branch.png";
-import iconGoftino from "@/assets/images/card/quick/goftino.png";
-import iconKomision from "@/assets/images/card/quick/komision.png";
-import iconMaps from "@/assets/images/card/quick/maps.png";
-import iconMohalat from "@/assets/images/card/quick/mohalat.png";
-import iconSocial from "@/assets/images/card/quick/social.png";
+import icon360 from "@/assets/images/card/quick/360.webp";
+import iconBlog from "@/assets/images/card/quick/blog.webp";
+import iconBranch from "@/assets/images/card/quick/branch.webp";
+import iconGoftino from "@/assets/images/card/quick/goftino.webp";
+import iconKomision from "@/assets/images/card/quick/komision.webp";
+import iconMaps from "@/assets/images/card/quick/maps.webp";
+import iconMohalat from "@/assets/images/card/quick/mohalat.webp";
+import iconSocial from "@/assets/images/card/quick/social.webp";
 import { Section } from "@/components/layout/section";
 import { routes } from "@/lib/routes";
 
@@ -60,6 +60,11 @@ export function QuickServicesSection() {
                 <Image
                   src={item.icon}
                   alt=""
+                  // The tile caps at 80px, but these are 500px sources: without
+                  // `sizes` Next falls back to a 1x/2x srcset off the intrinsic
+                  // width and serves a 1080px render into an 80px box — 19 KB
+                  // each instead of 5 KB, for eight distinct icons.
+                  sizes="80px"
                   className="size-full object-contain"
                 />
               </span>

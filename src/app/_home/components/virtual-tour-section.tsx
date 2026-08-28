@@ -86,7 +86,7 @@ export function VirtualTourSection({
           spanning item can never push a later card onto a new row.
           Mobile: snap carousel.
         */}
-        <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none] lg:mx-0 lg:grid lg:h-136 lg:grid-cols-3 lg:grid-rows-2 lg:overflow-visible lg:px-0 lg:pb-0">
+        <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] lg:mx-0 lg:grid lg:h-136 lg:grid-cols-3 lg:grid-rows-2 lg:overflow-visible lg:px-0 lg:pb-0">
           {section.items.slice(0, 3).map((estate, index) => (
             <TourCard
               key={estate.id}

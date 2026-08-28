@@ -258,7 +258,7 @@ export function TourExperience({ tour }: { tour: EstateTourView }) {
             </Typography>
           </div>
 
-          <div className="flex gap-2 overflow-x-auto p-4 pt-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-2 overflow-x-auto overflow-y-hidden p-4 pt-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {tour.images.map((image, index) => (
               <button
                 key={image.id}

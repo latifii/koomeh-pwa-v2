@@ -33,9 +33,10 @@ export type SheetSnap = string | number;
 
 const snapPoints: SheetSnap[] = [SHEET_PEEK, SHEET_SPLIT, SHEET_FULL];
 
-/** Site header above, fixed bottom navigation below — neither may be covered. */
+/** Site header above (`h-16`), fixed bottom navigation below — neither may be covered. */
+const HEADER_HEIGHT = "4rem";
 const NAV_HEIGHT = "4rem";
-const SHEET_MAX_HEIGHT = "calc(100dvh - 5rem - 4rem)";
+const SHEET_MAX_HEIGHT = "calc(100dvh - 8rem)";
 
 export function MobileMapView({
   filters,
@@ -91,7 +92,13 @@ export function MobileMapView({
       : "در حال جستجو…";
 
   return (
-    <div className="relative h-[calc(100dvh-5rem)] w-full overflow-hidden lg:hidden">
+    // `data-viewport-shell` tells the layout this screen is the whole viewport:
+    // no page scroll and no footer under it. See `globals.css`.
+    <div
+      data-viewport-shell
+      style={{ height: `calc(100dvh - ${HEADER_HEIGHT})` }}
+      className="relative w-full overflow-hidden lg:hidden"
+    >
       {/* While the map is on screen the bar floats above it; once the sheet
           takes over, the bar moves inside and scrolls with the results. */}
       {!expanded && (
@@ -114,11 +121,24 @@ export function MobileMapView({
         disablePointerDismissal
         showSwipeHandle
         snapPoints={snapPoints}
+        // Three close-together stops: without this a quick flick skipped the
+        // middle one, so collapsing a full-screen list landed on the 4rem peek
+        // instead of the half-and-half view the visitor was aiming for.
+        snapToSequentialPoints
         snapPoint={snap}
         onSnapPointChange={(next) => onSnapChange(next ?? SHEET_PEEK)}
       >
         {/* `z-30` and the bottom margin keep the fixed navigation visible; the
-            max height spans exactly from under the site header down to it. */}
+            max height spans exactly from under the site header down to it.
+
+            The padding matters as much as the height. A snapped drawer keeps
+            its full height and is translated down by `--drawer-snap-point-offset`,
+            so at PEEK and SPLIT the part of it below the fold is real, laid-out
+            space: the results scroller ran off the bottom of the screen, its
+            last cards unreachable, and at PEEK it was tall enough to swallow the
+            upward drag that should have raised the sheet. Padding the popup by
+            that same offset gives the flex column exactly the height the visitor
+            can see. */}
         <DrawerContent
           viewportClassName="z-30"
           style={
@@ -127,7 +147,7 @@ export function MobileMapView({
               "--drawer-content-max-height": SHEET_MAX_HEIGHT,
             } as React.CSSProperties
           }
-          className="rounded-b-none [--drawer-inset:0px] lg:hidden"
+          className="rounded-b-none pb-[max(0px,var(--drawer-snap-point-offset,0px))] transition-[transform,height,opacity,filter,padding-bottom] [--drawer-inset:0px] lg:hidden"
         >
           {!expanded && (
             <DrawerHeader className="pb-2">
@@ -139,8 +159,14 @@ export function MobileMapView({
            * The scroller is a plain block. Making it the flex column instead
            * would let every card shrink to fit its fixed height, which is what
            * collapsed them into empty slivers.
+           *
+           * `overflow-x-hidden` is not decoration: `overflow-y: auto` computes
+           * the other axis to `auto` too, so a card overhanging by a pixel gave
+           * the sheet a stray sideways scroll — and told the drawer this was a
+           * horizontally scrollable region, which made it hand diagonal drags
+           * to the browser instead of the sheet.
            */}
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
             {expanded && (
               <>
                 {searchBar}
@@ -150,7 +176,7 @@ export function MobileMapView({
               </>
             )}
 
-            <div className="flex flex-col gap-4 px-4 pt-3 pb-6">
+            <div className="flex min-w-0 flex-col gap-4 px-4 pt-3 pb-6">
               {status === "loading" && (
                 <ResultsSkeleton count={3} className="sm:grid-cols-1" />
               )}

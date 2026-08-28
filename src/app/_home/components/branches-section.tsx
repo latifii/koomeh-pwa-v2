@@ -24,7 +24,7 @@ export function BranchesSection({ section }: { section: HomeBranchesSection }) {
       />
 
       {/* Mobile: horizontal snap carousel; grid from `sm` up */}
-      <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+      <div className="-mx-page flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
         {section.items.map((branch) => (
           <div
             key={branch.id}

@@ -55,6 +55,19 @@ const nextConfig: NextConfig = {
     // Next 16 only serves qualities listed here; 75 is the default, 90 is for
     // large hero/city photography that visibly softens at 75.
     qualities: [75, 90],
+    // Default is webp alone. AVIF is 20-30% smaller again on photography, and
+    // the encode is paid once per (source, width, quality) — every later
+    // request is a cache read. Order matters: the first format the browser
+    // accepts wins, so AVIF must lead.
+    formats: ["image/avif", "image/webp"],
+    // Floor on how long an optimized file is reused before it is re-derived.
+    // Local imports are build-hashed, and the backend serves listing photos
+    // under content-unique names with `cache-control: max-age=31536000` — both
+    // sides treat these URLs as immutable, so nothing stale can be served and
+    // the default 4 hours only buys repeated AVIF encodes of bytes that cannot
+    // have changed. Worth revisiting if the backend ever starts replacing a
+    // photo in place under the same filename.
+    minimumCacheTTL: 2_592_000,
     remotePatterns: [
       { protocol: "https", hostname: "koomeh.ir", pathname: "/**" },
       { protocol: "https", hostname: "file.koomeh.ir", pathname: "/**" },

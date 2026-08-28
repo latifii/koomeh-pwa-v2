@@ -207,3 +207,25 @@
     @apply font-sans;
   }
 }
+
+/*
+ * A phone screen that owns the whole viewport — today only the property search,
+ * whose map and results sheet already fill it.
+ *
+ * Without this the document stayed taller than the viewport (the site footer
+ * sits below the map), so a drag that missed the map scrolled the *page*: the
+ * search view slid away under the fixed results sheet, and once the sheet was
+ * expanded it swallowed every touch, leaving no way to scroll back.
+ */
+@media (width < 64rem) {
+  html:has([data-viewport-shell]),
+  body:has([data-viewport-shell]) {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* Unreachable behind the sheet, and the only reason the page overflowed. */
+  body:has([data-viewport-shell]) > footer {
+    display: none;
+  }
+}

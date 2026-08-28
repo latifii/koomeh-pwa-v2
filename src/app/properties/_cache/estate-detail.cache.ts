@@ -47,6 +47,11 @@ export const getCachedEstateVirtualTour = cachedFetch(
 /**
  * Similar listings answer to `estates` as a whole, not to this one: the set
  * changes when *other* files are added or removed, not when this one is edited.
+ *
+ * Currently unused: the strip is fetched in the browser instead, because
+ * `/similar` takes ~3.6s and this page is ISR — see `estate-similar.query.ts`.
+ * Kept so moving it back to the server is a one-line change once that endpoint
+ * is fast.
  */
 export const getCachedSimilarEstates = cachedFetch(
   ["estates", "similar"],

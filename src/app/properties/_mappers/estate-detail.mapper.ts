@@ -235,6 +235,9 @@ export function mapEstateDetail(response: EstateDetailResponse): EstateDetailVie
     },
     price: result.price
       ? {
+          // The raw number rides alongside the label because structured data
+          // needs a machine-readable price; the UI keeps using the label.
+          amount: result.price.amount ?? undefined,
           label: result.price.label,
           perMeterLabel: text(result.price.per_meter_label),
           isNegotiable: result.price.is_negotiable,
@@ -242,7 +245,9 @@ export function mapEstateDetail(response: EstateDetailResponse): EstateDetailVie
       : undefined,
     rent: result.rent
       ? {
+          mortgage: result.rent.mortgage ?? undefined,
           mortgageLabel: result.rent.mortgage_label,
+          amount: result.rent.rent ?? undefined,
           rentLabel: result.rent.rent_label,
         }
       : undefined,

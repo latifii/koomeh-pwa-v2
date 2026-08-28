@@ -134,7 +134,7 @@ function CompareTable({
       </header>
 
       {/* The table grows with the number of files, so it scrolls on its own. */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-hidden">
         <table className="w-full min-w-2xl border-collapse text-sm">
           <thead>
             <tr>

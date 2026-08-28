@@ -82,7 +82,7 @@ function MobileStory() {
       </div>
 
       {/* Swipeable beats — same carousel pattern as the property sections */}
-      <ol className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto px-page pb-2 [scrollbar-width:none]">
+      <ol className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none]">
         {storyBeats.map((beat) => (
           <li
             key={beat.step}

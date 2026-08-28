@@ -13,6 +13,7 @@ import { DrawerAccountAction } from "@/app/auth/_components/drawer-account-actio
 import logoDark from "@/assets/images/logo/logo-new-dark.webp";
 import logoLight from "@/assets/images/logo/logo-new-light.webp";
 import { Container } from "@/components/layout/container";
+import { LinkPending } from "@/components/shared/link-pending";
 import { ModeToggle } from "@/components/shared/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -125,13 +126,16 @@ export function SiteHeader() {
               key={link.href}
               href={link.href}
               className={cn(
-                "rounded-full px-1 py-1.5 text-sm font-medium transition-colors",
+                "inline-flex items-center gap-1.5 rounded-full px-1 py-1.5 text-sm font-medium transition-colors",
                 transparent
                   ? "text-white/85 hover:bg-white/10 hover:text-white"
                   : "text-foreground/80 hover:bg-brand/10 hover:text-brand dark:text-foreground/85 ",
               )}
             >
               {link.label}
+              {/* Immediate feedback on the link that was clicked, so a slow
+                  navigation is never mistaken for a dead one. */}
+              <LinkPending className="size-3.5 opacity-70" />
             </Link>
           ))}
         </nav>
