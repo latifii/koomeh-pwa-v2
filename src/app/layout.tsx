@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { DirectionProvider } from "@/components/ui/direction";
@@ -69,6 +69,33 @@ export const metadata: Metadata = {
   title: "کومه - خرید و فروش املاک قم",
   description:
     "املاک قم؛ خرید، فروش و اجاره انواع ملک در قم با پوشش کامل مناطق پردیسان، سالاریه، زنبیل‌آباد، صفاشهر، شهرک قدس، جمهوری، کریمی و فردوسی.",
+  // `app/manifest.ts` is served at this path; naming it here is what puts the
+  // <link rel="manifest"> in the document, and without that nothing installs.
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    // iOS ignores the manifest's `display`, so standalone mode on iPhone comes
+    // from this alone. `title` is what appears under the home-screen icon.
+    capable: true,
+    title: "کومه",
+    // The header is brand navy and sits under the status bar, so the status
+    // text has to be light. `default` would render it dark on dark.
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+/**
+ * Painted behind the status bar on Android and around the page on desktop.
+ * Split by scheme so the installed app does not show a navy bar in light mode
+ * and a light one in dark.
+ */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#001b51" },
+  ],
 };
 
 export default function RootLayout({
