@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { LogIn } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
@@ -20,7 +19,6 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <AuthShell
-      icon={LogIn}
       title="ورود به حساب کومه"
       description="با شماره همراه و رمزی که از دفتر کومه گرفته‌اید وارد شوید."
       footer={

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, Eye, EyeOff, Lock, LogIn, Phone } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, LogIn } from "lucide-react";
 
 import { signInAction } from "@/app/auth/_actions/auth-actions";
 import {
@@ -70,22 +70,23 @@ export function LoginForm() {
     <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-5" noValidate>
       <div className="grid gap-2">
         <Label htmlFor="username">شماره همراه</Label>
-        <InputGroup>
-          <InputGroupAddon>
-            <Phone className="size-4" />
-          </InputGroupAddon>
+        <InputGroup className="h-12 rounded-xl px-1">
           {/*
-           * `dir="ltr"` with the text pushed to the start of the field: a phone
-           * number is a left-to-right run of digits, and inside an RTL form it
-           * otherwise renders with the cursor and the digits fighting each
-           * other as you type. The placeholder is in Latin digits for the same
-           * reason — it is what the keyboard produces.
+           * Chromium forces `direction: ltr` on `input[type=tel]` from its own
+           * stylesheet, which is right — a phone number is a left-to-right run
+           * of digits. Left alone though, that strands the digits at the far
+           * end of the field from the label that names them. `text-end`
+           * resolves against the input's own direction, so it seats them at
+           * the right edge, beside the label, while they still read and type
+           * left to right.
+           *
+           * The placeholder is in Latin digits because that is what the
+           * keyboard produces; the font renders them as Persian either way.
            */}
           <InputGroupInput
             id="username"
             type="tel"
-            dir="ltr"
-            className="text-start"
+            className="text-end"
             inputMode="numeric"
             autoComplete="username"
             placeholder="09121234567"
@@ -99,10 +100,7 @@ export function LoginForm() {
 
       <div className="grid gap-2">
         <Label htmlFor="password">رمز عبور</Label>
-        <InputGroup>
-          <InputGroupAddon>
-            <Lock className="size-4" />
-          </InputGroupAddon>
+        <InputGroup className="h-12 rounded-xl px-1">
           <InputGroupInput
             id="password"
             type={showPassword ? "text" : "password"}
@@ -139,7 +137,12 @@ export function LoginForm() {
         </Typography>
       )}
 
-      <Button type="submit" size="lg" className="w-full" disabled={isPending}>
+      <Button
+        type="submit"
+        size="lg"
+        className="mt-1 h-12 w-full rounded-xl text-base"
+        disabled={isPending}
+      >
         {isPending ? (
           <Spinner data-icon="inline-start" />
         ) : (

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { KeyRound } from "lucide-react";
 
 import { AuthShell } from "../_components/auth-shell";
 import { AuthUnavailable } from "../_components/auth-unavailable";
@@ -9,7 +8,6 @@ export const metadata: Metadata = { title: "بازیابی رمز عبور | ک�
 export default function ForgotPasswordPage() {
   return (
     <AuthShell
-      icon={KeyRound}
       title="بازیابی رمز عبور"
       description="بازیابی خودکار رمز عبور هنوز فعال نشده است."
     >
