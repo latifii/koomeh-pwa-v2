@@ -94,8 +94,8 @@ export function AdManagement({ estateId }: { estateId: number }) {
   ];
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-      <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
+      <div className="grid grid-cols-1 gap-4">
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>{`فایل ${data.estate_id.toLocaleString("fa-IR")}`}</CardTitle>
@@ -103,7 +103,7 @@ export function AdManagement({ estateId }: { estateId: number }) {
               <Badge>{data.confirmation_label}</Badge>
             )}
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
+          <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {stats.map((stat) => (
               <div key={stat.label} className="rounded-xl bg-muted p-4 text-center">
                 <stat.icon className="mx-auto mb-2 size-5 text-brand" />
@@ -160,7 +160,7 @@ export function AdManagement({ estateId }: { estateId: number }) {
         )}
       </div>
 
-      <aside className="grid h-fit gap-3 lg:sticky lg:top-24">
+      <aside className="grid grid-cols-1 h-fit gap-3 lg:sticky lg:top-24">
         <Button
           nativeButton={false}
           render={<Link href={routes.panel.propertyPreview(data.estate_id)} />}

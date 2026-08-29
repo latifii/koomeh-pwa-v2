@@ -110,7 +110,7 @@ export function NotificationList() {
             description="یادآورها و پیام‌های حساب شما اینجا نمایش داده می‌شوند."
           />
         ) : (
-          <div className="grid gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="flex flex-wrap justify-end gap-2">
               {unread > 0 && (
                 <Button
@@ -135,7 +135,7 @@ export function NotificationList() {
               </Button>
             </div>
 
-            <ul className="grid gap-2">
+            <ul className="grid grid-cols-1 gap-2">
               {items.map((item) => (
                 <li
                   key={item.id}
@@ -196,8 +196,8 @@ export function NotificationList() {
             description="پیام‌های مدیریت برای شهر یا نقش شما اینجا نمایش داده می‌شوند."
           />
         ) : (
-          <div className="grid gap-3">
-            <ul className="grid gap-2">
+          <div className="grid grid-cols-1 gap-3">
+            <ul className="grid grid-cols-1 gap-2">
               {announcements.map((item) => (
                 <li key={item.id} className="rounded-xl border bg-card p-3.5">
                   <div className="flex items-start justify-between gap-3">
@@ -253,7 +253,7 @@ export function NotificationList() {
 
 function ListSkeleton() {
   return (
-    <div className="grid gap-2">
+    <div className="grid grid-cols-1 gap-2">
       {Array.from({ length: 5 }, (_, index) => (
         <Skeleton key={index} className="h-20 rounded-xl" />
       ))}

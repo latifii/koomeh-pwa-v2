@@ -72,10 +72,10 @@ export function DashboardView() {
   ];
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4">
       <DashboardNotes />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
           <Link
             key={stat.label}
@@ -114,7 +114,7 @@ export function DashboardView() {
         </Typography>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -126,7 +126,7 @@ export function DashboardView() {
             {tasks.isPending ? (
               <RowSkeleton />
             ) : tasks.data?.length ? (
-              <ul className="grid gap-2">
+              <ul className="grid grid-cols-1 gap-2">
                 {tasks.data.map((task) => (
                   <li
                     key={task.id}
@@ -186,7 +186,7 @@ export function DashboardView() {
             {followUps.isPending ? (
               <RowSkeleton />
             ) : followUps.data?.items.length ? (
-              <ul className="grid gap-2">
+              <ul className="grid grid-cols-1 gap-2">
                 {followUps.data.items.map((item) => (
                   <li
                     key={item.id}
@@ -234,7 +234,7 @@ export function DashboardView() {
               این هفته فایل یا مشتری ویژه‌ای ثبت نشده است.
             </Typography>
           ) : (
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <HighlightColumn
                 title="فایل‌های ویژه"
                 items={highlights.data?.estates ?? []}
@@ -279,7 +279,7 @@ function HighlightColumn({
       <Typography variant="small" className="mb-2 font-medium text-foreground">
         {title}
       </Typography>
-      <ul className="grid gap-2">
+      <ul className="grid grid-cols-1 gap-2">
         {items.slice(0, 5).map((item) => {
           const href = hrefFor?.(item);
           const body = (
@@ -331,7 +331,7 @@ function HighlightColumn({
 
 function RowSkeleton() {
   return (
-    <div className="grid gap-2">
+    <div className="grid grid-cols-1 gap-2">
       {Array.from({ length: 3 }, (_, index) => (
         <Skeleton key={index} className="h-14 rounded-lg" />
       ))}

@@ -86,7 +86,7 @@ export function DashboardNotes() {
 
   return (
     <>
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {visible.map((box) => {
           const live = notes.data[box.key];
           const draft = editable?.[box.key];

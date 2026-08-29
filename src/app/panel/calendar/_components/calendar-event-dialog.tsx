@@ -147,7 +147,7 @@ export function CalendarEventDialog({
           />
 
           {!allDay && (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <FormTextField
                 {...context}
                 name="start_time"
@@ -163,7 +163,7 @@ export function CalendarEventDialog({
             </div>
           )}
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormSelectField
               {...context}
               name="type"

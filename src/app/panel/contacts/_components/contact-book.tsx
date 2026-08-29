@@ -170,7 +170,7 @@ export function ContactBook() {
                     گروهی در دفترچه تلفن تعریف نشده است.
                   </Typography>
                 )}
-                <div className="grid gap-1 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
                   {groupList.data?.items.map((group) => (
                     <Label
                       key={group.id}

@@ -98,7 +98,7 @@ export function FavoritesView() {
             }
           />
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="flex justify-end">
               <Button
                 variant="ghost"
@@ -112,7 +112,7 @@ export function FavoritesView() {
               </Button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {estates.data.map((estate) => (
                 <div key={estate.id} className="relative">
                   <PropertyCard estate={estate} />
@@ -167,7 +167,7 @@ export function FavoritesView() {
             }
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {agents.data.map((agent) => (
               <AgentCard key={agent.id} agent={agent} />
             ))}
@@ -180,7 +180,7 @@ export function FavoritesView() {
 
 function CardGrid() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }, (_, index) => (
         <Skeleton key={index} className="h-72 rounded-2xl" />
       ))}

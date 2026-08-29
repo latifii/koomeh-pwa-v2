@@ -108,7 +108,7 @@ export function PropertyImageUploader({
   };
 
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-1 gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Typography variant="small">
           تا {maxImages.toLocaleString("fa-IR")} تصویر · jpg، png یا webp · حداکثر

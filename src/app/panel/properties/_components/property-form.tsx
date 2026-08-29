@@ -179,7 +179,7 @@ export function PropertyForm() {
 
   if (options.isPending) {
     return (
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <Skeleton className="h-64 rounded-xl" />
         <Skeleton className="h-96 rounded-xl" />
       </div>
@@ -199,7 +199,7 @@ export function PropertyForm() {
   return (
     <form
       onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
-      className="grid gap-4"
+      className="grid grid-cols-1 gap-4"
     >
       <Card>
         <CardHeader>
@@ -208,8 +208,8 @@ export function PropertyForm() {
             مشخصات اصلی
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-5">
-          <div className="grid gap-5 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <LookupSelect
               control={form.control}
               name="type"
@@ -234,7 +234,7 @@ export function PropertyForm() {
             rows={4}
           />
 
-          <div className="grid gap-5 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             <FormTextField
               {...context}
               name="area"
@@ -267,7 +267,7 @@ export function PropertyForm() {
             )}
           </div>
 
-          <div className="grid gap-3 rounded-xl border p-3">
+          <div className="grid grid-cols-1 gap-3 rounded-xl border p-3">
             <Label className="flex items-center gap-2">
               <Controller
                 control={form.control}
@@ -299,8 +299,8 @@ export function PropertyForm() {
             موقعیت
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-5">
-          <div className="grid gap-5 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <LookupSelect
               control={form.control}
               name="district_id"
@@ -320,8 +320,8 @@ export function PropertyForm() {
             اطلاعات تماس
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-5">
-          <div className="grid gap-5 sm:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             <FormTextField {...context} name="owner_name" label="نام مالک" />
             <FormTextField
               {...context}
@@ -358,8 +358,8 @@ export function PropertyForm() {
         <CardHeader>
           <CardTitle>جزئیات ملک</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-5">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {result.fields
               .filter((field) => !field.multiple)
               .map((field) => (

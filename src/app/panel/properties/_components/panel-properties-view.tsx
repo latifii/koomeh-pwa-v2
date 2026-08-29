@@ -108,8 +108,8 @@ export function PanelPropertiesView() {
     setFilters((current) => ({ ...current, ...patch }));
 
   return (
-    <div className="grid gap-4">
-      <div className="grid gap-3 rounded-xl border bg-card p-3">
+    <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -121,7 +121,7 @@ export function PanelPropertiesView() {
           />
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <FilterSelect
             label="وضعیت"
             value={filters.confirmation}
@@ -217,7 +217,7 @@ export function PanelPropertiesView() {
           description={getApiErrorMessage(list.error)}
         />
       ) : list.isPending ? (
-        <div className="grid gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {Array.from({ length: 4 }, (_, index) => (
             <Skeleton key={index} className="h-40 rounded-xl" />
           ))}
@@ -230,7 +230,7 @@ export function PanelPropertiesView() {
         />
       ) : (
         <>
-          <div className="grid gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {rows.map((row) => (
               <PanelPropertyRow key={row.id} row={row} onAction={status.ask} />
             ))}

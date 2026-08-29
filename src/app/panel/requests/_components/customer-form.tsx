@@ -216,7 +216,7 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
 
   if (options.isPending || (isEdit && existing.isPending)) {
     return (
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <Skeleton className="h-56 rounded-xl" />
         <Skeleton className="h-72 rounded-xl" />
       </div>
@@ -239,7 +239,7 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
   return (
     <form
       onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
-      className="grid gap-4"
+      className="grid grid-cols-1 gap-4"
     >
       <Card>
         <CardHeader>
@@ -248,8 +248,8 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
             متقاضی
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-5">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <FormTextField {...context} name="name" label="نام متقاضی" required />
             <FormTextField
               {...context}
@@ -305,8 +305,8 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
             خواسته‌ها
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-5">
-          <div className="grid gap-5 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <LookupSelect
               control={form.control}
               name="request_type"
@@ -323,7 +323,7 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
             />
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {isRent ? (
               <>
                 <FormTextField {...context} name="mortgage_min" label="ودیعه از" inputMode="numeric" />
@@ -358,8 +358,8 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
             جزئیات
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-5">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {optionFields
               .filter((field) => !field.multiple)
               .map((field) => (

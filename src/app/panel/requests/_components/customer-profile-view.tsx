@@ -141,7 +141,7 @@ export function CustomerProfileView({ id }: { id: string }) {
 
   if (profile.isPending) {
     return (
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <Skeleton className="h-40 rounded-xl" />
         <Skeleton className="h-64 rounded-xl" />
       </div>
@@ -180,9 +180,9 @@ export function CustomerProfileView({ id }: { id: string }) {
   const rows = estates.data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4">
       <Card>
-        <CardContent className="grid gap-4 p-4 sm:p-5">
+        <CardContent className="grid grid-cols-1 gap-4 p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <Typography variant="h3" as="h2" className="text-lg sm:text-xl">
@@ -212,7 +212,7 @@ export function CustomerProfileView({ id }: { id: string }) {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {can?.can_view_mobile && customer.mobile && (
               <InfoTile icon={Phone} label="موبایل" value={customer.mobile} href={`tel:${customer.mobile}`} />
             )}
@@ -268,7 +268,7 @@ export function CustomerProfileView({ id }: { id: string }) {
             <CardTitle>شرایط درخواستی</CardTitle>
           </CardHeader>
           <CardContent>
-            <dl className="grid gap-x-6 sm:grid-cols-2">
+            <dl className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
               {customer.criteria.map((item) => (
                 <div
                   key={item.label}
@@ -309,10 +309,10 @@ export function CustomerProfileView({ id }: { id: string }) {
               هنوز فایلی به این مشتری پیشنهاد نشده است.
             </Typography>
           ) : (
-            <div className="grid gap-4">
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {rows.map((row) => (
-                  <div key={row.relation_id} className="grid gap-2">
+                  <div key={row.relation_id} className="grid grid-cols-1 gap-2">
                     <div className="relative">
                       <PropertyCard estate={mapHomeEstate(row.estate)} />
                       {(row.seen || row.click_count > 0) && (
@@ -392,7 +392,7 @@ export function CustomerProfileView({ id }: { id: string }) {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -400,11 +400,11 @@ export function CustomerProfileView({ id }: { id: string }) {
               یادداشت‌ها
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3">
+          <CardContent className="grid grid-cols-1 gap-3">
             {can?.can_add_note && (
               <form
                 onSubmit={form.handleSubmit((values) => addNote.mutate(values))}
-                className="grid gap-2"
+                className="grid grid-cols-1 gap-2"
               >
                 <FormTextareaField
                   {...context}
@@ -423,7 +423,7 @@ export function CustomerProfileView({ id }: { id: string }) {
             {notes.isPending ? (
               <Skeleton className="h-24 rounded-lg" />
             ) : notes.data?.items.length ? (
-              <ul className="grid gap-2">
+              <ul className="grid grid-cols-1 gap-2">
                 {notes.data.items.map((note) => (
                   <li key={note.id} className="rounded-lg border p-3">
                     <Typography variant="body" className="leading-6">
@@ -442,7 +442,7 @@ export function CustomerProfileView({ id }: { id: string }) {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {can?.can_view_operations && (
             <Card>
               <CardHeader>
@@ -455,7 +455,7 @@ export function CustomerProfileView({ id }: { id: string }) {
                 {operations.isPending ? (
                   <Skeleton className="h-20 rounded-lg" />
                 ) : operations.data?.items.length ? (
-                  <ul className="grid gap-2">
+                  <ul className="grid grid-cols-1 gap-2">
                     {operations.data.items.map((item) => (
                       <li key={item.id} className="rounded-lg border p-3">
                         <Typography variant="h4" as="p" className="sm:text-sm">
@@ -491,7 +491,7 @@ export function CustomerProfileView({ id }: { id: string }) {
               {appointments.isPending ? (
                 <Skeleton className="h-20 rounded-lg" />
               ) : appointments.data?.items.length ? (
-                <ul className="grid gap-2">
+                <ul className="grid grid-cols-1 gap-2">
                   {appointments.data.items.map((item) => (
                     <li key={item.id} className="rounded-lg border p-3">
                       <Typography variant="h4" as="p" className="sm:text-sm">

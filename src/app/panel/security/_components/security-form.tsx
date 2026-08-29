@@ -50,7 +50,7 @@ export function SecuritySettings() {
   };
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -63,7 +63,7 @@ export function SecuritySettings() {
             onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
             className="space-y-5"
           >
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <FormTextField
                 {...context}
                 name="password"

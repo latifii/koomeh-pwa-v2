@@ -83,7 +83,7 @@ export function CompareView() {
   }
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <div className="flex items-center justify-between gap-3">
         <Typography variant="small">
           {compare.data.total.toLocaleString("fa-IR")} ملک در فهرست مقایسه
@@ -144,7 +144,7 @@ function CompareTable({
                   key={item.id}
                   className="min-w-52 border-b p-3 text-start align-top font-normal"
                 >
-                  <div className="grid gap-2">
+                  <div className="grid grid-cols-1 gap-2">
                     <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-muted">
                       <ApiImage
                         src={item.coverImage ?? ""}

@@ -102,7 +102,7 @@ export function ProfileForm() {
 
   if (profile.isPending) {
     return (
-      <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_1fr]">
         <Skeleton className="h-64 rounded-xl" />
         <Skeleton className="h-96 rounded-xl" />
       </div>
@@ -124,7 +124,7 @@ export function ProfileForm() {
   return (
     <form
       onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
-      className="grid gap-4 lg:grid-cols-[220px_1fr]"
+      className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_1fr]"
     >
       <Card className="h-fit">
         <CardContent className="flex flex-col items-center p-5 text-center">
@@ -153,7 +153,7 @@ export function ProfileForm() {
           <CardTitle>اطلاعات شخصی</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <FormTextField {...context} name="name" label="نام" />
             <FormTextField {...context} name="last_name" label="نام خانوادگی" />
             <FormTextField
