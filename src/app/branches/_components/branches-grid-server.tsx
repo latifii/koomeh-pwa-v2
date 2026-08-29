@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
-import { ApiError } from "@/lib/api/api-error";
+import { isApiError } from "@/lib/api/api-error";
 
 const EMPTY = {
   total: 0,
@@ -24,7 +24,7 @@ async function getBranchesPage() {
   try {
     return mapBranchesPage(await getCachedBranches(1, 60));
   } catch (error) {
-    if (error instanceof ApiError && error.code === "NOT_FOUND") return EMPTY;
+    if (isApiError(error) && error.code === "NOT_FOUND") return EMPTY;
     throw error;
   }
 }

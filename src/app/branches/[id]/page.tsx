@@ -38,8 +38,10 @@ import { ApiImage } from "@/components/shared/api-image";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import { ApiError } from "@/lib/api/api-error";
+import { isApiError } from "@/lib/api/api-error";
+import { JsonLd } from "@/components/shared/json-ld";
 import { routes } from "@/lib/routes";
+import { branchSchema, breadcrumbSchema } from "@/lib/structured-data";
 
 import { BranchShareButton } from "../_components/branch-actions";
 import { BranchContactCard } from "../_components/branch-contact-card";
@@ -64,7 +66,7 @@ async function optional<T>(promise: Promise<T>): Promise<T | undefined> {
   try {
     return await promise;
   } catch (error) {
-    if (error instanceof ApiError) return undefined;
+    if (isApiError(error)) return undefined;
     return undefined;
   }
 }
@@ -167,6 +169,15 @@ export default async function BranchPage({ params }: {
 
   return (
     <div className="pb-16">
+      <JsonLd data={branchSchema(branch)} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "خانه", path: routes.home },
+          { name: "شعب کومه", path: routes.branches },
+          { name: branch.name, path: routes.branch(branch.numericId) },
+        ])}
+      />
+
       <Breadcrumb
         items={[
           { label: "خانه", href: routes.home },

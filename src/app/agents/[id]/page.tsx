@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -8,7 +9,7 @@ import {
   getCachedAgents,
 } from "@/app/agents/_cache/agents.cache";
 import { mapSearchEstate } from "@/app/properties/_mappers/estate-search.mapper";
-import { ApiError, normalizeApiError } from "@/lib/api/api-error";
+import { isApiError, normalizeApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 
 import { AgentProfileView } from "./_components/agent-profile-view";
@@ -23,11 +24,16 @@ export function generateStaticParams() {
   return [];
 }
 
+// `unstable_cache` does not de-duplicate two in-flight calls, so on a cold
+// cache `generateMetadata` and the page body both went upstream. This collapses
+// them into one, the same way the other detail routes do.
+const getProfile = cache((id: string) => getCachedAgentProfile(id));
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
 
   try {
-    const { result } = await getCachedAgentProfile(id);
+    const { result } = await getProfile(id);
     const agent = result.agent;
     const title = `${agent.name} | کارشناسان کومه`;
     const description = (
@@ -68,14 +74,14 @@ export default async function AgentProfilePage({ params }: PageProps) {
 
   try {
     [profileData, estatesData, agentsData] = await Promise.all([
-      getCachedAgentProfile(id),
+      getProfile(id),
       getCachedAgentEstates(id, 6),
       getCachedAgents(1, 1, 4),
     ]);
   } catch (error) {
     const apiError = normalizeApiError(error);
 
-    if (apiError instanceof ApiError && apiError.code === "NOT_FOUND") {
+    if (isApiError(apiError) && apiError.code === "NOT_FOUND") {
       notFound();
     }
 

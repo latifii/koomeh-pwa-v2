@@ -21,8 +21,10 @@ import { RichText } from "@/components/shared/rich-text";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import { formatToman } from "@/data/search";
-import { ApiError } from "@/lib/api/api-error";
+import { isApiError } from "@/lib/api/api-error";
+import { JsonLd } from "@/components/shared/json-ld";
 import { routes } from "@/lib/routes";
+import { breadcrumbSchema } from "@/lib/structured-data";
 
 import { AreaEstates } from "./_components/area-estates";
 import { AreaMapPanel } from "./_components/area-map-panel";
@@ -42,7 +44,7 @@ const getArea = cache(async (id: string) => {
   try {
     return mapNeighborhoodDetail(await getCachedNeighborhood(id));
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) notFound();
+    if (isApiError(error) && error.status === 404) notFound();
     throw error;
   }
 });
@@ -129,6 +131,14 @@ export default async function AreaPage({
 
   return (
     <div className="pb-16">
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "خانه", path: routes.home },
+          { name: "محلات", path: routes.neighborhoods },
+          { name: area.title, path: routes.neighborhood(area.id) },
+        ])}
+      />
+
       <Breadcrumb
         items={[
           { label: "خانه", href: routes.home },

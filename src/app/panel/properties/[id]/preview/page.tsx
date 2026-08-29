@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
-import { ApiError } from "@/lib/api/api-error";
+import { isApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 
 export const metadata: Metadata = { title: "پیش‌نمایش آگهی | پنل کومه" };
@@ -32,7 +32,7 @@ export default async function PropertyPreviewPage({
   try {
     detail = mapEstateDetail(await getCachedEstateDetail(id));
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) notFound();
+    if (isApiError(error) && error.status === 404) notFound();
     throw error;
   }
 

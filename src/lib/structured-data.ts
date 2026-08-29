@@ -174,3 +174,111 @@ export function articleSchema(article: {
     publisher: { "@id": ORGANIZATION_ID },
   };
 }
+
+/**
+ * A branch office, as a place Google can put on a map.
+ *
+ * This is the richest page the site has for local search — it carries a street
+ * address, coordinates and a phone number, which is exactly what a local result
+ * is built from. `RealEstateAgent` is a subtype of `LocalBusiness`, so it earns
+ * the same treatment while saying what the business actually is.
+ *
+ * Fields are omitted rather than guessed: a branch with no coordinates gets no
+ * `geo`, because inventing one would put a pin in the wrong street.
+ */
+export function branchSchema(branch: {
+  numericId: number;
+  name: string;
+  address?: string;
+  phone?: string;
+  lat?: number;
+  lng?: number;
+  coverImage?: string;
+  description?: string;
+  city?: { name: string };
+  workingHours?: { days: string; hours: string; closed?: boolean }[];
+}) {
+  const url = absoluteUrl(routes.branch(branch.numericId));
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "@id": url,
+    url,
+    name: branch.name,
+    description: branch.description,
+    image: branch.coverImage ? [branch.coverImage] : undefined,
+    telephone: branch.phone,
+    address: branch.address
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: branch.address,
+          addressLocality: branch.city?.name ?? "قم",
+          addressCountry: "IR",
+        }
+      : undefined,
+    geo:
+      branch.lat !== undefined && branch.lng !== undefined
+        ? {
+            "@type": "GeoCoordinates",
+            latitude: branch.lat,
+            longitude: branch.lng,
+          }
+        : undefined,
+    // Only the days the branch is actually open; a closed row is not an
+    // opening hour, and listing it would advertise the opposite of the truth.
+    openingHours: branch.workingHours
+      ?.filter((entry) => !entry.closed && entry.hours)
+      .map((entry) => `${entry.days} ${entry.hours}`),
+    parentOrganization: { "@id": ORGANIZATION_ID },
+    inLanguage: "fa-IR",
+  };
+}
+
+/** An agent, as a person who works for the organization. */
+export function agentSchema(agent: {
+  id: number;
+  name: string;
+  photo?: string;
+  title?: string;
+  phone?: string;
+  branchName?: string;
+}) {
+  const url = absoluteUrl(routes.agent(agent.id));
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "@id": url,
+    url,
+    name: agent.name,
+    image: agent.photo ? [agent.photo] : undefined,
+    jobTitle: agent.title,
+    telephone: agent.phone,
+    worksFor: agent.branchName
+      ? { "@type": "Organization", name: agent.branchName }
+      : { "@id": ORGANIZATION_ID },
+    inLanguage: "fa-IR",
+  };
+}
+
+/**
+ * The home page's FAQ.
+ *
+ * Every answer is already in the prerendered HTML, which is the condition
+ * Google sets: `FAQPage` describes content the visitor can see, not content
+ * added for the crawler.
+ */
+export function faqSchema(items: { question: string; answer: string }[]) {
+  if (items.length === 0) return null;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  };
+}

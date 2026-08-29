@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Award, Building2, Home, Languages, MapPin } from "lucide-react";
 
 import type { AgentDto, AgentProfileResponse } from "@/app/agents/_schemas/agents.schema";
@@ -9,7 +8,9 @@ import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
 import { Typography } from "@/components/ui/typography";
 import type { Listing } from "@/data/search";
+import { JsonLd } from "@/components/shared/json-ld";
 import { routes } from "@/lib/routes";
+import { agentSchema, breadcrumbSchema } from "@/lib/structured-data";
 
 import { AgentContactCard } from "./agent-contact-card";
 import { AgentProfileHero } from "./agent-profile-hero";
@@ -31,6 +32,24 @@ export function AgentProfileView({
 }) {
   return (
     <div className="pb-16">
+      <JsonLd
+        data={agentSchema({
+          id: agent.id,
+          name: agent.name,
+          photo: agent.photo ?? undefined,
+          title: agent.title ?? undefined,
+          phone: agent.phone ?? undefined,
+          branchName: agent.branch?.name,
+        })}
+      />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "خانه", path: routes.home },
+          { name: "کارشناسان", path: routes.agents },
+          { name: agent.name, path: routes.agent(agent.id) },
+        ])}
+      />
+
       <Breadcrumb
         items={[
           { label: "خانه", href: routes.home },
