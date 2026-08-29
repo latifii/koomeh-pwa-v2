@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useSelectedLayoutSegment } from "next/navigation";
 import { Menu, Phone, PlusCircle } from "lucide-react";
 
 import { AccountMenu } from "@/app/auth/_components/account-menu";
@@ -61,8 +61,19 @@ const navLinks = [
 ];
 
 export function SiteHeader() {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
+  /*
+   * Which child route is active, asked the way a layout is meant to ask.
+   *
+   * This used to be `usePathname() === "/"`, and on the deployed build that
+   * came back wrong during the server render: the home page shipped with the
+   * scrolled header baked into its HTML, and only corrected itself once a
+   * scroll event forced a re-render. `useSelectedLayoutSegment` is resolved
+   * from the segment tree the layout is already rendering, so it does not
+   * depend on the pathname being resolvable at that moment. It returns null
+   * for the index route.
+   */
+  const segment = useSelectedLayoutSegment();
+  const isHome = segment === null;
   const isAuthenticated = useSessionStore((state) => state.status === "authenticated");
   const [isScrolled, setIsScrolled] = useState(false);
 
