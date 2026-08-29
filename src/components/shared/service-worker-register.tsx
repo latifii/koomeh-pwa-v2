@@ -82,10 +82,24 @@ export function ServiceWorkerRegister() {
     if (document.readyState === "complete") start();
     else window.addEventListener("load", start, { once: true });
 
-    // Fires once the new worker takes over, which is the moment to reload.
+    /*
+     * Reload only when one worker replaces another.
+     *
+     * `controllerchange` also fires on a first-ever install, because the
+     * worker calls `clients.claim()` in `activate` and takes over the page
+     * that just registered it. Reloading there meant every new visitor — and
+     * every incognito window — watched the page load, blank, and load again.
+     * There is nothing to reload into on a first install: the page was
+     * rendered by the same build the worker came from.
+     *
+     * When there was already a controller, the takeover is a version change,
+     * and the reload is the point: this page holds chunk URLs from the old
+     * build that the new worker may no longer serve.
+     */
+    const hadController = Boolean(navigator.serviceWorker.controller);
     let reloading = false;
     const onControllerChange = () => {
-      if (reloading) return;
+      if (!hadController || reloading) return;
       reloading = true;
       window.location.reload();
     };

@@ -228,7 +228,21 @@ async function navigationFirst(event) {
     controller.abort();
 
     const offline = await caches.match(OFFLINE_URL, { cacheName: CACHES.shell });
-    return offline ?? Response.error();
+    if (offline) return offline;
+
+    /*
+     * No offline page cached — the install that should have stored it was
+     * interrupted, or its caches were cleared. Returning `Response.error()`
+     * here is what puts the browser's own "This page couldn't load" screen in
+     * front of someone whose connection is fine, so try the network once more
+     * on its own terms instead. If that fails too, the visitor really is
+     * offline and the browser error is the honest answer.
+     */
+    try {
+      return await fetch(request);
+    } catch {
+      return Response.error();
+    }
   }
 }
 
