@@ -13,10 +13,9 @@ import {
 } from "@/app/_home/_mappers/home-content.mapper";
 import { cacheTtl } from "@/lib/cache-policy";
 
-export const HOME_CONTENT_LIMITS = {
-  blogArticles: 3,
-  neighborhoodGuides: 6,
-} as const;
+import { HOME_CONTENT_LIMITS } from "@/app/_home/_constants/home-limits";
+
+export { HOME_CONTENT_LIMITS };
 
 export function latestBlogArticlesQueryOptions(
   limit = HOME_CONTENT_LIMITS.blogArticles,

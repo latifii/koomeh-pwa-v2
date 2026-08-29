@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { Section } from "@/components/layout/section";
@@ -51,6 +52,14 @@ export function EstateSectionSkeleton({
   );
 }
 
+/**
+ * Shown when a home section could not load.
+ *
+ * `onRetry` is optional because these sections are fetched on the server now:
+ * there is no client query to refetch, so retrying means asking the server to
+ * render the route again. Passing a handler still works for anything that does
+ * own a query.
+ */
 export function EstateSectionError({
   title,
   message,
@@ -58,8 +67,9 @@ export function EstateSectionError({
 }: {
   title: string;
   message: string;
-  onRetry: () => void;
+  onRetry?: () => void;
 }) {
+  const router = useRouter();
   return (
     <Section tone="muted">
       <div
@@ -73,7 +83,11 @@ export function EstateSectionError({
           {title}
         </Typography>
         <Typography variant="muted">{message}</Typography>
-        <Button type="button" variant="outline" onClick={onRetry}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onRetry ?? (() => router.refresh())}
+        >
           <RefreshCw />
           تلاش دوباره
         </Button>

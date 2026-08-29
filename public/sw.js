@@ -49,8 +49,20 @@ const LIMITS = {
   [CACHES.tiles]: 120,
 };
 
-/** Long enough to beat a slow connection, short enough not to feel hung. */
-const NAVIGATION_TIMEOUT_MS = 3500;
+/**
+ * How long to wait before showing a cached copy of a page the visitor has
+ * already opened. It is not a deadline for the network: the request keeps
+ * running and refreshes the cache, and if there is no cached copy this is not
+ * used at all.
+ */
+const STALE_FALLBACK_MS = 3500;
+
+/**
+ * The real deadline, and only for a page with nothing cached. Mobile networks
+ * here routinely take longer than a few seconds to first byte, so this has to
+ * be long enough that a working connection is never called offline.
+ */
+const NAVIGATION_TIMEOUT_MS = 15000;
 
 /** Prefixes whose responses must never reach the cache. */
 const PRIVATE_PREFIXES = ["/panel", "/auth", "/api"];
@@ -77,6 +89,13 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      // Starts the navigation before this worker has booted, so worker
+      // start-up is off the critical path for the first click after a cold
+      // start. Not supported everywhere; absence is not an error.
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable();
+      }
+
       const keep = new Set(Object.values(CACHES));
       const names = await caches.keys();
       await Promise.all(
@@ -132,20 +151,57 @@ async function cacheFirst(request, cacheName) {
   return response;
 }
 
-function timeout(ms) {
-  return new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("timeout")), ms),
-  );
+/**
+ * Races a promise against a deadline, and clears the timer either way.
+ *
+ * The clearing is the point. A bare `Promise.race` against a timer leaves the
+ * loser pending: when the network wins, the timer still fires later and
+ * rejects with nobody listening, which surfaces as an unhandled rejection in
+ * the worker for every single navigation.
+ */
+function withDeadline(promise, ms) {
+  let timer;
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error("timeout")), ms);
+  });
+
+  return Promise.race([promise, deadline]).finally(() => clearTimeout(timer));
 }
 
-async function navigationFirst(request) {
+/**
+ * Navigations: the network decides, and the cache is only ever a fallback.
+ *
+ * The shape matters more than it looks. An earlier version raced the fetch
+ * against a 3.5s timer and treated losing that race as "offline" — so a visitor
+ * on a working connection whose page was simply slow got the offline screen,
+ * while the abandoned request arrived moments later and filled the cache. On
+ * the mobile networks this site is used on, a first byte past 3.5s is ordinary,
+ * not exceptional.
+ *
+ * So the timer no longer means offline:
+ *
+ * - With a cached copy, the timer only decides when to *show* it. The request
+ *   keeps running and refreshes the cache for next time. A stale listing on
+ *   screen is a real cost — a sold file still reading as available — so this
+ *   only happens after the wait, never ahead of a network reply that is coming.
+ * - With nothing cached there is nothing to show early, so it waits for the
+ *   network, and only a genuine failure or a very long silence reaches the
+ *   offline page. That request *is* aborted, because it has been given up on.
+ *
+ * `preloadResponse` is the navigation the browser started before this worker
+ * even booted; using it removes worker start-up from the critical path.
+ */
+async function navigationFirst(event) {
+  const request = event.request;
   const cache = await caches.open(CACHES.pages);
+  const cached = await cache.match(request);
 
-  try {
-    const response = await Promise.race([
-      fetch(request),
-      timeout(NAVIGATION_TIMEOUT_MS),
-    ]);
+  const controller = new AbortController();
+
+  const network = (async () => {
+    const preloaded = await event.preloadResponse;
+    const response =
+      preloaded ?? (await fetch(request, { signal: controller.signal }));
 
     if (response.ok) {
       await cache.put(request, response.clone());
@@ -153,12 +209,23 @@ async function navigationFirst(request) {
     }
 
     return response;
+  })();
+
+  if (cached) {
+    // Keep the request alive past the response so the cache still updates.
+    event.waitUntil(network.catch(() => {}));
+
+    try {
+      return await withDeadline(network, STALE_FALLBACK_MS);
+    } catch {
+      return cached;
+    }
+  }
+
+  try {
+    return await withDeadline(network, NAVIGATION_TIMEOUT_MS);
   } catch {
-    // Offline, or the network is slower than the timeout. A page the visitor
-    // has already opened — the listing they saved before driving to the
-    // viewing — is the whole point of keeping this cache.
-    const cached = await cache.match(request);
-    if (cached) return cached;
+    controller.abort();
 
     const offline = await caches.match(OFFLINE_URL, { cacheName: CACHES.shell });
     return offline ?? Response.error();
@@ -209,7 +276,7 @@ self.addEventListener("fetch", (event) => {
     // would fill storage with near-duplicates of an unbounded space.
     if (url.pathname === "/properties" && url.search) return;
 
-    event.respondWith(navigationFirst(request));
+    event.respondWith(navigationFirst(event));
   }
 });
 

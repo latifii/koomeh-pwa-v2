@@ -12,11 +12,9 @@ import {
   mapVirtualTourEstates,
 } from "@/app/_home/_mappers/home-estates.mapper";
 
-export const HOME_ESTATE_LIMITS = {
-  sale: 8,
-  rent: 4,
-  virtualTour: 3,
-} as const;
+import { HOME_ESTATE_LIMITS } from "@/app/_home/_constants/home-limits";
+
+export { HOME_ESTATE_LIMITS };
 
 export function latestSaleEstatesQueryOptions(limit = HOME_ESTATE_LIMITS.sale) {
   return queryOptions({

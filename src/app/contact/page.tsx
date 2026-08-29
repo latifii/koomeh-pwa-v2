@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 
 export const metadata: Metadata = {
+  alternates: { canonical: routes.contact },
   title: "تماس با ما | گروه املاک کومه",
   description:
     "تماس با گروه املاک کومه؛ شماره ۰۲۵-۳۱۸۰، ایمیل info@koomeh.ir، اینستاگرام koomeh.amlak و آدرس شعب جمهوری، صدوق و زمرد در قم.",

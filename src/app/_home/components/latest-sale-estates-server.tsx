@@ -1,29 +1,34 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-
 import { getCachedLatestSaleEstates } from "@/app/_home/_cache/home-estates.cache";
-import {
-  HOME_ESTATE_LIMITS,
-  latestSaleEstatesQueryOptions,
-} from "@/app/_home/_queries/home-estates.query";
-import { createQueryClient } from "@/lib/query/query-client";
+import { HOME_ESTATE_LIMITS } from "@/app/_home/_constants/home-limits";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 
-import { LatestSaleEstatesSection } from "./latest-sale-estates-section";
+import { EstateSectionError } from "./estate-section-state";
+import { SaleSection } from "./sale-section";
 
+/**
+ * Fetched and rendered on the server.
+ *
+ * This used to hand the data to a client component through a
+ * `HydrationBoundary`, which meant the browser downloaded the query, the axios
+ * client and the whole Zod schema tree for a `queryFn` that never ran: the
+ * data was already hydrated, `staleTime` is five minutes and
+ * `refetchOnWindowFocus` is off. The section below has no interactivity of its
+ * own, so rendering it here keeps it — and everything it imports — out of the
+ * client bundle entirely.
+ */
 export async function LatestSaleEstatesServer() {
-  const queryClient = createQueryClient();
-  const query = latestSaleEstatesQueryOptions();
+  let section;
 
   try {
-    const section = await getCachedLatestSaleEstates(HOME_ESTATE_LIMITS.sale);
-    queryClient.setQueryData(query.queryKey, section);
-  } catch {
-    // Keep the page renderable. The client query will retry and expose its
-    // section-level error state if the public API is temporarily unavailable.
+    section = await getCachedLatestSaleEstates(HOME_ESTATE_LIMITS.sale);
+  } catch (error) {
+    return (
+      <EstateSectionError
+        title="دریافت املاک خرید و فروش ناموفق بود"
+        message={getApiErrorMessage(error)}
+      />
+    );
   }
 
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <LatestSaleEstatesSection />
-    </HydrationBoundary>
-  );
+  return <SaleSection section={section} />;
 }

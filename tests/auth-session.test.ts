@@ -5,9 +5,9 @@ import {
   isAccessExpired,
   isRefreshExpired,
   toClientSession,
-  userSessionSchema,
   type UserSession,
 } from "@/lib/auth/session.types";
+import { userSessionSchema } from "@/lib/auth/session.schema";
 import { safeCallbackUrl } from "@/lib/auth/routes";
 import {
   checkRefresh,

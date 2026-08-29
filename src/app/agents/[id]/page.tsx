@@ -9,6 +9,7 @@ import {
 } from "@/app/agents/_cache/agents.cache";
 import { mapSearchEstate } from "@/app/properties/_mappers/estate-search.mapper";
 import { ApiError, normalizeApiError } from "@/lib/api/api-error";
+import { routes } from "@/lib/routes";
 
 import { AgentProfileView } from "./_components/agent-profile-view";
 
@@ -27,10 +28,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   try {
     const { result } = await getCachedAgentProfile(id);
-    const description = result.agent.bio || result.agent.title || result.agent.activity_label;
+    const agent = result.agent;
+    const title = `${agent.name} | کارشناسان کومه`;
+    const description = (
+      agent.bio ||
+      agent.title ||
+      agent.activity_label ||
+      undefined
+    )?.slice(0, 150);
+
     return {
-      title: `${result.agent.name} | کارشناسان کومه`,
-      description: description?.slice(0, 150),
+      title,
+      description,
+      alternates: { canonical: routes.agent(agent.id) },
+      openGraph: {
+        type: "profile",
+        title,
+        description,
+        url: routes.agent(agent.id),
+        images: agent.photo ? [{ url: agent.photo, alt: agent.name }] : undefined,
+      },
+      twitter: {
+        card: agent.photo ? "summary" : "summary_large_image",
+        title,
+        description,
+        images: agent.photo ? [agent.photo] : undefined,
+      },
     };
   } catch {
     return { title: "کارشناس یافت نشد | کومه" };

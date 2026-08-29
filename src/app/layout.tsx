@@ -25,9 +25,14 @@ import { siteUrl } from "@/lib/site-url";
  * and ExtraBold matched zero rules anywhere in `src` and cost 192 KB a visit
  * between them.
  *
- * Black (900) is reachable from exactly one place — the decorative watermark in
- * `story-section` — and is kept for it. Dropping that usage to `font-bold`
- * would save another 47 KB on every page.
+ * Black (900) went the same way. Its only reader was the watermark in
+ * `story-section`, set at 12rem and 5% opacity, where 700 and 900 are not
+ * tellable apart — 47 KB off the critical path of every page for a difference
+ * nobody can see.
+ *
+ * What is left is four weights and about 191 KB. Going lower means the
+ * variable build of Vazirmatn, which covers 100-900 in a single file around
+ * 140 KB; that needs a font this repo does not ship yet.
  *
  * Before adding a weight back, check something reaches it:
  * `grep -r "font-light" src`.
@@ -54,11 +59,6 @@ const vazirmatn = localFont({
       weight: "700",
       style: "normal",
     },
-    {
-      path: "../assets/fonts/Vazirmatn-FD-Black.woff2",
-      weight: "900",
-      style: "normal",
-    },
   ],
   variable: "--font-vazirmatn",
 });
@@ -70,6 +70,37 @@ export const metadata: Metadata = {
   title: "کومه - خرید و فروش املاک قم",
   description:
     "املاک قم؛ خرید، فروش و اجاره انواع ملک در قم با پوشش کامل مناطق پردیسان، سالاریه، زنبیل‌آباد، صفاشهر، شهرک قدس، جمهوری، کریمی و فردوسی.",
+  /**
+   * Share cards. Most of this site`s traffic is a listing link pasted into
+   * Telegram or WhatsApp, so a link that unfurls with nothing is a link that
+   * does not get opened.
+   *
+   * Set once here and inherited: a page that overrides `openGraph.title` keeps
+   * this `siteName`, `locale` and image unless it names its own.
+   */
+  openGraph: {
+    type: "website",
+    siteName: "کومه",
+    locale: "fa_IR",
+    url: siteUrl,
+    title: "کومه - خرید و فروش املاک قم",
+    description:
+      "املاک قم؛ خرید، فروش و اجاره انواع ملک در قم با پوشش کامل مناطق پردیسان، سالاریه، زنبیل‌آباد، صفاشهر، شهرک قدس، جمهوری، کریمی و فردوسی.",
+    // The app icon, not a designed card: it is square, so it unfurls as a
+    // thumbnail rather than a banner. Pages that have a real image of their
+    // own — a listing, an article — override this and are the ones that
+    // matter. A proper 1200x630 default needs artwork this repo does not have.
+    images: [{ url: "/icon-512x512.png", width: 512, height: 512, alt: "کومه" }],
+  },
+  twitter: {
+    // Telegram and WhatsApp read Open Graph, but X and several in-app browsers
+    // look for these first.
+    card: "summary_large_image",
+    title: "کومه - خرید و فروش املاک قم",
+    description:
+      "املاک قم؛ خرید، فروش و اجاره انواع ملک در قم.",
+    images: ["/icon-512x512.png"],
+  },
   // `app/manifest.ts` is served at this path; naming it here is what puts the
   // <link rel="manifest"> in the document, and without that nothing installs.
   manifest: "/manifest.webmanifest",

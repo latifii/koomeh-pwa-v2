@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 
 export const metadata: Metadata = {
+  alternates: { canonical: routes.about },
   title: "درباره ما | گروه املاک کومه",
   description:
     "گروه املاک کومه؛ همراه تخصصی خرید، فروش، رهن و اجاره ملک در قم با فایلینگ قوی، مشاوران متخصص و قراردادهای حقوقی شفاف.",

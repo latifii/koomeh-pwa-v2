@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
+import { routes } from "@/lib/routes";
 
 import { AgentsIntro } from "./_components/agents-intro";
 import { AgentsSearchServer } from "./_components/agents-search-server";
@@ -14,6 +15,7 @@ import { AgentsSearchServer } from "./_components/agents-search-server";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
+  alternates: { canonical: routes.agents },
   title: "کارشناسان املاک کومه در قم | جست‌وجوی مشاور",
   description:
     "لیست کارشناسان گروه املاک کومه در قم؛ بر اساس نوع فعالیت، تخصص ملک و امتیاز، مشاور مناسب خود را پیدا کنید.",
