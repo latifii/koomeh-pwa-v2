@@ -17,6 +17,12 @@ export const httpClient = axios.create({
 });
 
 httpClient.interceptors.request.use((config) => {
+  // Set per request rather than on the instance: the same client runs in both
+  // places, and only the server render is under a platform time limit.
+  if (typeof window === "undefined" && config.timeout === apiConfig.timeoutMs) {
+    config.timeout = apiConfig.serverTimeoutMs;
+  }
+
   const token = getAccessToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;

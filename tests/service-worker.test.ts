@@ -34,9 +34,12 @@ function reply(body: string, ok = true): Body {
 
 function makeWorker({
   cached,
+  offlinePage = true,
   fetchImpl,
 }: {
   cached?: boolean;
+  /** False for an install that never stored the offline shell. */
+  offlinePage?: boolean;
   fetchImpl: (req: unknown, init?: { signal?: AbortSignal }) => Promise<Body>;
 }) {
   const stores = new Map<string, Map<string, Body>>();
@@ -57,7 +60,10 @@ function makeWorker({
 
   openCache("koomeh-pages-v1");
   if (cached) stores.get("koomeh-pages-v1")!.set(PAGE, reply("CACHED"));
-  stores.set("koomeh-shell-v1", new Map([["/offline", reply("OFFLINE")]]));
+  stores.set(
+    "koomeh-shell-v1",
+    offlinePage ? new Map([["/offline", reply("OFFLINE")]]) : new Map(),
+  );
 
   const sandbox: Record<string, unknown> = {
     self: {
@@ -191,3 +197,23 @@ test("a preloaded navigation is used instead of fetching again", async () => {
   assert.equal(res.body, "PRELOAD");
   assert.equal(fetched, false);
 });
+
+test("with no offline page cached, the network is tried again before giving up", async () => {
+  let calls = 0;
+  const { sandbox } = makeWorker({
+    offlinePage: false,
+    fetchImpl: async () => {
+      calls += 1;
+      // Slow enough to miss the deadline the first time, fine on the retry.
+      if (calls === 1) return new Promise(() => {}) as unknown as Body;
+      return reply("LIVE");
+    },
+  });
+
+  const res = await (sandbox as unknown as Worker).navigationFirst(navigationEvent());
+
+  // Not the browser's own error screen, which is what a visitor with a working
+  // connection was being shown.
+  assert.equal(res.body, "LIVE");
+  assert.equal(calls, 2);
+}, 30_000);
