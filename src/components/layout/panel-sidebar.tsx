@@ -1,34 +1,25 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Bell,
-  Building2,
-  CalendarDays,
-  ChevronLeft,
-  ClipboardList,
-  Heart,
-  History,
-  LayoutDashboard,
-  Menu,
-  MessageCircle,
-  Network,
-  Scale,
-  SearchCheck,
-  Settings,
-  StickyNote,
-  Trophy,
-  ListTodo,
-  Activity,
-  ContactRound,
-  UserRound,
-} from "lucide-react";
+import { ChevronDown, ChevronLeft, Menu, UserRound } from "lucide-react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import {
+  PANEL_NAV_ITEMS,
+  visibleGroups,
+  visiblePrimaryLinks,
+  type PanelNavItem,
+} from "@/components/layout/panel-nav.config";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Drawer,
   DrawerClose,
@@ -40,127 +31,27 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
-import type { SessionUser } from "@/lib/auth/session.types";
+import { panelViewer, roleLabel } from "@/lib/auth/permissions";
 import { cn } from "@/lib/utils";
-import { routes } from "@/lib/routes";
 
-/** Roles come back as slugs; the sidebar badge needs a label. */
-const roleLabels: Record<string, string> = {
-  admin: "مدیر",
-  expert: "کارشناس",
-  user: "کاربر عادی",
-};
+/**
+ * Which entry the current URL belongs to.
+ *
+ * Longest match wins, because the hrefs nest: `/panel/properties/new` starts
+ * with `/panel/properties`, and without this both "my listings" and "add a
+ * listing" would light up at once.
+ */
+function activeHrefFor(pathname: string): string | null {
+  let best: string | null = null;
 
-function roleLabel(user: SessionUser): string {
-  if (user.isAdmin) return roleLabels.admin;
-  if (user.isExpert) return roleLabels.expert;
-  return roleLabels[user.roles[0]] ?? roleLabels.user;
+  for (const item of PANEL_NAV_ITEMS) {
+    const matches =
+      pathname === item.href || pathname.startsWith(`${item.href}/`);
+    if (matches && (!best || item.href.length > best.length)) best = item.href;
+  }
+
+  return best;
 }
-
-const panelLinks = [
-  {
-    href: routes.panel.dashboard,
-    label: "داشبورد",
-    icon: LayoutDashboard,
-    enabled: true,
-  },
-  {
-    href: routes.panel.compare,
-    label: "مقایسه املاک",
-    icon: Scale,
-    enabled: true,
-  },
-  {
-    href: routes.panel.savedSearches,
-    label: "جست‌وجوهای ذخیره‌شده",
-    icon: SearchCheck,
-    enabled: true,
-  },
-  {
-    href: routes.panel.history,
-    label: "تاریخچه بازدید",
-    icon: History,
-    enabled: true,
-  },
-  {
-    href: routes.panel.notes,
-    label: "یادداشت‌ها",
-    icon: StickyNote,
-    enabled: true,
-  },
-  {
-    href: routes.panel.matches,
-    label: "تطبیق هوشمند",
-    icon: Network,
-    enabled: true,
-  },
-  {
-    href: routes.panel.activities,
-    label: "فعالیت‌ها",
-    icon: Activity,
-    enabled: true,
-  },
-  {
-    href: routes.panel.tasks,
-    label: "وظایف",
-    icon: ListTodo,
-    enabled: true,
-  },
-  {
-    href: routes.panel.conversations,
-    label: "گفت‌وگوها",
-    icon: MessageCircle,
-    enabled: true,
-  },
-  {
-    href: routes.panel.contacts,
-    label: "مخاطبان",
-    icon: ContactRound,
-    enabled: true,
-  },
-  {
-    href: routes.panel.appointments,
-    label: "تقویم قرارها",
-    icon: CalendarDays,
-    enabled: true,
-  },
-  {
-    href: routes.panel.agentStats,
-    label: "لیگ ستارگان",
-    icon: Trophy,
-    enabled: true,
-  },
-  {
-    href: routes.panel.properties,
-    label: "ملک‌های من",
-    icon: Building2,
-    enabled: true,
-  },
-  {
-    href: routes.panel.requests,
-    label: "ثبت تقاضا",
-    icon: ClipboardList,
-    enabled: true,
-  },
-  {
-    href: routes.panel.favorites,
-    label: "علاقه‌مندی‌ها",
-    icon: Heart,
-    enabled: true,
-  },
-  {
-    href: routes.panel.notifications,
-    label: "اعلان‌ها",
-    icon: Bell,
-    enabled: true,
-  },
-  {
-    href: routes.panel.profile,
-    label: "تنظیمات حساب",
-    icon: Settings,
-    enabled: true,
-  },
-];
 
 export function PanelProfile() {
   const user = useSessionStore((state) => state.session?.user);
@@ -202,74 +93,152 @@ export function PanelProfile() {
   );
 }
 
-export function PanelNav({
-  closeOnNavigate = false,
+function NavLink({
+  item,
+  active,
+  closeOnNavigate,
 }: {
-  closeOnNavigate?: boolean;
+  item: PanelNavItem;
+  active: boolean;
+  closeOnNavigate: boolean;
 }) {
+  const Icon = item.icon;
+
+  const link = (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex h-10 w-full items-center justify-between gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
+        active
+          ? "bg-sidebar-primary text-sidebar-primary-foreground"
+          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+      )}
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        <Icon className="size-4 shrink-0" />
+        <Typography
+          as="span"
+          variant="body"
+          className="truncate text-sm font-medium"
+        >
+          {item.label}
+        </Typography>
+      </span>
+      {item.soon ? (
+        <Badge
+          variant="secondary"
+          className={cn(
+            "h-auto shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
+            active
+              ? "bg-sidebar-primary-foreground/15 text-sidebar-primary-foreground"
+              : "bg-muted text-muted-foreground",
+          )}
+        >
+          به‌زودی
+        </Badge>
+      ) : (
+        <ChevronLeft className="size-4 shrink-0 opacity-60" />
+      )}
+    </Link>
+  );
+
+  return closeOnNavigate ? (
+    <DrawerClose nativeButton={false} render={link} />
+  ) : (
+    link
+  );
+}
+
+export function PanelNav({
+  /**
+   * `sidebar` is the panel's own column; `drawer` is the phone menu, which
+   * already carries the whole site navigation above this and would otherwise
+   * unroll two dozen more rows under it. So the topics start closed there and
+   * open here — the sidebar has a column to itself and nothing to compete with.
+   */
+  variant = "sidebar",
+}: {
+  variant?: "sidebar" | "drawer";
+}) {
+  const inDrawer = variant === "drawer";
   const pathname = usePathname();
+  const user = useSessionStore((state) => state.session?.user);
+  const viewer = useMemo(() => panelViewer(user), [user]);
+
+  const groups = useMemo(() => visibleGroups(viewer), [viewer]);
+  const primary = useMemo(() => visiblePrimaryLinks(viewer), [viewer]);
+  const activeHref = activeHrefFor(pathname);
+
+  /**
+   * Only what the visitor has explicitly toggled. Everything else falls back to
+   * the variant's default, and the topic the visitor is currently inside is
+   * always open — the page you are on is never missing from the menu.
+   */
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
+
+  if (!user) {
+    return (
+      <div className="flex flex-col gap-2" aria-hidden>
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Skeleton key={index} className="h-10 rounded-lg" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <nav className="flex flex-col gap-1" aria-label="منوی پنل کاربری">
-      {panelLinks.map((item) => {
-        const active =
-          pathname === item.href ||
-          (item.href !== routes.panel.dashboard &&
-            pathname.startsWith(`${item.href}/`));
-        const Icon = item.icon;
-        const className = cn(
-          "flex h-11 w-full items-center justify-between rounded-lg px-3 text-sm font-medium transition-colors",
-          active
-            ? "bg-sidebar-primary text-sidebar-primary-foreground "
-            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-          !item.enabled && "pointer-events-none opacity-55",
+      {primary.map((item) => (
+        <NavLink
+          key={item.href}
+          item={item}
+          active={activeHref === item.href}
+          closeOnNavigate={inDrawer}
+        />
+      ))}
+
+      {groups.map((group) => {
+        const holdsActive = group.items.some((item) => item.href === activeHref);
+        const open = holdsActive || (toggled[group.id] ?? !inDrawer);
+        const GroupIcon = group.icon;
+
+        return (
+          <Collapsible
+            key={group.id}
+            open={open}
+            onOpenChange={(next) =>
+              setToggled((state) => ({ ...state, [group.id]: next }))
+            }
+            className="mt-2 first:mt-1"
+          >
+            <CollapsibleTrigger
+              className={cn(
+                "group flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2",
+                "text-xs font-semibold text-muted-foreground transition-colors",
+                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              )}
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <GroupIcon className="size-4 shrink-0 opacity-70" />
+                <span className="truncate">{group.label}</span>
+              </span>
+              <ChevronDown className="size-4 shrink-0 opacity-60 transition-transform group-data-panel-open:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-1 ms-4 flex flex-col gap-0.5 border-s border-sidebar-border ps-2">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    active={activeHref === item.href}
+                    closeOnNavigate={inDrawer}
+                  />
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         );
-        const content = (
-          <>
-            <div className="flex min-w-0 items-center gap-2">
-              <Icon className="size-4 shrink-0" />
-              <Typography
-                as="span"
-                variant="body"
-                className="truncate text-sm font-medium"
-              >
-                {item.label}
-              </Typography>
-            </div>
-            {item.enabled ? (
-              <ChevronLeft className="size-4 opacity-60" />
-            ) : (
-              <Badge
-                variant="secondary"
-                className="h-auto rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
-              >
-                به‌زودی
-              </Badge>
-            )}
-          </>
-        );
-
-        if (!item.enabled) {
-          return (
-            <div key={item.href} className={className} aria-disabled="true">
-              {content}
-            </div>
-          );
-        }
-
-        const link = (
-          <Link href={item.href} className={className}>
-            {content}
-          </Link>
-        );
-
-        if (closeOnNavigate) {
-          return (
-            <DrawerClose key={item.href} nativeButton={false} render={link} />
-          );
-        }
-
-        return <div key={item.href}>{link}</div>;
       })}
     </nav>
   );
@@ -296,12 +265,17 @@ export function PanelSidebar() {
 }
 
 export function PanelMobileNav() {
+  const pathname = usePathname();
+  const activeHref = activeHrefFor(pathname);
+  const current =
+    PANEL_NAV_ITEMS.find((item) => item.href === activeHref)?.label ?? "داشبورد";
+
   return (
     <div className="flex items-center justify-between rounded-lg border  p-3  md:hidden">
       <div>
         <Typography variant="small">پنل کاربری</Typography>
         <Typography variant="body" className="text-sm font-semibold">
-          داشبورد
+          {current}
         </Typography>
       </div>
       <Drawer swipeDirection="right">
@@ -322,7 +296,7 @@ export function PanelMobileNav() {
           </DrawerHeader>
           <PanelProfile />
           <Separator className="my-4" />
-          <PanelNav closeOnNavigate />
+          <PanelNav variant="drawer" />
         </DrawerContent>
       </Drawer>
     </div>

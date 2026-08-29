@@ -75,10 +75,14 @@ export function Breadcrumb({
                     variant="small"
                     aria-current={isLast ? "page" : undefined}
                     className={cn(
-                      "font-medium text-foreground",
                       // Only the final crumb may be truncated: the ones before
-                      // it are short labels that should stay readable.
-                      isLast ? "truncate" : "shrink-0",
+                      // it are short labels that should stay readable. It is
+                      // also the only one emphasised — an intermediate crumb
+                      // with no link of its own (a section heading, say) is
+                      // still context, not where you are.
+                      isLast
+                        ? "truncate font-medium text-foreground"
+                        : "shrink-0",
                     )}
                   >
                     {item.label}

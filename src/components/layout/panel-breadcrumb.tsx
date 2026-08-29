@@ -3,34 +3,62 @@
 import { usePathname } from "next/navigation";
 
 import { Breadcrumb } from "@/components/layout/breadcrumb";
+import {
+  PANEL_NAV_GROUPS,
+  PANEL_NAV_ITEMS,
+} from "@/components/layout/panel-nav.config";
 import { routes } from "@/lib/routes";
 
-const routeLabels: Record<string, string> = {
-  [routes.panel.dashboard]: "داشبورد",
-  [routes.panel.newProperty]: "ثبت ملک",
-  [routes.panel.newRequest]: "ثبت تقاضا",
-  [routes.panel.requests]: "تقاضاهای ملکی",
-  [routes.panel.properties]: "ملک‌های من",
-  [routes.panel.favorites]: "علاقه‌مندی‌ها",
-  [routes.panel.compare]: "مقایسه املاک",
-  [routes.panel.savedSearches]: "جست‌وجوهای ذخیره‌شده",
-  [routes.panel.history]: "تاریخچه بازدید",
-  [routes.panel.notes]: "یادداشت‌ها",
-  [routes.panel.matches]: "تطبیق هوشمند",
-  [routes.panel.activities]: "فعالیت‌ها",
-  [routes.panel.tasks]: "وظایف",
-  [routes.panel.conversations]: "گفت‌وگوها",
-  [routes.panel.contacts]: "مخاطبان",
-  [routes.panel.appointments]: "تقویم قرارها",
-  [routes.panel.agentStats]: "لیگ ستارگان",
-  [routes.panel.notifications]: "اعلان‌ها",
-  [routes.panel.profile]: "تنظیمات حساب",
-  [routes.panel.security]: "امنیت حساب",
-};
+/**
+ * The trail names the topic as well as the page, so `/panel/tasks` reads
+ * «پنل کاربری › عملکرد مشاور › وظایف» — the same shape as the sidebar it sits
+ * beside. Labels come from the navigation config rather than a second table
+ * that would drift from it.
+ */
+
+/** Pages that are not menu entries of their own, keyed by the prefix under it. */
+const DETAIL_LABELS: ReadonlyArray<readonly [string, string]> = [
+  [`${routes.panel.requests}/`, "جزئیات تقاضا"],
+  [`${routes.panel.conversations}/`, "گفت‌وگو"],
+  [`${routes.panel.properties}/`, "مدیریت ملک"],
+];
+
+function itemFor(pathname: string) {
+  return (
+    PANEL_NAV_ITEMS.find((item) => item.href === pathname) ??
+    // Longest prefix wins, so a detail page is attributed to its list.
+    PANEL_NAV_ITEMS.filter((item) => pathname.startsWith(`${item.href}/`)).sort(
+      (a, b) => b.href.length - a.href.length,
+    )[0]
+  );
+}
+
+function groupLabelFor(href: string): string | null {
+  const group = PANEL_NAV_GROUPS.find((candidate) =>
+    candidate.items.some((item) => item.href === href),
+  );
+
+  return group?.label ?? null;
+}
 
 export function PanelBreadcrumb() {
   const pathname = usePathname();
-  const currentLabel = getCurrentLabel(pathname);
+  const item = itemFor(pathname);
+
+  const detail = DETAIL_LABELS.find(([prefix]) => pathname.startsWith(prefix));
+  const isEditRequest =
+    pathname.startsWith(`${routes.panel.requests}/`) &&
+    pathname.endsWith("/edit");
+
+  const currentLabel = item
+    ? item.href === pathname
+      ? item.label
+      : isEditRequest
+        ? "ویرایش تقاضا"
+        : (detail?.[1] ?? item.label)
+    : "داشبورد";
+
+  const groupLabel = item ? groupLabelFor(item.href) : null;
 
   return (
     <Breadcrumb
@@ -39,19 +67,9 @@ export function PanelBreadcrumb() {
       items={[
         { label: "خانه", href: routes.home },
         { label: "پنل کاربری", href: routes.panel.dashboard },
+        ...(groupLabel ? [{ label: groupLabel }] : []),
         { label: currentLabel },
       ]}
     />
   );
-}
-
-function getCurrentLabel(pathname: string): string {
-  if (routeLabels[pathname]) return routeLabels[pathname];
-  if (pathname.startsWith(`${routes.panel.requests}/`) && pathname.endsWith("/edit")) {
-    return "ویرایش تقاضا";
-  }
-  if (pathname.startsWith(`${routes.panel.requests}/`)) return "جزئیات تقاضا";
-  if (pathname.startsWith(`${routes.panel.conversations}/`)) return "گفت‌وگو";
-  if (pathname.startsWith(`${routes.panel.properties}/`)) return "مدیریت ملک";
-  return "داشبورد";
 }

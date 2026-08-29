@@ -8,6 +8,8 @@ import {
   isAuthPath,
   isProtectedPath,
 } from "@/lib/auth/routes";
+import { canAccess, panelAudienceFor } from "@/lib/auth/panel-access";
+import { panelViewer } from "@/lib/auth/permissions";
 import {
   SESSION_COOKIE,
   SESSION_COOKIE_OPTIONS,
@@ -96,6 +98,34 @@ export async function proxy(request: NextRequest) {
           ? redirect(request, routes.auth.login, `${pathname}${search}`)
           : NextResponse.next(),
       );
+    }
+  }
+
+  /*
+   * A panel route the visitor's roles do not reach sends them back to the
+   * dashboard rather than rendering a page that can only apologise. The same
+   * map hides the link in the sidebar, so a bookmark and a menu agree.
+   *
+   * This is convenience, not a boundary: the roles here are a snapshot at most
+   * one access-token lifetime old, and the API answers 403 on its own account.
+   * Somebody promoted five minutes ago waits for the next rotation — which is
+   * why the fallback is the dashboard and not a dead end.
+   */
+  if (protectedPath) {
+    const viewer = panelViewer(current.user);
+
+    if (!canAccess(panelAudienceFor(pathname), viewer)) {
+      const fallback = canAccess(
+        panelAudienceFor(routes.panel.dashboard),
+        viewer,
+      )
+        ? routes.panel.dashboard
+        : routes.home;
+
+      const denied = redirect(request, fallback);
+      return renewed
+        ? withSession(denied, renewed, sessionMaxAge(current))
+        : denied;
     }
   }
 

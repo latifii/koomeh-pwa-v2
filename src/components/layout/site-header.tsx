@@ -201,9 +201,11 @@ export function SiteHeader() {
               </DrawerHeader>
 
               {/*
-               * The drawer is full-height and the panel adds seventeen links,
-               * so the middle scrolls and the actions below stay put. Reaching
-               * "sign out" should never mean scrolling past the whole panel.
+               * The drawer is full-height and the panel adds its whole menu
+               * below this, so the middle scrolls and the actions below stay
+               * put. Reaching "sign out" should never mean scrolling past the
+               * whole panel — which is also why the panel's topics arrive
+               * collapsed in this variant.
                */}
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3">
                 {isAuthenticated && (
@@ -240,7 +242,7 @@ export function SiteHeader() {
                     <Typography variant="eyebrow" className="mb-2 px-1">
                       پنل کاربری
                     </Typography>
-                    <PanelNav closeOnNavigate />
+                    <PanelNav variant="drawer" />
                   </>
                 )}
               </div>
