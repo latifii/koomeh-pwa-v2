@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, LogIn } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Lock, LogIn, Phone } from "lucide-react";
 
 import { signInAction } from "@/app/auth/_actions/auth-actions";
 import {
@@ -12,8 +12,15 @@ import {
   type SignInValues,
 } from "@/app/auth/_schemas/auth.schema";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
-import { FormTextField, type FormContext } from "@/components/shared/form";
+import { FieldMessage } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { AFTER_SIGN_IN, CALLBACK_PARAM, safeCallbackUrl } from "@/lib/auth/routes";
@@ -24,6 +31,7 @@ export function LoginForm() {
   const refreshSession = useSessionStore((state) => state.refreshSession);
 
   const [error, setError] = useState<string>();
+  const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<SignInValues>({
@@ -31,11 +39,7 @@ export function LoginForm() {
     defaultValues: { username: "", password: "" },
   });
 
-  const context: FormContext<SignInValues> = {
-    control: form.control,
-    register: form.register,
-    errors: form.formState.errors,
-  };
+  const errors = form.formState.errors;
 
   const onSubmit = (values: SignInValues) => {
     setError(undefined);
@@ -46,6 +50,7 @@ export function LoginForm() {
       if (!result.ok) {
         setError(result.message);
         form.setValue("password", "");
+        form.setFocus("password");
         return;
       }
 
@@ -62,33 +67,72 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" noValidate>
-      <div className="grid gap-5">
-        <FormTextField
-          {...context}
-          name="username"
-          label="شماره همراه"
-          type="tel"
-          inputMode="numeric"
-          autoComplete="username"
-          placeholder="۰۹۱۲۰۰۰۰۰۰۰"
-          required
-        />
-        <FormTextField
-          {...context}
-          name="password"
-          label="رمز عبور"
-          type="password"
-          autoComplete="current-password"
-          required
-        />
+    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-5" noValidate>
+      <div className="grid gap-2">
+        <Label htmlFor="username">شماره همراه</Label>
+        <InputGroup>
+          <InputGroupAddon>
+            <Phone className="size-4" />
+          </InputGroupAddon>
+          {/*
+           * `dir="ltr"` with the text pushed to the start of the field: a phone
+           * number is a left-to-right run of digits, and inside an RTL form it
+           * otherwise renders with the cursor and the digits fighting each
+           * other as you type. The placeholder is in Latin digits for the same
+           * reason — it is what the keyboard produces.
+           */}
+          <InputGroupInput
+            id="username"
+            type="tel"
+            dir="ltr"
+            className="text-start"
+            inputMode="numeric"
+            autoComplete="username"
+            placeholder="09121234567"
+            autoFocus
+            aria-invalid={Boolean(errors.username)}
+            {...form.register("username")}
+          />
+        </InputGroup>
+        <FieldMessage message={errors.username?.message} />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="password">رمز عبور</Label>
+        <InputGroup>
+          <InputGroupAddon>
+            <Lock className="size-4" />
+          </InputGroupAddon>
+          <InputGroupInput
+            id="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            aria-invalid={Boolean(errors.password)}
+            {...form.register("password")}
+          />
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              type="button"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "پنهان کردن رمز" : "نمایش رمز"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
+        <FieldMessage message={errors.password?.message} />
       </div>
 
       {error && (
         <Typography
           variant="small"
           role="alert"
-          className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive"
+          className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 leading-6 text-destructive"
         >
           <AlertCircle className="mt-0.5 size-4 shrink-0" />
           {error}
@@ -96,8 +140,12 @@ export function LoginForm() {
       )}
 
       <Button type="submit" size="lg" className="w-full" disabled={isPending}>
-        {isPending ? <Spinner data-icon="inline-start" /> : <LogIn data-icon="inline-start" />}
-        ورود به حساب
+        {isPending ? (
+          <Spinner data-icon="inline-start" />
+        ) : (
+          <LogIn data-icon="inline-start" />
+        )}
+        {isPending ? "در حال ورود…" : "ورود به حساب"}
       </Button>
     </form>
   );
