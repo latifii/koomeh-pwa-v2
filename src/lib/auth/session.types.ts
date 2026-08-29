@@ -1,47 +1,23 @@
-import { z } from "zod";
+import type { z } from "zod";
+
+import type {
+  sessionUserSchema,
+  userSessionSchema,
+} from "./session.schema";
 
 /**
- * Shapes shared by the middleware, the server actions and the browser store.
- * Keep this module free of `next/headers`, `node:` and `axios` imports so the
- * proxy can pull it in — it runs on Node today, but staying runtime-agnostic
- * costs nothing and keeps the option open.
+ * Shapes shared by the proxy, the server actions and the browser store.
  *
- * These are schemas rather than bare types because the session cookie is parsed
- * on the way in, the same way every API response is. See `decryptSession`.
+ * Deliberately free of runtime imports. The types come from `session.schema`
+ * through `import type`, which the compiler erases — so the browser store can
+ * import from here without dragging `zod` into the first load of every page,
+ * while the two definitions still cannot drift apart.
+ *
+ * Also free of `next/headers`, `node:` and `axios`, so the proxy can pull it in
+ * — it runs on Node today, but staying runtime-agnostic costs nothing.
  */
 
-export const sessionUserSchema = z.object({
-  id: z.number(),
-  fullName: z.string(),
-  username: z.string().optional(),
-  email: z.string().optional(),
-  phone: z.string().optional(),
-  photo: z.string().optional(),
-  /**
-   * A snapshot, not the authority. Roles are baked into the cookie, so one
-   * revoked in the backend keeps showing here until the session is rebuilt —
-   * which happens on every token rotation, so at most one access-token
-   * lifetime (two hours on this API), not the whole refresh window. Long
-   * enough to matter for what the UI offers, which is why nothing
-   * security-relevant may rest on these: the API decides, and answers 403
-   * regardless of what the cookie claims.
-   */
-  roles: z.array(z.string()),
-  isAdmin: z.boolean(),
-  isExpert: z.boolean(),
-});
-
 export type SessionUser = z.infer<typeof sessionUserSchema>;
-
-/** What the encrypted cookie carries. Times are epoch milliseconds. */
-export const userSessionSchema = z.object({
-  user: sessionUserSchema,
-  accessToken: z.string(),
-  refreshToken: z.string(),
-  expiresAt: z.number(),
-  refreshExpiresAt: z.number(),
-});
-
 export type UserSession = z.infer<typeof userSessionSchema>;
 
 /**

@@ -36,6 +36,22 @@ const securityHeaders = [
       ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
     ].join("; "),
   },
+  /**
+   * Two years, subdomains included, and eligible for the preload list.
+   * Independent of the script-src gap below: it closes the first-request
+   * downgrade, which is the one attack a CSP cannot help with at all.
+   *
+   * Only sent over HTTPS — a browser ignores it on http anyway, and emitting
+   * it locally would pin localhost to https in the developer's browser.
+   */
+  ...(process.env.NODE_ENV === "production"
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains; preload",
+        },
+      ]
+    : []),
   // Stops a response being re-interpreted as a script because of its content.
   { key: "X-Content-Type-Options", value: "nosniff" },
   // `frame-ancestors` covers this for modern browsers; kept for the old ones.

@@ -1,6 +1,7 @@
 import { type JWTPayload, SignJWT, jwtVerify } from "jose";
 
-import { userSessionSchema, type UserSession } from "./session.types";
+import { userSessionSchema } from "./session.schema";
+import type { UserSession } from "./session.types";
 
 /**
  * The session cookie is a JWT signed with a server-only secret, so nothing but

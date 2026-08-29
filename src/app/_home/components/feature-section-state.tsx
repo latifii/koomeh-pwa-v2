@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
@@ -50,8 +51,10 @@ export function FeatureSectionError({
 }: {
   title: string;
   message: string;
-  onRetry: () => void;
+  /** Optional: a server-rendered section has no client query to refetch. */
+  onRetry?: () => void;
 }) {
+  const router = useRouter();
   return (
     <Section tone="primary" container={false}>
       <Container>
@@ -64,7 +67,7 @@ export function FeatureSectionError({
           </span>
           <h2 className="font-heading text-lg font-semibold">{title}</h2>
           <p className="text-sm text-white/65">{message}</p>
-          <Button type="button" variant="secondary" onClick={onRetry}>
+          <Button type="button" variant="secondary" onClick={onRetry ?? (() => router.refresh())}>
             <RefreshCw />
             تلاش دوباره
           </Button>

@@ -5,8 +5,10 @@ import { BranchesGridServer } from "@/app/branches/_components/branches-grid-ser
 import { BranchesIntro } from "@/app/branches/_components/branches-intro";
 import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
+import { routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
+  alternates: { canonical: routes.branches },
   title: "شعب املاک کومه در قم",
   description: "نشانی، شماره تماس و کارشناسان شعب گروه املاک کومه در قم.",
 };

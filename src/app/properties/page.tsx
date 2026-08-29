@@ -5,6 +5,7 @@ import {
   type SortKey,
   defaultFilters,
 } from "@/data/search";
+import { routes } from "@/lib/routes";
 
 import { SearchViewServer } from "./_components/search-view-server";
 
@@ -25,9 +26,28 @@ export async function generateMetadata({
   const city = single((await searchParams).city) || "qom";
   const cityName = citySlugs[city] ?? "قم";
 
+  const title = `جستجوی ملک در ${cityName} | کومه`;
+  const description = `خرید، فروش و اجاره ملک در ${cityName}؛ جستجو بر اساس محله، متراژ، قیمت و امکانات با فایل‌های بررسی‌شده گروه املاک کومه.`;
+
   return {
-    title: `جستجوی ملک در ${cityName} | کومه`,
-    description: `خرید، فروش و اجاره ملک در ${cityName}؛ جستجو بر اساس محله، متراژ، قیمت و امکانات با فایل‌های بررسی‌شده گروه املاک کومه.`,
+    title,
+    description,
+    /**
+     * Always the bare path, never the current query string.
+     *
+     * Every filter combination serves the same inventory under a different URL,
+     * and there is no bound on how many combinations exist. `robots.ts`
+     * disallows crawling them, but that only stops the crawl — a filtered URL
+     * linked from elsewhere can still be indexed, and without this it would be
+     * indexed as its own page competing with this one.
+     */
+    alternates: { canonical: routes.properties() },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: routes.properties(),
+    },
   };
 }
 

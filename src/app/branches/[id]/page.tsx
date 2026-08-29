@@ -101,9 +101,28 @@ export async function generateMetadata({ params }: {
 
   try {
     const { branch } = await getBranchContext(id);
+    const title = `${branch.name} گروه املاک کومه | ${branch.address ?? "قم"}`;
+    const description = branch.descriptionParagraphs[0];
+
     return {
-      title: `${branch.name} گروه املاک کومه | ${branch.address ?? "قم"}`,
-      description: branch.descriptionParagraphs[0],
+      title,
+      description,
+      alternates: { canonical: routes.branch(branch.id) },
+      openGraph: {
+        type: "website",
+        title,
+        description,
+        url: routes.branch(branch.id),
+        images: branch.coverImage
+          ? [{ url: branch.coverImage, alt: branch.name }]
+          : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: branch.coverImage ? [branch.coverImage] : undefined,
+      },
     };
   } catch {
     return { title: "شعبه یافت نشد | کومه" };

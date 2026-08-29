@@ -5,7 +5,9 @@ import { homeQueryKeys } from "@/app/_home/_constants/home-query-keys";
 import { mapTopRankedAgents } from "@/app/_home/_mappers/home-agents.mapper";
 import { cacheTtl } from "@/lib/cache-policy";
 
-export const HOME_AGENTS_LIMIT = 3;
+import { HOME_AGENTS_LIMIT } from "@/app/_home/_constants/home-limits";
+
+export { HOME_AGENTS_LIMIT };
 
 export function topRankedAgentsQueryOptions(limit = HOME_AGENTS_LIMIT) {
   return queryOptions({

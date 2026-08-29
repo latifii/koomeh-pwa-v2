@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
+import { routes } from "@/lib/routes";
 
 import { BlogIntro } from "./_components/blog-intro";
 import { BlogListServer } from "./_components/blog-list-server";
@@ -10,6 +11,7 @@ import { BlogListServer } from "./_components/blog-list-server";
 export const revalidate = 900;
 
 export const metadata: Metadata = {
+  alternates: { canonical: routes.articles },
   title: "مجله املاک کومه | راهنما، تحلیل بازار و نکات حقوقی",
   description:
     "جدیدترین مقالات گروه املاک کومه درباره خرید، فروش و اجاره ملک در قم؛ راهنمای معامله، تحلیل بازار مسکن و نکات حقوقی قرارداد.",

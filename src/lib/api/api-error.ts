@@ -1,5 +1,47 @@
-import axios from "axios";
-import { ZodError } from "zod";
+/**
+ * No `axios` or `zod` import on purpose.
+ *
+ * `createQueryClient` calls this to decide whether a failure is retryable, and
+ * the query provider sits in the root layout — so importing either library
+ * here put both into the first load of every page, signed in or not, for a
+ * couple of `instanceof` checks. The shapes below are stable public contracts
+ * of those libraries (`isAxiosError`, `ZodError.name`), and recognising them
+ * structurally costs nothing at runtime.
+ */
+
+type AxiosLikeError = {
+  isAxiosError: true;
+  code?: string;
+  message: string;
+  response?: { status: number; data?: unknown };
+};
+
+function isAxiosLike(error: unknown): error is AxiosLikeError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { isAxiosError?: unknown }).isAxiosError === true
+  );
+}
+
+/** Axios marks a cancellation with this flag rather than a distinct class. */
+function isCancelled(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { __CANCEL__?: unknown }).__CANCEL__ === true
+  );
+}
+
+type ZodLikeError = { name: string; flatten: () => unknown };
+
+function isZodLike(error: unknown): error is ZodLikeError {
+  return (
+    error instanceof Error &&
+    error.name === "ZodError" &&
+    typeof (error as { flatten?: unknown }).flatten === "function"
+  );
+}
 
 export type ApiErrorCode =
   | "BAD_REQUEST"
@@ -71,7 +113,7 @@ function userMessageFromStatus(status?: number): string {
 export function normalizeApiError(error: unknown): ApiError {
   if (error instanceof ApiError) return error;
 
-  if (error instanceof ZodError) {
+  if (isZodLike(error)) {
     return new ApiError("API response validation failed", {
       code: "INVALID_RESPONSE",
       userMessage: "پاسخ دریافتی از سرویس معتبر نیست.",
@@ -79,14 +121,14 @@ export function normalizeApiError(error: unknown): ApiError {
     });
   }
 
-  if (axios.isCancel(error)) {
+  if (isCancelled(error)) {
     return new ApiError("Request cancelled", {
       code: "REQUEST_CANCELLED",
       userMessage: "درخواست لغو شد.",
     });
   }
 
-  if (axios.isAxiosError(error)) {
+  if (isAxiosLike(error)) {
     if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
       return new ApiError(error.message, {
         code: "TIMEOUT",

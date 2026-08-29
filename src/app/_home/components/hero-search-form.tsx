@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
-import { useEstateFilters } from "@/app/_lookups/_hooks/use-lookups";
+import type { EstateFilters } from "@/app/_lookups/_schemas/lookups.schema";
 
 const fallbackDealTypes = [
   { value: "sale", label: "خرید", icon: Home },
@@ -60,10 +60,18 @@ const compactFieldTrigger =
 export function HeroSearchForm({
   dealType,
   setDealType,
+  lookups,
   compact = false,
 }: {
   dealType: string;
   setDealType: (value: string) => void;
+  /**
+   * Fetched on the server and handed down, not queried here. Calling the
+   * lookups hook from this form pulled the axios client and the whole schema
+   * tree into the first load of the home page — for a list of deal types that
+   * changes about once a year and already has a fallback below.
+   */
+  lookups?: EstateFilters;
   compact?: boolean;
 }) {
   const trigger = compact ? compactFieldTrigger : fieldTrigger;
@@ -72,7 +80,6 @@ export function HeroSearchForm({
   // can take a moment. Without a pending flag the button looks inert and the
   // visitor submits the form again.
   const [isPending, startTransition] = useTransition();
-  const lookups = useEstateFilters().data?.result;
   const dealTypes = lookups?.deal_types.items.map((item) => ({
     value: item.value === "2" ? "rent" : "sale",
     label: item.title,

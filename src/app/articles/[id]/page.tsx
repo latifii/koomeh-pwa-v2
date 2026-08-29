@@ -58,12 +58,30 @@ export async function generateMetadata({ params }: {
 
   try {
     const article = mapBlogPostDetail(await resolveBlogPost(id));
+    const title = article.seo.title || `${article.title} | مجله املاک کومه`;
+    const description = article.seo.description || article.excerpt || undefined;
+
     return {
-      title: article.seo.title || `${article.title} | مجله املاک کومه`,
-      description: article.seo.description || article.excerpt || undefined,
-      alternates: article.seo.canonical
-        ? { canonical: article.seo.canonical }
-        : undefined,
+      title,
+      description,
+      // The API can name its own canonical; fall back to this route otherwise,
+      // so every article has one either way.
+      alternates: {
+        canonical: article.seo.canonical ?? routes.article(article.numericId),
+      },
+      openGraph: {
+        type: "article",
+        title,
+        description,
+        url: routes.article(article.numericId),
+        images: article.image ? [{ url: article.image, alt: article.title }] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: article.image ? [article.image] : undefined,
+      },
     };
   } catch {
     return { title: "مقاله یافت نشد | کومه" };

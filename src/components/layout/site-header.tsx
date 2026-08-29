@@ -158,7 +158,14 @@ export function SiteHeader() {
             <PlusCircle />
             ثبت ملک
           </Button>
-          <NotificationBell transparent={transparent} />
+          {/*
+           * Gated here, not inside the bell. The component already returns
+           * null when nobody is signed in, but returning null still means its
+           * module was loaded — and it pulls the notifications service, which
+           * pulls axios and the schema tree. Deciding before the dynamic
+           * import is what keeps that off a signed-out visitor.
+           */}
+          {isAuthenticated && <NotificationBell transparent={transparent} />}
           <AccountMenu transparent={transparent} />
           <Drawer swipeDirection="left">
             <DrawerTrigger

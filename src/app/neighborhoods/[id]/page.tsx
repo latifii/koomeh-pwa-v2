@@ -56,9 +56,26 @@ export async function generateMetadata({
 
   try {
     const area = await getArea(id);
+    const title = area.metaTitle ?? `${area.title} | راهنمای محله`;
+    const description = area.metaDescription ?? area.summary;
+
     return {
-      title: area.metaTitle ?? `${area.title} | راهنمای محله`,
-      description: area.metaDescription ?? area.summary,
+      title,
+      description,
+      alternates: { canonical: routes.neighborhood(area.id) },
+      openGraph: {
+        type: "article",
+        title,
+        description,
+        url: routes.neighborhood(area.id),
+        images: area.image ? [{ url: area.image, alt: area.title }] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: area.image ? [area.image] : undefined,
+      },
     };
   } catch {
     return { title: "محله یافت نشد | کومه" };

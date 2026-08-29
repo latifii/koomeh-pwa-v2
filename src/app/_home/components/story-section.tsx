@@ -104,7 +104,7 @@ function DesktopStory() {
       {/* Oversized watermark of the brand word, sitting behind the story */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -top-10 inset-e-8 font-heading text-[12rem] leading-none font-black text-brand/5 select-none"
+        className="pointer-events-none absolute -top-10 inset-e-8 font-heading text-[12rem] leading-none font-bold text-brand/5 select-none"
       >
         کومه
       </span>

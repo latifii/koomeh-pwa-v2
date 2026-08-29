@@ -71,6 +71,8 @@ function loadWorker(): FetchHandler[] {
       fetch: async () => new Response("ok"),
       setTimeout,
       clearTimeout,
+      // The navigation handler aborts a request it has given up on.
+      AbortController,
       Promise,
       console,
     }),

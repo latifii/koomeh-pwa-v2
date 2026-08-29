@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { CityBranchesServer } from "@/app/_home/components/city-branches-server";
 import { ContentSectionSkeleton } from "@/app/_home/components/content-section-state";
 import { FaqSection } from "@/app/_home/components/faq-section";
-// import { FinalCtaSection } from "@/app/_home/components/final-cta-section";
 import { Hero } from "@/app/_home/components/hero";
 import { MapCtaSection } from "@/app/_home/components/map-cta-section";
 import { QuickServicesSection } from "@/app/_home/components/quick-services-section";
@@ -15,18 +14,23 @@ import { FeatureSectionSkeleton } from "@/app/_home/components/feature-section-s
 import { StorySection } from "@/app/_home/components/story-section";
 import { NeighborhoodGuidesServer } from "@/app/_home/components/neighborhood-guides-server";
 import { TopRankedAgentsServer } from "@/app/_home/components/top-ranked-agents-server";
-// import { TrustStrip } from "@/app/_home/components/trust-strip";
 import { VirtualTourEstatesServer } from "@/app/_home/components/virtual-tour-estates-server";
 import { homeFaqs } from "@/data/home";
-// import { QuickPaths } from "./_home/components/quick-paths";
+import { getCachedEstateFilters } from "@/app/properties/_cache/estate-search.cache";
 
 // Route segment config must be a statically analyzable literal for Next.js.
 export const revalidate = 300;
 
-export default function Home() {
+export default async function Home() {
+  // One server fetch, handed to the hero as a prop. It is cached and shared
+  // with the search page, so this is not an extra upstream call.
+  const lookups = await getCachedEstateFilters(undefined)
+    .then((response) => response.result)
+    .catch(() => undefined);
+
   return (
     <div className="flex flex-1 flex-col" id="top">
-      <Hero />
+      <Hero lookups={lookups} />
       <QuickServicesSection />
       {/* <QuickPaths /> */}
       {/* <TrustStrip /> */}

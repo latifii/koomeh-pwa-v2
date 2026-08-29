@@ -4,12 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 
 import heroImage from "@/assets/images/hero.webp";
+import type { EstateFilters } from "@/app/_lookups/_schemas/lookups.schema";
 import { Typography } from "@/components/ui/typography";
 
 import { HeroSearchForm } from "./hero-search-form";
 import { HeroStats } from "./hero-stats";
 
-export function Hero() {
+export function Hero({ lookups }: { lookups?: EstateFilters }) {
   const [dealType, setDealType] = useState("sale");
 
   return (
@@ -83,7 +84,11 @@ export function Hero() {
             فایل‌های به‌روز، مشاوران محلی و همراهی حرفه‌ای تا یک انتخاب مطمئن.
           </Typography>
 
-          <HeroSearchForm dealType={dealType} setDealType={setDealType} />
+          <HeroSearchForm
+            dealType={dealType}
+            setDealType={setDealType}
+            lookups={lookups}
+          />
 
           <HeroStats />
         </div>

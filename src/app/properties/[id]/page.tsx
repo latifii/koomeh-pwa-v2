@@ -94,11 +94,50 @@ export async function generateMetadata({
     const detail = await getDetail(id);
     const location = detail.location.addressLabel ?? detail.location.cityName;
 
+    const title = location
+      ? `${detail.title} در ${location} | کومه`
+      : `${detail.title} | کومه`;
+
+    // Most of this site's traffic is a listing link pasted into Telegram or
+    // WhatsApp. What unfurls there is this: the price and size in the summary,
+    // and the file's own cover photo instead of the app icon.
+    // A rent file has two numbers, a sale file one, so they read differently.
+    const priceLabel = detail.rent
+      ? [detail.rent.mortgageLabel, detail.rent.rentLabel]
+          .filter(Boolean)
+          .join(" · ")
+      : detail.price?.label;
+
+    const summary = [
+      priceLabel,
+      detail.area ? `${detail.area} متر` : undefined,
+      detail.roomLabel,
+      location,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    const description = summary || detail.description || undefined;
+
     return {
-      title: location
-        ? `${detail.title} در ${location} | کومه`
-        : `${detail.title} | کومه`,
-      description: detail.description ?? undefined,
+      title,
+      description,
+      alternates: { canonical: routes.property(detail.id) },
+      openGraph: {
+        type: "article",
+        title,
+        description,
+        url: routes.property(detail.id),
+        images: detail.media.coverImage
+          ? [{ url: detail.media.coverImage, alt: detail.title }]
+          : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: detail.media.coverImage ? [detail.media.coverImage] : undefined,
+      },
     };
   } catch {
     return { title: "ملک یافت نشد | کومه" };
