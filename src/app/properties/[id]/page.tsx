@@ -31,7 +31,7 @@ import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/shared/json-ld";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import { ApiError } from "@/lib/api/api-error";
+import { isApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 import { breadcrumbSchema, estateListingSchema } from "@/lib/structured-data";
 
@@ -78,7 +78,7 @@ const getDetail = cache(async (id: string) => {
   try {
     return mapEstateDetail(await getCachedEstateDetail(id));
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) notFound();
+    if (isApiError(error) && error.status === 404) notFound();
     throw error;
   }
 });
@@ -124,7 +124,7 @@ export async function generateMetadata({
       description,
       alternates: { canonical: routes.property(detail.id) },
       openGraph: {
-        type: "article",
+        type: "website",
         title,
         description,
         url: routes.property(detail.id),

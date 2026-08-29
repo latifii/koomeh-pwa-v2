@@ -6,7 +6,12 @@
  * and the `<` escaped, so a listing description containing `</script>` cannot
  * close the tag and inject markup.
  */
-export function JsonLd({ data }: { data: object }) {
+export function JsonLd({ data }: { data: object | null }) {
+  // A schema builder returns null when the page has nothing to describe —
+  // an empty FAQ, a branch with no address. Emitting an empty graph would be
+  // worse than emitting none.
+  if (!data) return null;
+
   return (
     <script
       type="application/ld+json"

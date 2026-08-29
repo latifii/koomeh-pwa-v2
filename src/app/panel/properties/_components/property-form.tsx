@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,29 +20,22 @@ import {
 import {
   FormTextField,
   FormTextareaField,
+  LookupSelect,
+  MultiSelectField,
   type FormContext,
 } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
-import { cn } from "@/lib/utils";
 
 import { PropertyImageUploader } from "./property-image-uploader";
 
-const NONE = "__none__";
 
 const numericLabels: Record<string, string> = {
   area: "متراژ (مترمربع)",
@@ -217,15 +210,15 @@ export function PropertyForm() {
         </CardHeader>
         <CardContent className="grid gap-5">
           <div className="grid gap-5 sm:grid-cols-2">
-            <ControlledSelect
-              form={form}
+            <LookupSelect
+              control={form.control}
               name="type"
               label="نوع معامله"
               options={result.deal_types}
               required
             />
-            <ControlledSelect
-              form={form}
+            <LookupSelect
+              control={form.control}
               name="estate_type"
               label="نوع ملک"
               options={result.estate_types}
@@ -308,8 +301,8 @@ export function PropertyForm() {
         </CardHeader>
         <CardContent className="grid gap-5">
           <div className="grid gap-5 sm:grid-cols-2">
-            <ControlledSelect
-              form={form}
+            <LookupSelect
+              control={form.control}
               name="district_id"
               label={`محله${result.city ? ` (${result.city.name})` : ""}`}
               options={result.districts}
@@ -370,9 +363,9 @@ export function PropertyForm() {
             {result.fields
               .filter((field) => !field.multiple)
               .map((field) => (
-                <ControlledSelect
+                <LookupSelect
                   key={field.key}
-                  form={form}
+                  control={form.control}
                   name={`fields.${field.key}`}
                   label={field.label}
                   options={field.options}
@@ -398,7 +391,7 @@ export function PropertyForm() {
             .map((field) => (
               <MultiSelectField
                 key={field.key}
-                form={form}
+                control={form.control}
                 name={`fields.${field.key}`}
                 label={field.label}
                 options={field.options}
@@ -439,135 +432,5 @@ export function PropertyForm() {
         </Typography>
       </div>
     </form>
-  );
-}
-
-type FormApi = ReturnType<typeof useForm<CreateEstateFormValues>>;
-
-function ControlledSelect({
-  form,
-  name,
-  label,
-  options,
-  required,
-  allowEmpty,
-}: {
-  form: FormApi;
-  // Includes the `fields.<key>` paths, which are typed as a record.
-  name: string;
-  label: string;
-  options: { value: string; title: string }[];
-  required?: boolean;
-  allowEmpty?: boolean;
-}) {
-  const items = useMemo(
-    () => [
-      ...(allowEmpty ? [{ value: NONE, label: "انتخاب نشده" }] : []),
-      ...options.map((option) => ({ value: option.value, label: option.title })),
-    ],
-    [allowEmpty, options],
-  );
-
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={name}>
-        {label}
-        {required && <span className="text-destructive"> *</span>}
-      </Label>
-      <Controller
-        control={form.control}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        name={name as any}
-        render={({ field, fieldState }) => (
-          <Select
-            value={(field.value as string) || (allowEmpty ? NONE : null)}
-            items={items}
-            onValueChange={(value) =>
-              field.onChange(value === NONE ? "" : (value ?? ""))
-            }
-          >
-            <SelectTrigger
-              id={name}
-              aria-label={label}
-              className={cn("w-full", fieldState.error && "border-destructive")}
-            >
-              <SelectValue placeholder={label} />
-            </SelectTrigger>
-            <SelectContent>
-              {items.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      />
-      {form.formState.errors && (
-        <Typography variant="small" className="text-destructive">
-          {/* Only the two required selects can error. */}
-          {name === "type" || name === "estate_type"
-            ? (form.formState.errors[name]?.message as string | undefined)
-            : undefined}
-        </Typography>
-      )}
-    </div>
-  );
-}
-
-function MultiSelectField({
-  form,
-  name,
-  label,
-  options,
-}: {
-  form: FormApi;
-  name: string;
-  label: string;
-  options: { value: string; title: string }[];
-}) {
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <Controller
-        control={form.control}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        name={name as any}
-        render={({ field }) => {
-          const selected = Array.isArray(field.value) ? field.value : [];
-
-          const toggle = (value: string) =>
-            field.onChange(
-              selected.includes(value)
-                ? selected.filter((item) => item !== value)
-                : [...selected, value],
-            );
-
-          return (
-            <div className="flex flex-wrap gap-2">
-              {options.map((option) => {
-                const active = selected.includes(option.value);
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => toggle(option.value)}
-                    aria-pressed={active}
-                    className={cn(
-                      "rounded-full border px-3 py-1.5 text-sm transition-colors",
-                      active
-                        ? "border-brand bg-brand/10 font-medium text-brand"
-                        : "bg-card text-muted-foreground hover:border-brand/40",
-                    )}
-                  >
-                    {option.title}
-                  </button>
-                );
-              })}
-            </div>
-          );
-        }}
-      />
-    </div>
   );
 }

@@ -9,7 +9,6 @@ import {
   useState,
 } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { RotateCcw, SlidersHorizontal } from "lucide-react";
 

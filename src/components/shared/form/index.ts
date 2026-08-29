@@ -8,6 +8,12 @@ export {
   type FormContext,
   type FormOption,
 } from "./form-controls";
+export {
+  LOOKUP_NONE,
+  LookupSelect,
+  MultiSelectField,
+  type LookupOption,
+} from "./lookup-select";
 export { FormSection } from "./form-section";
 export {
   FormProgressCard,

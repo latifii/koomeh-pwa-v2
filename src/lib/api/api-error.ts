@@ -83,6 +83,25 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Recognises an ApiError without `instanceof`.
+ *
+ * Defensive, not a fix for anything observed: the pages behind a cached fetch
+ * were checked and `instanceof` still matches there today. It is used at those
+ * call sites because they are the ones where an error crosses a cache boundary,
+ * and a prototype does not always survive that — a silent miss there means a
+ * 404 rendered as a 200, which is the kind of failure nobody notices.
+ */
+export function isApiError(error: unknown): error is ApiError {
+  return (
+    error instanceof ApiError ||
+    (typeof error === "object" &&
+      error !== null &&
+      (error as { name?: unknown }).name === "ApiError" &&
+      typeof (error as { code?: unknown }).code === "string")
+  );
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }

@@ -19,7 +19,7 @@ import { ApiImage } from "@/components/shared/api-image";
 import { JsonLd } from "@/components/shared/json-ld";
 import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import { ApiError } from "@/lib/api/api-error";
+import { isApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 import { articleSchema, breadcrumbSchema } from "@/lib/structured-data";
 
@@ -46,7 +46,7 @@ async function resolveBlogPost(id: string) {
   try {
     return await dedupedBlogPost(id);
   } catch (error) {
-    if (error instanceof ApiError && error.code === "NOT_FOUND") notFound();
+    if (isApiError(error) && error.code === "NOT_FOUND") notFound();
     throw error;
   }
 }

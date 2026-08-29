@@ -15,6 +15,8 @@ import { StorySection } from "@/app/_home/components/story-section";
 import { NeighborhoodGuidesServer } from "@/app/_home/components/neighborhood-guides-server";
 import { TopRankedAgentsServer } from "@/app/_home/components/top-ranked-agents-server";
 import { VirtualTourEstatesServer } from "@/app/_home/components/virtual-tour-estates-server";
+import { JsonLd } from "@/components/shared/json-ld";
+import { faqSchema } from "@/lib/structured-data";
 import { homeFaqs } from "@/data/home";
 import { getCachedEstateFilters } from "@/app/properties/_cache/estate-search.cache";
 
@@ -61,6 +63,9 @@ export default async function Home() {
       <Suspense fallback={<ContentSectionSkeleton variant="branches" />}>
         <CityBranchesServer />
       </Suspense>
+      {/* The answers are all in the prerendered HTML, which is what makes
+          this eligible: FAQPage describes what the visitor sees. */}
+      <JsonLd data={faqSchema(homeFaqs)} />
       <FaqSection faqs={homeFaqs} />
       {/* <FinalCtaSection /> */}
     </div>
