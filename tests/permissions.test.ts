@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/permissions";
 import {
   PANEL_NAV_ITEMS,
+  isNavigable,
   visibleGroups,
 } from "@/components/layout/panel-nav.config";
 
@@ -133,6 +134,46 @@ test("no page is offered twice", () => {
     assert.equal(seen.has(item.href), false, `${item.href} is listed twice`);
     seen.add(item.href);
   }
+});
+
+test("the old admin menu's missing pages are listed but not reachable", () => {
+  // Everything the old panel had that this API has no endpoint for. Listed so
+  // an administrator can see the panel's full shape; inert so nobody lands on
+  // a route that does not exist.
+  const admin = panelViewer(user(["administrator"], { isAdmin: true, isExpert: true }));
+  const groups = visibleGroups(admin);
+  const entries = groups.flatMap((group) => group.items);
+  const planned = entries.filter((entry) => !isNavigable(entry));
+
+  for (const label of [
+    "عملکرد املاک",
+    "گزارش‌های مشکل در املاک",
+    "ویرایش‌های املاک",
+    "عملکرد مشتریان",
+    "شعبه‌ها",
+    "تنظیمات",
+    "اعضای سیستم",
+    "عملکرد کارشناسان",
+    "مدیریت قرارداد",
+    "مدیریت مطالب",
+    "کارشناسی قیمت",
+  ]) {
+    assert.ok(
+      planned.some((entry) => entry.label === label),
+      `${label} is missing from the admin's menu`,
+    );
+  }
+
+  for (const entry of planned) {
+    assert.equal(entry.href, undefined, `${entry.label} must not be a link`);
+    assert.equal(entry.soon, true, `${entry.label} must say so`);
+  }
+
+  // A plain member is shown none of them — they were admin pages before too.
+  const plain = visibleGroups(panelViewer(user(["user"])))
+    .flatMap((group) => group.items)
+    .filter((entry) => !isNavigable(entry));
+  assert.equal(plain.length, 0);
 });
 
 test("detail routes inherit their list's audience", () => {

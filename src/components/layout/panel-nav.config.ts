@@ -1,23 +1,38 @@
 import {
   Activity,
   Bell,
+  Building,
   Building2,
+  Calculator,
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
   ContactRound,
+  FileClock,
+  FileSignature,
+  Flag,
+  Gauge,
   Heart,
   History,
   KeyRound,
   LayoutDashboard,
   ListTodo,
+  Map,
+  MapPin,
   MessageCircle,
   Network,
+  Newspaper,
   Plus,
   Scale,
   SearchCheck,
+  Settings,
+  Signpost,
   StickyNote,
+  Store,
   Trophy,
+  UserCheck,
   UserRound,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,14 +60,25 @@ import { routes } from "@/lib/routes";
  * `audience` is what the old blade wrote as `@if($currentUser->isExpert())`
  * around a block. A group with nothing visible in it is not rendered at all,
  * so nobody is shown an empty "office administration" heading.
+ *
+ * Some entries have no `href`. Those are the parts of the old admin menu that
+ * this API has not been given yet — searching the spec for `admin`, `users`,
+ * `setting`, `contract`, `province`, `edits` or `appraisal` returns nothing, and
+ * "performance" exists only per record (`/estates/{id}/operations`), never as
+ * the office-wide list the old panel had. They are listed anyway, greyed and
+ * inert, because an administrator who used the old panel counts what is missing
+ * and a shorter menu reads as features taken away rather than services not yet
+ * moved across. Each becomes a real entry the day its endpoint exists.
  */
 
-export type PanelNavItem = {
-  href: string;
+/** A row in the menu. */
+export type PanelNavEntry = {
+  /** Absent while the service behind the page does not exist yet. */
+  href?: string;
   label: string;
   icon: LucideIcon;
   audience: PanelAudience;
-  /** Page exists and explains itself, but the API behind it does not yet. */
+  /** The page (or the service behind it) is not finished. */
   soon?: boolean;
   /**
    * The topic this page belongs to when it is not listed under one — the two
@@ -62,10 +88,29 @@ export type PanelNavItem = {
   groupId?: string;
 };
 
+/** A row you can actually open. */
+export type PanelNavItem = PanelNavEntry & { href: string };
+
+export function isNavigable(entry: PanelNavEntry): entry is PanelNavItem {
+  return typeof entry.href === "string";
+}
+
+/**
+ * A page the old panel had and this one cannot have yet, for want of an
+ * endpoint. No route, so nothing can link to it by accident.
+ */
+function planned(
+  label: string,
+  icon: LucideIcon,
+  audience: PanelAudience,
+): PanelNavEntry {
+  return { label, icon, audience, soon: true };
+}
+
 export type PanelNavGroup = {
   id: string;
   label: string;
-  items: PanelNavItem[];
+  items: PanelNavEntry[];
 };
 
 /**
@@ -123,6 +168,9 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         icon: Building2,
         audience: "member",
       },
+      planned("عملکرد املاک", Gauge, "admin"),
+      planned("گزارش‌های مشکل در املاک", Flag, "admin"),
+      planned("ویرایش‌های املاک", FileClock, "admin"),
       {
         href: routes.panel.favorites,
         label: "علاقه‌مندی‌ها",
@@ -168,6 +216,7 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         audience: "staff",
         soon: true,
       },
+      planned("عملکرد مشتریان", ClipboardCheck, "staff"),
       {
         href: routes.panel.notes,
         label: "یادداشت‌های من",
@@ -218,6 +267,19 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         icon: ContactRound,
         audience: "admin",
       },
+      // The old menu's order, kept, so an administrator finds things where
+      // they left them.
+      planned("شعبه‌ها", Store, "admin"),
+      planned("تنظیمات", Settings, "admin"),
+      planned("لیست استان‌ها", Map, "admin"),
+      planned("لیست شهرها", Building, "admin"),
+      planned("لیست محله‌ها", MapPin, "admin"),
+      planned("لیست خیابان‌ها", Signpost, "admin"),
+      planned("اعضای سیستم", Users, "admin"),
+      planned("عملکرد کارشناسان", UserCheck, "admin"),
+      planned("مدیریت قرارداد", FileSignature, "admin"),
+      planned("مدیریت مطالب", Newspaper, "admin"),
+      planned("کارشناسی قیمت", Calculator, "admin"),
     ],
   },
   {
@@ -246,11 +308,16 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
   },
 ];
 
-/** Every entry in one flat list — for label lookups such as the breadcrumb. */
+/**
+ * Every entry that has somewhere to go, in one flat list — for label lookups
+ * such as the breadcrumb, and for deciding which row is the current one. The
+ * planned entries are left out: nothing can navigate to them, so nothing should
+ * try to name them either.
+ */
 export const PANEL_NAV_ITEMS: PanelNavItem[] = [
   ...PANEL_PRIMARY_LINKS,
   ...PANEL_QUICK_ACTIONS,
-  ...PANEL_NAV_GROUPS.flatMap((group) => group.items),
+  ...PANEL_NAV_GROUPS.flatMap((group) => group.items.filter(isNavigable)),
 ];
 
 export function visibleQuickActions(viewer: PanelViewer): PanelNavItem[] {
