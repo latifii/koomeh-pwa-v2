@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/layout/breadcrumb";
 import {
   PANEL_NAV_GROUPS,
   PANEL_NAV_ITEMS,
+  type PanelNavItem,
 } from "@/components/layout/panel-nav.config";
 import { routes } from "@/lib/routes";
 
@@ -33,9 +34,13 @@ function itemFor(pathname: string) {
   );
 }
 
-function groupLabelFor(href: string): string | null {
+function groupLabelFor(item: PanelNavItem): string | null {
   const group = PANEL_NAV_GROUPS.find((candidate) =>
-    candidate.items.some((item) => item.href === href),
+    // The quick actions sit above the menu rather than inside a section, but
+    // they still belong to one as far as the trail is concerned.
+    item.groupId
+      ? candidate.id === item.groupId
+      : candidate.items.some((entry) => entry.href === item.href),
   );
 
   return group?.label ?? null;
@@ -58,7 +63,7 @@ export function PanelBreadcrumb() {
         : (detail?.[1] ?? item.label)
     : "داشبورد";
 
-  const groupLabel = item ? groupLabelFor(item.href) : null;
+  const groupLabel = item ? groupLabelFor(item) : null;
 
   return (
     <Breadcrumb

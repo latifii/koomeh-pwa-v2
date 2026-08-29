@@ -3,31 +3,25 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ChevronLeft, Menu, UserRound } from "lucide-react";
+import { ChevronDown, UserRound } from "lucide-react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import {
   PANEL_NAV_ITEMS,
   visibleGroups,
   visiblePrimaryLinks,
+  visibleQuickActions,
   type PanelNavItem,
 } from "@/components/layout/panel-nav.config";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+import { DrawerClose } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
@@ -53,42 +47,118 @@ function activeHrefFor(pathname: string): string | null {
   return best;
 }
 
+/** Wraps a link so that tapping it also closes the drawer it is inside. */
+function MaybeClose({
+  inDrawer,
+  children,
+}: {
+  inDrawer: boolean;
+  children: React.ReactElement;
+}) {
+  return inDrawer ? (
+    <DrawerClose nativeButton={false} render={children} />
+  ) : (
+    children
+  );
+}
+
+/**
+ * Who is signed in.
+ *
+ * No card of its own: the sidebar is already a surface, and a panel inside a
+ * panel is the sort of nesting that makes an interface look built rather than
+ * designed.
+ */
 export function PanelProfile() {
   const user = useSessionStore((state) => state.session?.user);
 
   return (
-    <div className="rounded-lg border border-sidebar-border bg-sidebar-accent/80 p-3">
-      <div className="flex items-center gap-3">
-        <Avatar className="size-12 border border-sidebar-border">
-          {user?.photo && <AvatarImage src={user.photo} alt={user.fullName} />}
-          <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
-            {user ? user.fullName.charAt(0) : <UserRound className="size-5" />}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          {user ? (
-            <>
-              <Typography
-                variant="body"
-                className="truncate text-sm font-semibold text-sidebar-foreground"
-              >
-                {user.fullName}
-              </Typography>
-              <Badge
-                variant="secondary"
-                className="h-5 mt-1 rounded-lg bg-secondary text-secondary-foreground"
-              >
-                {roleLabel(user)}
-              </Badge>
-            </>
-          ) : (
-            <>
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="mt-2 h-5 w-16 rounded-lg" />
-            </>
-          )}
-        </div>
+    <div className="flex items-center gap-3">
+      <Avatar className="size-11 shrink-0 ring-1 ring-sidebar-border">
+        {user?.photo && <AvatarImage src={user.photo} alt={user.fullName} />}
+        <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground">
+          {user ? user.fullName.charAt(0) : <UserRound className="size-5" />}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        {user ? (
+          <>
+            <Typography
+              as="p"
+              variant="body"
+              className="truncate text-sm font-semibold text-sidebar-foreground"
+            >
+              {user.fullName}
+            </Typography>
+            <Badge
+              variant="secondary"
+              className="mt-1 h-5 rounded-md bg-secondary px-1.5 text-[11px] font-medium text-secondary-foreground"
+            >
+              {roleLabel(user)}
+            </Badge>
+          </>
+        ) : (
+          <>
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="mt-2 h-5 w-16 rounded-md" />
+          </>
+        )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * The two things people open the panel to do, as buttons rather than rows.
+ *
+ * Side by side because they are a pair and neither deserves the full width on
+ * its own; the listing one carries the brand colour because it is the one the
+ * site asks for everywhere else too.
+ */
+export function PanelQuickActions({
+  inDrawer = false,
+}: {
+  inDrawer?: boolean;
+}) {
+  const pathname = usePathname();
+  const user = useSessionStore((state) => state.session?.user);
+  const viewer = useMemo(() => panelViewer(user), [user]);
+  const actions = useMemo(() => visibleQuickActions(viewer), [viewer]);
+
+  if (actions.length === 0) return null;
+
+  return (
+    <div
+      className={cn(
+        "grid gap-2",
+        actions.length > 1 ? "grid-cols-2" : "grid-cols-1",
+      )}
+    >
+      {actions.map((action, index) => {
+        const Icon = action.icon;
+        const active = pathname === action.href;
+
+        return (
+          <MaybeClose key={action.href} inDrawer={inDrawer}>
+            <Link
+              href={action.href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                buttonVariants({
+                  variant: index === 0 ? "secondary" : "outline",
+                }),
+                "h-10 gap-1.5 px-2 text-[13px] font-semibold",
+                // The form these open is a page like any other, so the button
+                // has to be able to say you are already on it.
+                active && "ring-2 ring-ring ring-offset-1 ring-offset-sidebar",
+              )}
+            >
+              <Icon className="size-4" />
+              {action.label}
+            </Link>
+          </MaybeClose>
+        );
+      })}
     </div>
   );
 }
@@ -96,57 +166,54 @@ export function PanelProfile() {
 function NavLink({
   item,
   active,
-  closeOnNavigate,
+  inDrawer,
 }: {
   item: PanelNavItem;
   active: boolean;
-  closeOnNavigate: boolean;
+  inDrawer: boolean;
 }) {
   const Icon = item.icon;
 
-  const link = (
-    <Link
-      href={item.href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "flex h-10 w-full items-center justify-between gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
-        active
-          ? "bg-sidebar-primary text-sidebar-primary-foreground"
-          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-      )}
-    >
-      <span className="flex min-w-0 items-center gap-2">
-        <Icon className="size-4 shrink-0" />
-        <Typography
-          as="span"
-          variant="body"
-          className="truncate text-sm font-medium"
-        >
-          {item.label}
-        </Typography>
-      </span>
-      {item.soon ? (
-        <Badge
-          variant="secondary"
-          className={cn(
-            "h-auto shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium",
-            active
-              ? "bg-sidebar-primary-foreground/15 text-sidebar-primary-foreground"
-              : "bg-muted text-muted-foreground",
-          )}
-        >
-          به‌زودی
-        </Badge>
-      ) : (
-        <ChevronLeft className="size-4 shrink-0 opacity-60" />
-      )}
-    </Link>
-  );
+  return (
+    <MaybeClose inDrawer={inDrawer}>
+      <Link
+        href={item.href}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "group/nav relative flex h-9 w-full items-center gap-2.5 rounded-lg px-3 text-sm transition-colors",
+          active
+            ? // The start corners are square so the marker below reads as part
+              // of the row rather than a bar parked next to it.
+              "rounded-ss-none rounded-es-none bg-brand/10 font-semibold text-brand dark:bg-brand/15"
+            : "font-medium text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        )}
+      >
+        {/* Says "you are here" without shouting it. A filled row read as a
+            button; this reads as a place. */}
+        {active && (
+          <span
+            aria-hidden
+            className="absolute inset-y-0 start-0 w-[3px] rounded-e-full bg-brand"
+          />
+        )}
 
-  return closeOnNavigate ? (
-    <DrawerClose nativeButton={false} render={link} />
-  ) : (
-    link
+        <Icon
+          className={cn(
+            "size-4 shrink-0 transition-colors",
+            active
+              ? "text-brand"
+              : "text-muted-foreground group-hover/nav:text-sidebar-accent-foreground",
+          )}
+        />
+        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+
+        {item.soon && (
+          <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] leading-none font-medium text-muted-foreground">
+            به‌زودی
+          </span>
+        )}
+      </Link>
+    </MaybeClose>
   );
 }
 
@@ -179,29 +246,28 @@ export function PanelNav({
 
   if (!user) {
     return (
-      <div className="flex flex-col gap-2" aria-hidden>
-        {Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton key={index} className="h-10 rounded-lg" />
+      <div className="flex flex-col gap-1.5" aria-hidden>
+        {Array.from({ length: 7 }).map((_, index) => (
+          <Skeleton key={index} className="h-9 rounded-lg" />
         ))}
       </div>
     );
   }
 
   return (
-    <nav className="flex flex-col gap-1" aria-label="منوی پنل کاربری">
+    <nav className="flex flex-col gap-0.5" aria-label="منوی پنل کاربری">
       {primary.map((item) => (
         <NavLink
           key={item.href}
           item={item}
           active={activeHref === item.href}
-          closeOnNavigate={inDrawer}
+          inDrawer={inDrawer}
         />
       ))}
 
       {groups.map((group) => {
         const holdsActive = group.items.some((item) => item.href === activeHref);
         const open = holdsActive || (toggled[group.id] ?? !inDrawer);
-        const GroupIcon = group.icon;
 
         return (
           <Collapsible
@@ -210,29 +276,24 @@ export function PanelNav({
             onOpenChange={(next) =>
               setToggled((state) => ({ ...state, [group.id]: next }))
             }
-            className="mt-2 first:mt-1"
+            className="mt-3"
           >
-            <CollapsibleTrigger
-              className={cn(
-                "group flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2",
-                "text-xs font-semibold text-muted-foreground transition-colors",
-                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              )}
-            >
-              <span className="flex min-w-0 items-center gap-2">
-                <GroupIcon className="size-4 shrink-0 opacity-70" />
-                <span className="truncate">{group.label}</span>
-              </span>
-              <ChevronDown className="size-4 shrink-0 opacity-60 transition-transform group-data-panel-open:rotate-180" />
+            <CollapsibleTrigger className="group/section flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground transition-colors hover:text-sidebar-foreground">
+              <span className="truncate">{group.label}</span>
+              <span
+                aria-hidden
+                className="h-px flex-1 bg-sidebar-border transition-colors group-hover/section:bg-muted-foreground/30"
+              />
+              <ChevronDown className="size-3.5 shrink-0 opacity-50 transition-transform group-data-panel-open:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="mt-1 ms-4 flex flex-col gap-0.5 border-s border-sidebar-border ps-2">
+              <div className="mt-1 flex flex-col gap-0.5">
                 {group.items.map((item) => (
                   <NavLink
                     key={item.href}
                     item={item}
                     active={activeHref === item.href}
-                    closeOnNavigate={inDrawer}
+                    inDrawer={inDrawer}
                   />
                 ))}
               </div>
@@ -244,61 +305,28 @@ export function PanelNav({
   );
 }
 
-export function PanelSidebarContent() {
-  return (
-    <>
-      <PanelProfile />
-      <Separator className="my-4 bg-sidebar-border" />
-      <PanelNav />
-    </>
-  );
-}
-
 export function PanelSidebar() {
   return (
-    <aside className="hidden w-72 shrink-0 rounded-lg border border-sidebar-border bg-background  p-4  md:block">
-      <div className="sticky top-24 max-h-[calc(100svh-7rem)] overflow-y-auto pe-1">
-        <PanelSidebarContent />
+    <aside className="hidden w-72 shrink-0 md:block">
+      {/*
+       * The identity and the two actions stay put while only the menu scrolls.
+       * Grouping made the list longer, and the button someone came here to
+       * press should not be the first thing to leave the screen.
+       */}
+      <div className="sticky top-24 flex max-h-[calc(100svh-7rem)] flex-col overflow-hidden rounded-xl border border-sidebar-border bg-sidebar shadow-sm">
+        <div className="flex flex-col gap-3 p-3">
+          <PanelProfile />
+          <PanelQuickActions />
+        </div>
+        <Separator className="bg-sidebar-border" />
+        {/* Thin, not hidden: the menu is taller than the card on most screens
+            and needs to say so. `scrollbar-width` alone — setting
+            `scrollbar-color` next to it makes Chromium fall back to the classic
+            Windows scrollbar, arrow buttons and all. */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-3 pt-2 [scrollbar-width:thin]">
+          <PanelNav />
+        </div>
       </div>
     </aside>
-  );
-}
-
-export function PanelMobileNav() {
-  const pathname = usePathname();
-  const activeHref = activeHrefFor(pathname);
-  const current =
-    PANEL_NAV_ITEMS.find((item) => item.href === activeHref)?.label ?? "داشبورد";
-
-  return (
-    <div className="flex items-center justify-between rounded-lg border  p-3  md:hidden">
-      <div>
-        <Typography variant="small">پنل کاربری</Typography>
-        <Typography variant="body" className="text-sm font-semibold">
-          {current}
-        </Typography>
-      </div>
-      <Drawer swipeDirection="right">
-        <DrawerTrigger
-          render={
-            <Button
-              variant="outline"
-              size="icon-lg"
-              aria-label="باز کردن منوی پنل"
-            >
-              <Menu />
-            </Button>
-          }
-        />
-        <DrawerContent className="p-4">
-          <DrawerHeader className="px-0">
-            <DrawerTitle>پنل کاربری</DrawerTitle>
-          </DrawerHeader>
-          <PanelProfile />
-          <Separator className="my-4" />
-          <PanelNav variant="drawer" />
-        </DrawerContent>
-      </Drawer>
-    </div>
   );
 }

@@ -15,12 +15,9 @@ import {
   Plus,
   Scale,
   SearchCheck,
-  ShieldCheck,
   StickyNote,
-  TrendingUp,
   Trophy,
   UserRound,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -42,6 +39,9 @@ import { routes } from "@/lib/routes";
  * standalone links stay standalone for the same reason they were: a plain
  * visitor's inbox does not belong under a heading about agent performance.
  *
+ * Sections carry no icon of their own — one beside the heading only competed
+ * with the icons on the rows underneath it, which are the ones doing the work.
+ *
  * `audience` is what the old blade wrote as `@if($currentUser->isExpert())`
  * around a block. A group with nothing visible in it is not rendered at all,
  * so nobody is shown an empty "office administration" heading.
@@ -54,14 +54,45 @@ export type PanelNavItem = {
   audience: PanelAudience;
   /** Page exists and explains itself, but the API behind it does not yet. */
   soon?: boolean;
+  /**
+   * The topic this page belongs to when it is not listed under one — the two
+   * quick actions live above the menu but are still part of a section as far as
+   * the breadcrumb is concerned.
+   */
+  groupId?: string;
 };
 
 export type PanelNavGroup = {
   id: string;
   label: string;
-  icon: LucideIcon;
   items: PanelNavItem[];
 };
+
+/**
+ * The two things people come here to do.
+ *
+ * They were rows fourteen and eighteen of a list, which is the wrong shape for
+ * an action taken several times a day — the old sidebar had «ثبت ملک» as a
+ * full-width button above the menu for the same reason. They keep their entries
+ * in `PANEL_NAV_ITEMS` below so the breadcrumb and the active-row highlight
+ * still know them; they are simply not listed twice.
+ */
+export const PANEL_QUICK_ACTIONS: PanelNavItem[] = [
+  {
+    href: routes.panel.newProperty,
+    label: "ثبت ملک",
+    icon: Plus,
+    audience: "member",
+    groupId: "estates",
+  },
+  {
+    href: routes.panel.newRequest,
+    label: "ثبت تقاضا",
+    icon: Plus,
+    audience: "member",
+    groupId: "customers",
+  },
+];
 
 /** Above the topics, as in the old menu. */
 export const PANEL_PRIMARY_LINKS: PanelNavItem[] = [
@@ -85,18 +116,11 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
   {
     id: "estates",
     label: "مدیریت املاک",
-    icon: Building2,
     items: [
       {
         href: routes.panel.properties,
         label: "ملک‌های من",
         icon: Building2,
-        audience: "member",
-      },
-      {
-        href: routes.panel.newProperty,
-        label: "ثبت ملک",
-        icon: Plus,
         audience: "member",
       },
       {
@@ -130,18 +154,11 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
   {
     id: "customers",
     label: "مدیریت مشتریان",
-    icon: Users,
     items: [
       {
         href: routes.panel.requests,
         label: "تقاضاهای ملکی",
         icon: ClipboardList,
-        audience: "member",
-      },
-      {
-        href: routes.panel.newRequest,
-        label: "ثبت تقاضا",
-        icon: Plus,
         audience: "member",
       },
       {
@@ -163,7 +180,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
   {
     id: "performance",
     label: "عملکرد مشاور",
-    icon: TrendingUp,
     items: [
       {
         href: routes.panel.appointments,
@@ -195,7 +211,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
   {
     id: "system",
     label: "مدیریت سیستم",
-    icon: ShieldCheck,
     items: [
       {
         href: routes.panel.contacts,
@@ -208,7 +223,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
   {
     id: "account",
     label: "حساب کاربری",
-    icon: UserRound,
     items: [
       {
         href: routes.panel.notifications,
@@ -235,8 +249,13 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
 /** Every entry in one flat list — for label lookups such as the breadcrumb. */
 export const PANEL_NAV_ITEMS: PanelNavItem[] = [
   ...PANEL_PRIMARY_LINKS,
+  ...PANEL_QUICK_ACTIONS,
   ...PANEL_NAV_GROUPS.flatMap((group) => group.items),
 ];
+
+export function visibleQuickActions(viewer: PanelViewer): PanelNavItem[] {
+  return PANEL_QUICK_ACTIONS.filter((item) => canAccess(item.audience, viewer));
+}
 
 export function visibleGroups(viewer: PanelViewer): PanelNavGroup[] {
   return PANEL_NAV_GROUPS.map((group) => ({

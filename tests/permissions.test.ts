@@ -123,6 +123,18 @@ test("a group with nothing visible in it is not rendered", () => {
   assert.ok(admin.some((group) => group.id === "system"));
 });
 
+test("no page is offered twice", () => {
+  // The two quick actions were lifted out of their sections into buttons and
+  // left behind in `PANEL_NAV_ITEMS` on purpose; leaving them in the sections
+  // as well would put each of them on screen twice.
+  const seen = new Set<string>();
+
+  for (const item of PANEL_NAV_ITEMS) {
+    assert.equal(seen.has(item.href), false, `${item.href} is listed twice`);
+    seen.add(item.href);
+  }
+});
+
 test("detail routes inherit their list's audience", () => {
   assert.equal(panelAudienceFor("/panel/properties/406431/manage"), "member");
   assert.equal(panelAudienceFor("/panel/conversations/12"), "everyone");

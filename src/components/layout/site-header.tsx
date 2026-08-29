@@ -52,6 +52,12 @@ const PanelProfile = dynamic(() =>
   import("@/components/layout/panel-sidebar").then((mod) => mod.PanelProfile),
 );
 
+const PanelQuickActions = dynamic(() =>
+  import("@/components/layout/panel-sidebar").then(
+    (mod) => mod.PanelQuickActions,
+  ),
+);
+
 const navLinks = [
   { href: routes.properties(), label: "جستجوی ملک" },
   { href: routes.agents, label: "کارشناسان" },
@@ -248,19 +254,30 @@ export function SiteHeader() {
               </div>
 
               <div className="flex flex-col gap-2 border-t p-4">
-                <DrawerClose
-                  nativeButton={false}
-                  render={
-                    <Button
-                      variant="secondary"
-                      nativeButton={false}
-                      render={<Link href={routes.panel.newProperty} />}
-                    >
-                      <PlusCircle />
-                      ثبت ملک
-                    </Button>
-                  }
-                />
+                {/*
+                 * Pinned below the scroll, where a thumb reaches. For someone
+                 * signed in this is both of the panel's quick actions, which is
+                 * also why they are not repeated inside the menu above: the
+                 * drawer only ever showed «ثبت ملک» here, and a second copy two
+                 * screens up reads as a bug rather than a shortcut.
+                 */}
+                {isAuthenticated ? (
+                  <PanelQuickActions inDrawer />
+                ) : (
+                  <DrawerClose
+                    nativeButton={false}
+                    render={
+                      <Button
+                        variant="secondary"
+                        nativeButton={false}
+                        render={<Link href={routes.panel.newProperty} />}
+                      >
+                        <PlusCircle />
+                        ثبت ملک
+                      </Button>
+                    }
+                  />
+                )}
                 <DrawerAccountAction />
                 <a
                   href="tel:02533123456"
