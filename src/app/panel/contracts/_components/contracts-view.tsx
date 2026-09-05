@@ -26,7 +26,11 @@ import {
   type ContractFilters,
 } from "@/app/panel/contracts/_schemas/contracts.schema";
 import { EmptyState } from "@/components/shared/empty-state";
-import { FilterSelect } from "@/components/shared/form";
+import {
+  FilterCombobox,
+  FilterSelect,
+  JalaliDateInput,
+} from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
@@ -101,33 +105,32 @@ export function ContractsView() {
               onChange={(value) => setFilter("estate_type", value)}
               options={options.data?.estate_types ?? []}
             />
-            <FilterSelect
+            <FilterCombobox
               label="همه‌ی مشاوران"
               value={filters.expert}
               onChange={(value) => setFilter("expert", value)}
               options={options.data?.agents ?? []}
+              emptyText="مشاوری با این نام نیست"
             />
           </div>
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="space-y-1">
-              <Label htmlFor="contracts-from">از تاریخ (شمسی)</Label>
-              <Input
+              <Label htmlFor="contracts-from">از تاریخ</Label>
+              <JalaliDateInput
                 id="contracts-from"
                 value={filters.create_date_of}
-                placeholder="۱۴۰۵/۰۶/۰۱"
-                inputMode="numeric"
-                onChange={(event) => setFilter("create_date_of", event.target.value)}
+                placeholder="از ابتدا"
+                onChange={(value) => setFilter("create_date_of", value)}
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="contracts-to">تا تاریخ (شمسی)</Label>
-              <Input
+              <Label htmlFor="contracts-to">تا تاریخ</Label>
+              <JalaliDateInput
                 id="contracts-to"
                 value={filters.create_date_to}
-                placeholder="۱۴۰۵/۰۶/۳۱"
-                inputMode="numeric"
-                onChange={(event) => setFilter("create_date_to", event.target.value)}
+                placeholder="تا امروز"
+                onChange={(value) => setFilter("create_date_to", value)}
               />
             </div>
           </div>

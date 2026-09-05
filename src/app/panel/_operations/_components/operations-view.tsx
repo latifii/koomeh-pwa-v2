@@ -31,11 +31,14 @@ import {
 } from "@/app/panel/_operations/_schemas/operations.schema";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { EmptyState } from "@/components/shared/empty-state";
-import { FilterSelect } from "@/components/shared/form";
+import {
+  FilterCombobox,
+  FilterSelect,
+  JalaliDateInput,
+} from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
@@ -113,11 +116,13 @@ export function OperationsView({ kind }: { kind: OperationKind }) {
     <div className="grid grid-cols-1 gap-4">
       <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <FilterSelect
+          {/* Typing, not scrolling: this list is every agent and every branch. */}
+          <FilterCombobox
             label="همه‌ی کارشناسان"
             value={filters.user_id}
             onChange={(value) => setFilter("user_id", value)}
             options={whoOptions}
+            emptyText="کارشناسی با این نام نیست"
           />
           <FilterSelect
             label="همه‌ی نوع‌ها"
@@ -129,23 +134,21 @@ export function OperationsView({ kind }: { kind: OperationKind }) {
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="ops-from">از تاریخ (شمسی)</Label>
-            <Input
+            <Label htmlFor="ops-from">از تاریخ</Label>
+            <JalaliDateInput
               id="ops-from"
               value={filters.datefrom}
-              placeholder="۱۴۰۵/۰۶/۰۱"
-              inputMode="numeric"
-              onChange={(event) => setFilter("datefrom", event.target.value)}
+              placeholder="از ابتدا"
+              onChange={(value) => setFilter("datefrom", value)}
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="ops-to">تا تاریخ (شمسی)</Label>
-            <Input
+            <Label htmlFor="ops-to">تا تاریخ</Label>
+            <JalaliDateInput
               id="ops-to"
               value={filters.dateto}
-              placeholder="۱۴۰۵/۰۶/۳۱"
-              inputMode="numeric"
-              onChange={(event) => setFilter("dateto", event.target.value)}
+              placeholder="تا امروز"
+              onChange={(value) => setFilter("dateto", value)}
             />
           </div>
         </div>
@@ -153,8 +156,8 @@ export function OperationsView({ kind }: { kind: OperationKind }) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Typography variant="small" className="flex items-center gap-1.5">
             <Activity className="size-3.5 text-brand/70" />
-            {meta ? `${meta.total.toLocaleString("fa-IR")} رکورد` : "در حال شمردن…"}
-            {list.data?.scope === "own" && " · فقط رکوردهای شما"}
+            {meta ? `${meta.total.toLocaleString("fa-IR")} نتیجه` : "در حال شمردن…"}
+            {list.data?.scope === "own" && " · فقط نتایج شما"}
           </Typography>
 
           {isFiltered && (
@@ -187,7 +190,7 @@ export function OperationsView({ kind }: { kind: OperationKind }) {
       {list.isSuccess && items.length === 0 && (
         <EmptyState
           icon={Activity}
-          title="رکوردی با این فیلترها نیست"
+          title="نتیجه‌ای با این فیلترها نیست"
           description="بازه‌ی تاریخ یا کارشناس را تغییر دهید."
         />
       )}

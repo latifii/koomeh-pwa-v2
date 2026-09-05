@@ -14,6 +14,7 @@ import {
 } from "@/app/panel/calendar/_schemas/calendar.schema";
 import {
   FormBooleanField,
+  FormDateField,
   FormSelectField,
   FormTextField,
   FormTextareaField,
@@ -131,11 +132,12 @@ export function CalendarEventDialog({
 
           <FormTextareaField {...context} name="description" label="توضیح" />
 
-          <FormTextField
+          {/* Stored as a Gregorian day, chosen from a Persian one. */}
+          <FormDateField
             {...context}
             name="date"
             label="تاریخ"
-            type="date"
+            output="iso"
             required
           />
 

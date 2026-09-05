@@ -11,6 +11,7 @@ import {
   favoriteEstatesQueryOptions,
 } from "@/app/_favorites/_queries/favorites.query";
 import { AgentCard } from "@/app/agents/_components/agent-card";
+import { cardOverlayButton } from "@/components/features/property/card-overlay-button";
 import { PropertyCard } from "@/components/features/property/property-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -19,10 +20,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 /**
- * The saved-files page. Pinned entries come back first from the API, so the
- * order is left alone; the pin button just toggles and refetches.
+ * The saved files, and the saved agents.
+ *
+ * The pin lives in the card's own action row now. It used to be a second
+ * absolutely positioned layer over the top of the card, pinned to the same
+ * corner as the heart underneath it — two controls of two different shapes in
+ * the same square inch, one of which could not be pressed.
+ *
+ * Pinned entries come back first from the API, so the order is left alone; the
+ * button just toggles and refetches.
  */
 export function FavoritesView() {
   const queryClient = useQueryClient();
@@ -114,32 +123,40 @@ export function FavoritesView() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {estates.data.map((estate) => (
-                <div key={estate.id} className="relative">
-                  <PropertyCard estate={estate} />
-
-                  <div className="absolute inset-x-3 top-3 z-10 flex items-start justify-end gap-1.5">
-                    {estate.isExpired && (
-                      <Badge variant="secondary" className="bg-muted text-muted-foreground">
+                <PropertyCard
+                  key={estate.id}
+                  estate={estate}
+                  badges={
+                    estate.isExpired ? (
+                      <Badge
+                        variant="secondary"
+                        className="bg-muted text-muted-foreground shadow-sm"
+                      >
                         منقضی
                       </Badge>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="icon"
+                    ) : null
+                  }
+                  actions={
+                    <button
+                      type="button"
                       aria-label={estate.pinned ? "برداشتن سنجاق" : "سنجاق کردن"}
                       aria-pressed={estate.pinned}
+                      title={estate.pinned ? "برداشتن سنجاق" : "سنجاق کردن بالای فهرست"}
                       onClick={() => pin.mutate(estate.id)}
                       disabled={pin.isPending}
-                      className="size-8 border-white/30 bg-black/40 text-white backdrop-blur-md hover:bg-black/60 hover:text-white"
+                      className={cn(
+                        cardOverlayButton,
+                        estate.pinned && "border-white/60 bg-white/85 text-brand hover:bg-white",
+                      )}
                     >
                       {estate.pinned ? (
-                        <PinOff className="size-3.5" />
+                        <PinOff className="size-4" />
                       ) : (
-                        <Pin className="size-3.5" />
+                        <Pin className="size-4" />
                       )}
-                    </Button>
-                  </div>
-                </div>
+                    </button>
+                  }
+                />
               ))}
             </div>
           </div>
@@ -159,7 +176,7 @@ export function FavoritesView() {
           <EmptyState
             icon={UserRound}
             title="هنوز کارشناسی نشان نکرده‌اید"
-            description="کارشناسانی که با آنها کار می‌کنید را نشان کنید تا سریع‌تر پیدایشان کنید."
+            description="با دکمه‌ی قلب روی کارت هر کارشناس، او را نشان کنید تا سریع‌تر پیدایش کنید."
             action={
               <Button nativeButton={false} render={<a href={routes.agents} />}>
                 فهرست کارشناسان

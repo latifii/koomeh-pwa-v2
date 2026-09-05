@@ -10,6 +10,7 @@ import {
   mapCompareList,
   mapFavoriteAgents,
   mapFavoriteEstates,
+  toAgentIdSet,
   toCompareIdSet,
   toEstateIdSet,
 } from "@/app/_favorites/_mappers/favorites.mapper";
@@ -47,6 +48,17 @@ export function favoriteAgentsQueryOptions(enabled = true) {
     enabled,
     staleTime: 5 * 60 * 1_000,
     select: mapFavoriteAgents,
+  });
+}
+
+/** Just the ids, for a card that only needs to know if this agent is saved. */
+export function favoriteAgentIdsQueryOptions(enabled = true) {
+  return queryOptions({
+    queryKey: favoritesQueryKeys.agents(),
+    queryFn: ({ signal }) => getFavoriteAgents(signal),
+    enabled,
+    staleTime: 5 * 60 * 1_000,
+    select: toAgentIdSet,
   });
 }
 

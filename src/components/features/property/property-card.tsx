@@ -1,19 +1,12 @@
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Bath,
-  BedDouble,
-  Heart,
-  MapPin,
-  Rotate3d,
-  Ruler,
-} from "lucide-react";
+import { ArrowLeft, Bath, BedDouble, MapPin, Rotate3d, Ruler } from "lucide-react";
 
 import apartmentImage from "@/assets/images/card/apartman.webp";
 import businessImage from "@/assets/images/card/business.webp";
 import plotImage from "@/assets/images/card/plot.webp";
 import villaImage from "@/assets/images/card/villa.webp";
+import { EstateFavoriteButton } from "@/components/features/property/estate-favorite-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -35,9 +28,20 @@ const propertyImages: Record<Estate["propertyType"], StaticImageData> = {
 export function PropertyCard({
   estate,
   className,
+  badges,
+  actions,
 }: {
   estate: Estate;
   className?: string;
+  /** Extra chips beside the type, e.g. the saved-files page's «منقضی». */
+  badges?: React.ReactNode;
+  /**
+   * Extra controls beside the heart, in the same row and the same shape —
+   * cardOverlayButton is exported for exactly this. On the saved-files page
+   * the pin used to be a second absolutely positioned layer, landing on top of
+   * the heart rather than beside it.
+   */
+  actions?: React.ReactNode;
 }) {
   const href = estate.href ?? routes.property(estate.id);
   const fallbackImage = propertyImages[estate.propertyType];
@@ -87,15 +91,13 @@ export function PropertyCard({
                 ویژه
               </Badge>
             )}
+            {badges}
           </div>
 
-          <button
-            type="button"
-            aria-label="افزودن به علاقه‌مندی"
-            className="relative z-20 flex size-8 shrink-0 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-secondary hover:text-secondary-foreground"
-          >
-            <Heart className="size-4" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {actions}
+            <EstateFavoriteButton estateId={estate.id} />
+          </div>
         </div>
 
         <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-2">

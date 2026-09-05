@@ -19,6 +19,7 @@ import articleImage from "@/assets/images/card/apartman.webp";
 import { ApiImage } from "@/components/shared/api-image";
 import {
   FormBooleanField,
+  FormDateField,
   FormTextField,
   FormTextareaField,
   LookupSelect,
@@ -196,10 +197,11 @@ export function PostForm({ post }: { post?: PostDetail }) {
               label="نوع"
               options={TYPES}
             />
-            <FormTextField
+            <FormDateField
               {...context}
               name="expire_at"
-              label="انقضا (شمسی)"
+              label="انقضا"
+              placeholder="بی‌انقضا"
               hint="خالی یعنی بی‌انقضا"
             />
           </div>

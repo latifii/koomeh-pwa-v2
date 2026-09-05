@@ -8,6 +8,7 @@ import {
   MapPin,
 } from "lucide-react";
 
+import { AgentFavoriteButton } from "@/app/agents/_components/agent-favorite-button";
 import type { AgentDto } from "@/app/agents/_schemas/agents.schema";
 import { ApiImage } from "@/components/shared/api-image";
 import { Typography } from "@/components/ui/typography";
@@ -33,13 +34,21 @@ export function AgentCard({
   const remainingSpecialties = agent.estate_types.length - specialties.length;
 
   return (
-    <Link
-      href={agent.url || `/agents/${agent.id}`}
+    // Not one big anchor any more: the save button has to be a sibling of the
+    // link rather than a child of it, so the link is stretched behind the card
+    // instead. A button inside an anchor is neither valid nor operable.
+    <article
       className={cn(
-        "group flex h-full flex-col rounded-xl border bg-card p-4 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-brand/35 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40",
+        "group relative flex h-full flex-col rounded-xl border bg-card p-4 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-brand/35 hover:shadow-md focus-within:ring-2 focus-within:ring-brand/40",
         className,
       )}
     >
+      <Link
+        href={agent.url || `/agents/${agent.id}`}
+        aria-label={agent.name}
+        className="absolute inset-0 rounded-xl focus-visible:outline-none"
+      />
+
       <div className="flex items-start gap-3">
         {photo ? (
           <ApiImage
@@ -79,13 +88,16 @@ export function AgentCard({
                 </Typography>
               )}
             </div>
-            {agent.code && (
-              <Badge className="shrink-0">
-                <Typography as="span" variant="small" className="text-current">
-                  کد {agent.code}
-                </Typography>
-              </Badge>
-            )}
+            <span className="flex shrink-0 items-center gap-1.5">
+              {agent.code && (
+                <Badge>
+                  <Typography as="span" variant="small" className="text-current">
+                    کد {agent.code}
+                  </Typography>
+                </Badge>
+              )}
+              <AgentFavoriteButton agentId={agent.id} />
+            </span>
           </div>
 
           <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
@@ -111,7 +123,7 @@ export function AgentCard({
           <Stat icon={KeyRound} value={agent.rent_count} label="اجاره" />
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 

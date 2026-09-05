@@ -53,6 +53,10 @@ export function toEstateIdSet(response: FavoriteEstatesResponse): Set<string> {
   return new Set(response.result.items.map((item) => String(item.id)));
 }
 
+export function toAgentIdSet(response: FavoriteAgentsResponse): Set<number> {
+  return new Set(response.result.items.map((item) => item.id));
+}
+
 export function toCompareIdSet(response: CompareListResponse): Set<string> {
   return new Set(
     response.result.groups.flatMap((group) =>

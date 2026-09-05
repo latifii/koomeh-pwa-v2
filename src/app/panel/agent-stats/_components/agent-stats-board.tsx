@@ -12,11 +12,11 @@ import {
   myAgentStatsQueryOptions,
 } from "@/app/panel/agent-stats/_queries/agent-stats.query";
 import { EmptyState } from "@/components/shared/empty-state";
+import { JalaliDateInput } from "@/components/shared/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
@@ -63,31 +63,25 @@ export function AgentStatsBoard() {
     <div className="space-y-4">
       <Card>
         <CardContent className="flex flex-wrap items-end gap-3 p-4">
-          <div className="space-y-1">
-            <Label htmlFor="stats-from">از تاریخ (شمسی)</Label>
-            <Input
+          <div className="w-48 space-y-1">
+            <Label htmlFor="stats-from">از تاریخ</Label>
+            <JalaliDateInput
               id="stats-from"
               value={range.datefrom ?? ""}
-              placeholder="1405/06/01"
-              onChange={(event) =>
-                setRange((current) => ({
-                  ...current,
-                  datefrom: event.target.value,
-                }))
+              placeholder="از ابتدا"
+              onChange={(value) =>
+                setRange((current) => ({ ...current, datefrom: value }))
               }
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="stats-to">تا تاریخ (شمسی)</Label>
-            <Input
+          <div className="w-48 space-y-1">
+            <Label htmlFor="stats-to">تا تاریخ</Label>
+            <JalaliDateInput
               id="stats-to"
               value={range.dateto ?? ""}
-              placeholder="1405/06/31"
-              onChange={(event) =>
-                setRange((current) => ({
-                  ...current,
-                  dateto: event.target.value,
-                }))
+              placeholder="تا امروز"
+              onChange={(value) =>
+                setRange((current) => ({ ...current, dateto: value }))
               }
             />
           </div>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { BriefcaseBusiness, Building2, Home, KeyRound, MapPin, MessageCircle, Phone } from "lucide-react";
 
+import { AgentFavoriteButton } from "@/app/agents/_components/agent-favorite-button";
 import type { AgentDto, AgentProfileResponse } from "@/app/agents/_schemas/agents.schema";
 import { Container } from "@/components/layout/container";
 import { ApiImage } from "@/components/shared/api-image";
@@ -39,12 +40,11 @@ export function AgentProfileHero({ agent, contact }: { agent: AgentDto; contact:
             {agent.bio && <Typography variant="body" light className="mt-3 max-w-2xl">{agent.bio}</Typography>}
           </div>
 
-          {(phone || contact?.whatsapp_url) && (
-            <div className="flex shrink-0 gap-2 sm:flex-col">
-              {phone && <Button variant="secondary" nativeButton={false} render={<a href={contact?.tel_url ?? `tel:${phone}`} />}><Phone data-icon="inline-start" />تماس مستقیم</Button>}
-              {contact?.whatsapp_url && <Button variant="outline" nativeButton={false} render={<a href={contact.whatsapp_url} target="_blank" rel="noreferrer" />} className="border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white"><MessageCircle data-icon="inline-start" />واتساپ</Button>}
-            </div>
-          )}
+          <div className="flex shrink-0 flex-wrap gap-2 sm:flex-col">
+            {phone && <Button variant="secondary" nativeButton={false} render={<a href={contact?.tel_url ?? `tel:${phone}`} />}><Phone data-icon="inline-start" />تماس مستقیم</Button>}
+            {contact?.whatsapp_url && <Button variant="outline" nativeButton={false} render={<a href={contact.whatsapp_url} target="_blank" rel="noreferrer" />} className="border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white"><MessageCircle data-icon="inline-start" />واتساپ</Button>}
+            <AgentFavoriteButton agentId={agent.id} variant="labelled" />
+          </div>
         </div>
 
         <div className="grid grid-cols-3 border-t border-white/10 bg-white/5">

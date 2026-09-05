@@ -30,6 +30,7 @@ import {
 } from "@/app/panel/contracts/_schemas/contracts.schema";
 import {
   FormBooleanField,
+  FormDateField,
   FormTextField,
   FormTextareaField,
   LookupSelect,
@@ -257,20 +258,20 @@ export function ContractForm({ contract }: { contract?: ContractDetail }) {
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <FormTextField
+            <FormDateField
               {...context}
               name="register_date"
-              label="تاریخ ثبت (شمسی)"
+              label="تاریخ ثبت"
             />
-            <FormTextField
+            <FormDateField
               {...context}
               name="registryofficedate"
-              label="تاریخ دفترخانه (شمسی)"
+              label="تاریخ دفترخانه"
             />
-            <FormTextField
+            <FormDateField
               {...context}
               name="deliverydate"
-              label="تاریخ تحویل (شمسی)"
+              label="تاریخ تحویل"
             />
           </div>
 

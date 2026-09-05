@@ -133,16 +133,27 @@ function CompareTable({
         </Typography>
       </header>
 
-      {/* The table grows with the number of files, so it scrolls on its own. */}
+      {/* The table grows with the number of files, so it scrolls on its own.
+          `table-fixed` is what keeps the photographs the same size: with
+          automatic layout a column is as wide as its widest cell, so one file
+          with a long address or a five-chip amenities row stretched its column
+          and its cover image with it, and the top row came out as a set of
+          mismatched photographs. Fixed layout takes the widths from the header
+          row alone — nine rem for the labels, fourteen for every file — and
+          distributes any slack equally, so every column stays equal to the
+          others whatever is written underneath. */}
       <div className="overflow-x-auto overflow-y-hidden">
-        <table className="w-full min-w-2xl border-collapse text-sm">
+        <table
+          className="w-full table-fixed border-collapse text-sm"
+          style={{ minWidth: `${9 + group.items.length * 14}rem` }}
+        >
           <thead>
             <tr>
               <th className="w-36 border-b border-e p-3 text-start align-top" />
               {group.items.map((item) => (
                 <th
                   key={item.id}
-                  className="min-w-52 border-b p-3 text-start align-top font-normal"
+                  className="w-56 border-b p-3 text-start align-top font-normal"
                 >
                   <div className="grid grid-cols-1 gap-2">
                     <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-muted">
@@ -151,7 +162,7 @@ function CompareTable({
                         fallbackSrc={apartmentImage}
                         alt={item.title}
                         fill
-                        sizes="200px"
+                        sizes="224px"
                         className="object-cover"
                       />
                       <Button
@@ -182,7 +193,7 @@ function CompareTable({
               <tr key={row.key} className="even:bg-muted/30">
                 <th
                   scope="row"
-                  className="border-e p-3 text-start align-middle font-medium text-muted-foreground"
+                  className="border-e p-3 text-start align-middle font-medium break-words text-muted-foreground"
                 >
                   {row.label}
                 </th>
@@ -193,7 +204,7 @@ function CompareTable({
                     <td
                       key={item.id}
                       className={cn(
-                        "p-3 align-middle",
+                        "p-3 align-middle break-words",
                         row.type === "number" && "tabular-nums",
                         isBest && "font-semibold text-brand",
                       )}

@@ -11,7 +11,10 @@ import {
   roleLabel,
 } from "@/lib/auth/permissions";
 import {
+  PANEL_NAV_GROUPS,
   PANEL_NAV_ITEMS,
+  PANEL_PRIMARY_LINKS,
+  PANEL_QUICK_ACTIONS,
   visibleGroups,
 } from "@/components/layout/panel-nav.config";
 
@@ -123,15 +126,35 @@ test("a group with nothing visible in it is not rendered", () => {
   assert.ok(admin.some((group) => group.id === "system"));
 });
 
-test("no page is offered twice", () => {
-  // The two quick actions were lifted out of their sections into buttons and
-  // left behind in `PANEL_NAV_ITEMS` on purpose; leaving them in the sections
-  // as well would put each of them on screen twice.
-  const seen = new Set<string>();
+test("no page is offered twice in the same part of the menu", () => {
+  // «ثبت ملک» is deliberately in two places — the button above the menu, for
+  // the person who came to do it, and a row inside «مدیریت املاک», for the
+  // person reading the section to find out what it holds. What must not happen
+  // is the same page appearing twice within one of those parts, which is what
+  // a copy-paste into the wrong section would look like.
+  for (const part of [
+    PANEL_PRIMARY_LINKS,
+    PANEL_QUICK_ACTIONS,
+    ...PANEL_NAV_GROUPS.map((group) => group.items),
+  ]) {
+    const seen = new Set<string>();
+    for (const item of part) {
+      assert.equal(seen.has(item.href), false, `${item.href} is listed twice`);
+      seen.add(item.href);
+    }
+  }
 
+  // A row that is also a quick action still resolves to one label and one
+  // section, so the breadcrumb cannot disagree with the sidebar.
+  const labels = new Map<string, string>();
   for (const item of PANEL_NAV_ITEMS) {
-    assert.equal(seen.has(item.href), false, `${item.href} is listed twice`);
-    seen.add(item.href);
+    const known = labels.get(item.href);
+    assert.equal(
+      known ?? item.label,
+      item.label,
+      `${item.href} is labelled two ways`,
+    );
+    labels.set(item.href, item.label);
   }
 });
 

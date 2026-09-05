@@ -129,6 +129,15 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         icon: Building2,
         audience: "member",
       },
+      // Also the first quick action above the menu. Listed twice on purpose:
+      // the button is for the person who came here to do it, and this row is
+      // for the person reading the section to find out what it holds.
+      {
+        href: routes.panel.newProperty,
+        label: "ثبت ملک",
+        icon: Plus,
+        audience: "member",
+      },
       {
         href: routes.panel.estateOperations,
         label: "عملکرد املاک",
