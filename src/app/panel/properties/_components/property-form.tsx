@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,11 +11,18 @@ import { toast } from "sonner";
 import {
   checkDuplicatePhone,
   createEstate,
+  deleteEstateImage,
+  updateEstate,
 } from "@/app/panel/properties/_api/estate-submit.service";
+import {
+  estateFormDefaults,
+  estatePassthrough,
+} from "@/app/panel/properties/_mappers/estate-form.mapper";
 import { estateFormOptionsQueryOptions } from "@/app/panel/properties/_queries/estate-submit.query";
 import {
-  createEstateFormSchema,
-  type CreateEstateFormValues,
+  estateFormSchema,
+  type EstateEditData,
+  type EstateFormValues,
 } from "@/app/panel/properties/_schemas/estate-submit.schema";
 import {
   FormTextField,
@@ -50,11 +57,11 @@ const numericLabels: Record<string, string> = {
 };
 
 /**
- * The listing form. Its option fields are not hard-coded: the API describes
- * them in `form-options`, so the form renders whatever it is told and stays in
- * step with the backend.
+ * The listing form, for both writing one and editing one. Its option fields are
+ * not hard-coded: the API describes them in `form-options`, so the form renders
+ * whatever it is told and stays in step with the backend.
  */
-export function PropertyForm() {
+export function PropertyForm({ edit }: { edit?: EstateEditData }) {
   const router = useRouter();
   // The mutation stops being pending the moment the API answers, but the
   // navigation that follows is a dynamic panel route and takes its own time.
@@ -63,8 +70,11 @@ export function PropertyForm() {
   const options = useQuery(estateFormOptionsQueryOptions());
   const [debouncedPhone, setDebouncedPhone] = useState("");
 
-  const form = useForm<CreateEstateFormValues>({
-    resolver: zodResolver(createEstateFormSchema),
+  const [existingImages, setExistingImages] = useState(edit?.images ?? []);
+  const seeded = useRef(false);
+
+  const form = useForm<EstateFormValues>({
+    resolver: zodResolver(estateFormSchema),
     defaultValues: {
       type: "1",
       estate_type: "",
@@ -97,6 +107,17 @@ export function PropertyForm() {
   const isRent = dealType === "2";
   const result = options.data;
 
+  /**
+   * The stored values can only be laid into the form once the API has said
+   * which option fields exist, so this waits for both and then seeds the form
+   * exactly once — a second pass would throw away whatever has been typed since.
+   */
+  useEffect(() => {
+    if (!edit || !result || seeded.current) return;
+    seeded.current = true;
+    form.reset(estateFormDefaults(edit.values, result, edit.images));
+  }, [edit, result, form]);
+
   useEffect(() => {
     const timeout = window.setTimeout(() => setDebouncedPhone(phone), 500);
     return () => window.clearTimeout(timeout);
@@ -110,7 +131,9 @@ export function PropertyForm() {
   const duplicateCheck = useQuery({
     queryKey: ["panel-estates", "duplicate", debouncedPhone] as const,
     queryFn: ({ signal }) => checkDuplicatePhone(debouncedPhone, signal),
-    enabled: /^09\d{9}$/.test(debouncedPhone),
+    // Not while editing: the listing is its own match, so the warning would
+    // fire on every existing file and mean nothing.
+    enabled: !edit && /^09\d{9}$/.test(debouncedPhone),
     retry: false,
     staleTime: 5 * 60 * 1_000,
   });
@@ -118,24 +141,33 @@ export function PropertyForm() {
   const duplicates = duplicateCheck.data?.result?.total ?? 0;
 
   const mutation = useMutation({
-    mutationFn: (values: CreateEstateFormValues) => {
-      // Empty fields are left out entirely rather than sent as null, so the
-      // API applies its own defaults.
-      const extras: Record<string, number | number[]> = {};
+    mutationFn: (values: EstateFormValues) => {
+      // On a new listing an empty field is left out entirely rather than sent
+      // as null, so the API applies its own defaults. On an edit the opposite
+      // is true: an omitted column is emptied, so a field the visitor cleared
+      // has to be sent as null for the change to take.
+      const extras: Record<string, number | number[] | null> = {};
 
       for (const [key, value] of Object.entries(values.fields)) {
         if (Array.isArray(value)) {
           if (value.length) extras[key] = value.map(Number);
+          else if (edit) extras[key] = [];
         } else if (value) {
           extras[key] = Number(value);
+        } else if (edit) {
+          extras[key] = null;
         }
       }
 
       for (const [key, value] of Object.entries(values.numbers)) {
         if (value) extras[key] = Number(value);
+        else if (edit) extras[key] = null;
       }
 
-      return createEstate({
+      const body = {
+        // Columns this form does not render — coordinates, the building name,
+        // the video, the listing's own status — travel back unchanged.
+        ...(edit && result ? estatePassthrough(edit.values, result) : {}),
         type: Number(values.type),
         estate_type: Number(values.estate_type),
         title: values.title || null,
@@ -155,14 +187,34 @@ export function PropertyForm() {
         images: values.images,
         cover_image_id: values.cover_image_id,
         ...extras,
+      };
+
+      if (!edit) return createEstate(body);
+
+      return updateEstate(edit.id, {
+        ...body,
+        // Order is carried by the list itself; sending it keeps the gallery in
+        // the order shown rather than whatever the database last recorded.
+        image_orders: values.images.map((id, index) => ({
+          id,
+          priority: index + 1,
+        })),
       });
     },
     onSuccess: (response) => {
-      toast.success(
-        response.result.is_public
-          ? "ملک ثبت شد و در فهرست‌ها نمایش داده می‌شود."
-          : "ملک ثبت شد و پس از بازبینی نمایش داده می‌شود.",
-      );
+      if (edit) {
+        toast.success(
+          edit.permissions.hides_on_save
+            ? "تغییرها ذخیره شد و آگهی تا بازبینی از فهرست‌ها برداشته می‌شود."
+            : "تغییرها ذخیره شد.",
+        );
+      } else {
+        toast.success(
+          response.result.is_public
+            ? "ملک ثبت شد و در فهرست‌ها نمایش داده می‌شود."
+            : "ملک ثبت شد و پس از بازبینی نمایش داده می‌شود.",
+        );
+      }
       startNavigation(() => {
         router.push(routes.panel.properties);
         router.refresh();
@@ -171,7 +223,26 @@ export function PropertyForm() {
     onError: (error) => toast.error(getApiErrorMessage(error)),
   });
 
-  const context: FormContext<CreateEstateFormValues> = {
+  /** Deletes the photo on the server, then drops it from the form. */
+  const removeExistingImage = async (imageId: number) => {
+    if (!edit) return;
+    try {
+      await deleteEstateImage(edit.id, imageId);
+      setExistingImages((current) =>
+        current.filter((image) => image.id !== imageId),
+      );
+      const next = form.getValues("images").filter((id) => id !== imageId);
+      form.setValue("images", next);
+      if (form.getValues("cover_image_id") === imageId) {
+        form.setValue("cover_image_id", next[0] ?? null);
+      }
+      toast.success("تصویر حذف شد.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    }
+  };
+
+  const context: FormContext<EstateFormValues> = {
     control: form.control,
     register: form.register,
     errors: form.formState.errors,
@@ -414,21 +485,30 @@ export function PropertyForm() {
             maxImages={maxImages}
             onChange={(ids) => form.setValue("images", ids)}
             onCoverChange={(id) => form.setValue("cover_image_id", id)}
+            existing={existingImages}
+            onRemoveExisting={edit ? removeExistingImage : undefined}
           />
         </CardContent>
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button size="lg" disabled={mutation.isPending || isNavigating}>
+        {/* `type="submit"` is not optional: the Base UI button this wraps
+            defaults to `type="button"`, so without it the click does nothing at
+            all and the form can only be sent with the Enter key. */}
+        <Button type="submit" size="lg" disabled={mutation.isPending || isNavigating}>
           {mutation.isPending || isNavigating ? (
             <Spinner data-icon="inline-start" />
           ) : (
             <Save data-icon="inline-start" />
           )}
-          ثبت ملک
+          {edit ? "ذخیره تغییرها" : "ثبت ملک"}
         </Button>
         <Typography variant="small">
-          آگهی پس از ثبت بررسی و سپس در فهرست‌ها منتشر می‌شود.
+          {edit
+            ? edit.permissions.hides_on_save
+              ? "پس از ذخیره، آگهی تا بازبینی از فهرست‌های عمومی برداشته می‌شود."
+              : "تغییرها در تاریخچه‌ی ویرایش آگهی ثبت می‌شود."
+            : "آگهی پس از ثبت بررسی و سپس در فهرست‌ها منتشر می‌شود."}
         </Typography>
       </div>
     </form>

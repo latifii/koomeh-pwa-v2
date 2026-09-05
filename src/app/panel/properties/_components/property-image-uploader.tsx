@@ -1,11 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { ImagePlus, Star, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { uploadEstateImage } from "@/app/panel/properties/_api/estate-submit.service";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { cn } from "@/lib/utils";
@@ -22,10 +24,17 @@ type Upload = {
   error?: string;
 };
 
+/** A photo the listing already has, as the edit endpoint hands it over. */
+export type ExistingImage = { id: number; url: string };
+
 /**
  * Uploads one file per request, as the API requires, and hands the resulting
  * ids up to the form. Previews come from object URLs so a picture appears the
  * moment it is chosen rather than after the round trip.
+ *
+ * On the edit form it also shows the photos the listing already has. Those are
+ * on the server, so removing one is a real deletion with nothing to undo it —
+ * hence the confirmation on the tile itself.
  */
 export function PropertyImageUploader({
   imageIds,
@@ -33,14 +42,20 @@ export function PropertyImageUploader({
   maxImages,
   onChange,
   onCoverChange,
+  existing = [],
+  onRemoveExisting,
 }: {
   imageIds: number[];
   coverImageId: number | null;
   maxImages: number;
   onChange: (ids: number[]) => void;
   onCoverChange: (id: number | null) => void;
+  existing?: ExistingImage[];
+  onRemoveExisting?: (id: number) => Promise<void>;
 }) {
   const [uploads, setUploads] = useState<Upload[]>([]);
+  const [confirming, setConfirming] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const patch = (key: string, changes: Partial<Upload>) =>
@@ -107,6 +122,17 @@ export function PropertyImageUploader({
     if (coverImageId === upload.id) onCoverChange(next[0] ?? null);
   };
 
+  const removeExisting = async (id: number) => {
+    if (!onRemoveExisting) return;
+    setDeleting(id);
+    try {
+      await onRemoveExisting(id);
+      setConfirming(null);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -115,11 +141,90 @@ export function PropertyImageUploader({
           ۵ مگابایت
         </Typography>
         <Typography variant="small">
-          {imageIds.length.toLocaleString("fa-IR")} تصویر آپلود شده
+          {imageIds.length.toLocaleString("fa-IR")} تصویر
         </Typography>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {existing.map((image) => (
+          <figure
+            key={image.id}
+            className={cn(
+              "relative aspect-4/3 overflow-hidden rounded-xl border bg-muted",
+              image.id === coverImageId && "ring-2 ring-brand",
+            )}
+          >
+            <Image
+              src={image.url}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 200px, 45vw"
+              className="object-cover"
+            />
+
+            {confirming === image.id ? (
+              <figcaption className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70 p-2 text-center">
+                <Typography as="span" variant="small" light className="text-[11px]">
+                  این تصویر حذف شود؟
+                </Typography>
+                <div className="flex gap-1.5">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="xs"
+                    disabled={deleting === image.id}
+                    onClick={() => void removeExisting(image.id)}
+                  >
+                    {deleting === image.id ? <Spinner /> : null}
+                    حذف
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="xs"
+                    onClick={() => setConfirming(null)}
+                  >
+                    انصراف
+                  </Button>
+                </div>
+              </figcaption>
+            ) : (
+              <div className="absolute end-1.5 top-1.5 flex gap-1">
+                {image.id !== coverImageId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label="انتخاب به عنوان تصویر اصلی"
+                    onClick={() => onCoverChange(image.id)}
+                    className="size-7 border-white/30 bg-black/45 text-white backdrop-blur-md hover:bg-black/65 hover:text-white"
+                  >
+                    <Star className="size-3.5" />
+                  </Button>
+                )}
+                {onRemoveExisting && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label="حذف تصویر"
+                    onClick={() => setConfirming(image.id)}
+                    className="size-7 border-white/30 bg-black/45 text-white backdrop-blur-md hover:bg-black/65 hover:text-white"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {image.id === coverImageId && confirming !== image.id && (
+              <span className="absolute bottom-1.5 inset-s-1.5 rounded-md bg-brand px-1.5 py-0.5 text-[10px] font-medium text-white">
+                تصویر اصلی
+              </span>
+            )}
+          </figure>
+        ))}
+
         {uploads.map((upload) => (
           <figure
             key={upload.key}

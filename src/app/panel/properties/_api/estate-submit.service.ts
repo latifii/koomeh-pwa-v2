@@ -1,9 +1,12 @@
 import {
   checkDuplicateResponseSchema,
   createEstateResponseSchema,
+  estateEditResponseSchema,
   formOptionsResponseSchema,
+  updateEstateResponseSchema,
   uploadMediaResponseSchema,
   type CheckDuplicateResponse,
+  type EstateEditResponse,
   type FormOptionsResponse,
 } from "@/app/panel/properties/_schemas/estate-submit.schema";
 import { getValidated, httpClient, postValidated } from "@/lib/api/http-client";
@@ -14,6 +17,10 @@ const endpoints = {
   checkDuplicate: "/api/site3/estates/check-duplicate",
   media: "/api/site3/estates/media",
   create: "/api/site3/estates",
+  estate: (id: string | number) => `/api/site3/estates/${id}`,
+  edit: (id: string | number) => `/api/site3/estates/${id}/edit`,
+  image: (estateId: string | number, imageId: number) =>
+    `/api/site3/estates/${estateId}/media/${imageId}`,
 } as const;
 
 export function getEstateFormOptions(
@@ -64,4 +71,44 @@ export async function uploadEstateImage(
 
 export function createEstate(body: Record<string, unknown>) {
   return postValidated(endpoints.create, createEstateResponseSchema, body);
+}
+
+/**
+ * The listing's current values for the edit form. 403 for a caller who may not
+ * edit it, 404 when it does not exist — both of which the page shows as they
+ * are rather than pretending the form is loading.
+ */
+export function getEstateForEdit(
+  id: string | number,
+  signal?: AbortSignal,
+): Promise<EstateEditResponse> {
+  return getValidated(endpoints.edit(id), estateEditResponseSchema, { signal });
+}
+
+/**
+ * A whole-form replace, not a patch: the API empties any column the body
+ * leaves out, so callers must send back everything they loaded.
+ */
+export async function updateEstate(
+  id: string | number,
+  body: Record<string, unknown>,
+) {
+  try {
+    const response = await httpClient.put<unknown>(endpoints.estate(id), body);
+    return updateEstateResponseSchema.parse(response.data);
+  } catch (error) {
+    throw normalizeApiError(error);
+  }
+}
+
+/** Removes a photo already attached to the listing. */
+export async function deleteEstateImage(
+  estateId: string | number,
+  imageId: number,
+) {
+  try {
+    await httpClient.delete(endpoints.image(estateId, imageId));
+  } catch (error) {
+    throw normalizeApiError(error);
+  }
 }

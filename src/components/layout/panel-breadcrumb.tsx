@@ -17,11 +17,25 @@ import { routes } from "@/lib/routes";
  * that would drift from it.
  */
 
-/** Pages that are not menu entries of their own, keyed by the prefix under it. */
-const DETAIL_LABELS: ReadonlyArray<readonly [string, string]> = [
-  [`${routes.panel.requests}/`, "جزئیات تقاضا"],
-  [`${routes.panel.conversations}/`, "گفت‌وگو"],
-  [`${routes.panel.properties}/`, "مدیریت ملک"],
+/**
+ * Pages that are not menu entries of their own: a record below one of the
+ * lists, or one of that record's own screens.
+ *
+ * Matched in order — the ones naming a suffix come first, because every one of
+ * them also matches the bare prefix underneath it.
+ */
+const DETAIL_LABELS: ReadonlyArray<{
+  prefix: string;
+  suffix?: string;
+  label: string;
+}> = [
+  { prefix: routes.panel.requests, suffix: "/edit", label: "ویرایش تقاضا" },
+  { prefix: routes.panel.properties, suffix: "/edit", label: "ویرایش ملک" },
+  { prefix: routes.panel.properties, suffix: "/preview", label: "پیش‌نمایش ملک" },
+  { prefix: routes.panel.properties, suffix: "/manage", label: "مدیریت آگهی" },
+  { prefix: routes.panel.requests, label: "جزئیات تقاضا" },
+  { prefix: routes.panel.conversations, label: "گفت‌وگو" },
+  { prefix: routes.panel.properties, label: "مدیریت ملک" },
 ];
 
 function itemFor(pathname: string) {
@@ -50,17 +64,16 @@ export function PanelBreadcrumb() {
   const pathname = usePathname();
   const item = itemFor(pathname);
 
-  const detail = DETAIL_LABELS.find(([prefix]) => pathname.startsWith(prefix));
-  const isEditRequest =
-    pathname.startsWith(`${routes.panel.requests}/`) &&
-    pathname.endsWith("/edit");
+  const detail = DETAIL_LABELS.find(
+    (entry) =>
+      pathname.startsWith(`${entry.prefix}/`) &&
+      (entry.suffix ? pathname.endsWith(entry.suffix) : true),
+  );
 
   const currentLabel = item
     ? item.href === pathname
       ? item.label
-      : isEditRequest
-        ? "ویرایش تقاضا"
-        : (detail?.[1] ?? item.label)
+      : (detail?.label ?? item.label)
     : "داشبورد";
 
   const groupLabel = item ? groupLabelFor(item) : null;

@@ -13,6 +13,7 @@ import {
   Phone,
   Rotate3d,
   Send,
+  Pencil,
   SquarePen,
   Trash2,
 } from "lucide-react";
@@ -123,6 +124,12 @@ export function PanelPropertyRow({
               <DropdownMenuContent align="end" className="w-56">
                 {can.can_edit && (
                   <>
+                    <DropdownMenuItem
+                      render={<Link href={routes.panel.editProperty(row.id)} />}
+                    >
+                      <Pencil className="size-4" />
+                      ویرایش آگهی
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       render={<Link href={routes.panel.adManagement(row.id)} />}
                     >

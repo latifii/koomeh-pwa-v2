@@ -89,6 +89,77 @@ export const createEstateResponseSchema = z.object({
   }),
 });
 
+/* --------------------------------------------------------------------- edit */
+
+export const estateImageSchema = z.object({
+  id: z.number().int(),
+  url: z.string(),
+  is_cover: z.boolean().default(false),
+  is_plan: z.boolean().default(false),
+  is_360: z.boolean().default(false),
+  priority: z.number().int().default(0),
+});
+
+/**
+ * The listing's current column values, as `GET /estates/{id}/edit` returns
+ * them: one entry per column, flat, with the option fields holding option ids
+ * and the multiple ones holding arrays of them.
+ *
+ * Deliberately not enumerated. The set is whatever the backend has columns for
+ * — fifty-two of them today — and the update call demands the whole form back,
+ * so anything this front end does not render still has to be carried across
+ * untouched. A named list here would silently drop the next column somebody
+ * adds; a record cannot.
+ */
+export const estateEditValuesSchema = z.record(
+  z.string(),
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(z.union([z.string(), z.number()])),
+  ]),
+);
+
+export const estateEditResponseSchema = z.object({
+  status: z.literal("success"),
+  result: z.object({
+    id: z.number().int(),
+    values: estateEditValuesSchema,
+    images: z.array(estateImageSchema).default([]),
+    permissions: z
+      .object({
+        can_set_visibility: z.boolean().default(false),
+        can_set_confirmation: z.boolean().default(false),
+        can_set_expert: z.boolean().default(false),
+        /** Saving takes the listing off the public lists until it is reviewed. */
+        hides_on_save: z.boolean().default(false),
+      })
+      .default({
+        can_set_visibility: false,
+        can_set_confirmation: false,
+        can_set_expert: false,
+        hides_on_save: false,
+      }),
+  }),
+});
+
+export const updateEstateResponseSchema = z.object({
+  status: z.literal("success"),
+  result: z.object({
+    id: z.number().int(),
+    visibility: z.number().int().default(0),
+    is_public: z.boolean().default(false),
+    image_count: z.number().int().nonnegative().default(0),
+    /** Which columns actually differed — the API writes these to the edit log. */
+    changed_fields: z.array(z.string()).default([]),
+    expert_granted: z.boolean().default(false),
+    url: z.string().nullable().optional(),
+    message: z.string().nullable().optional(),
+  }),
+});
+
 /* --------------------------------------------------------------------- form */
 
 const PERSIAN_DIGITS = /[۰-۹٠-٩]/g;
@@ -110,8 +181,11 @@ const optionalNumber = digits.refine(
 /**
  * Only what the API requires is required here. Everything else is optional so
  * a half-known file can still be filed — which is how the paper form works.
+ *
+ * The same schema serves the edit form: `PUT /estates/{id}` takes the whole
+ * form back, not a patch, so the two submit the identical shape.
  */
-export const createEstateFormSchema = z
+export const estateFormSchema = z
   .object({
     type: z.string().min(1, "نوع معامله را انتخاب کنید"),
     estate_type: z.string().min(1, "نوع ملک را انتخاب کنید"),
@@ -153,4 +227,8 @@ export const createEstateFormSchema = z
 
 export type FormOptionsResponse = z.infer<typeof formOptionsResponseSchema>;
 export type CheckDuplicateResponse = z.infer<typeof checkDuplicateResponseSchema>;
-export type CreateEstateFormValues = z.infer<typeof createEstateFormSchema>;
+export type EstateFormValues = z.infer<typeof estateFormSchema>;
+export type EstateEditResponse = z.infer<typeof estateEditResponseSchema>;
+export type EstateEditData = EstateEditResponse["result"];
+export type EstateEditValues = z.infer<typeof estateEditValuesSchema>;
+export type EstateImage = z.infer<typeof estateImageSchema>;
