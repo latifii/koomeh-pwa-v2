@@ -13,6 +13,7 @@ import {
   Scale,
   Trophy,
   UserRound,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -176,6 +177,12 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         href: routes.panel.contacts,
         label: "دفترچه تلفن و پیامک",
         icon: ContactRound,
+        audience: "admin",
+      },
+      {
+        href: routes.panel.members,
+        label: "اعضای سیستم",
+        icon: Users,
         audience: "admin",
       },
     ],

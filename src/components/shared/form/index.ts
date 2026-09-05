@@ -8,6 +8,7 @@ export {
   type FormContext,
   type FormOption,
 } from "./form-controls";
+export { FILTER_ANY, FilterSelect } from "./filter-select";
 export {
   LOOKUP_NONE,
   LookupSelect,

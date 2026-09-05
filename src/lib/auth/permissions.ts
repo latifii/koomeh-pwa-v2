@@ -231,6 +231,38 @@ export function panelViewer(user: MaybeUser): PanelViewer {
 /* ------------------------------------------------------------------- label */
 
 /**
+ * What each role is called in Persian.
+ *
+ * The API hands roles out as latin slugs — `form-options` on the members page
+ * literally offers "admin_super" as a title — so the translation has to live
+ * somewhere on this side. Here, next to the vocabulary it names. An unknown
+ * slug is shown as it came rather than hidden: a role nobody can read is still
+ * better than a role nobody can see.
+ */
+export const ROLE_TITLES: Record<string, string> = {
+  [ROLES.administrator]: "مدیر کل",
+  [ROLES.adminSuper]: "مدیر ارشد",
+  [ROLES.adminSite]: "مدیر سایت",
+  [ROLES.adminBranch]: "مدیر شعبه",
+  [ROLES.adminFinancial]: "مدیر مالی",
+  [ROLES.adminMarketing]: "مدیر بازاریابی",
+  [ROLES.adminLegal]: "مدیر حقوقی",
+  [ROLES.expert]: "مشاور",
+  [ROLES.externalExpert]: "مشاور خارجی",
+  [ROLES.referrer]: "بازاریاب",
+  [ROLES.agent]: "نماینده",
+  [ROLES.operator]: "اپراتور",
+  [ROLES.driver]: "راننده",
+  [ROLES.renter]: "موجر",
+  [ROLES.accountant]: "حسابدار",
+  [ROLES.secretary]: "منشی",
+};
+
+export function roleTitle(slug: string): string {
+  return ROLE_TITLES[slug] ?? slug;
+}
+
+/**
  * The name shown under the avatar, in the backend's own order of precedence.
  *
  * `isAdminReal` rather than `isAdmin`, so the secretary is not introduced as

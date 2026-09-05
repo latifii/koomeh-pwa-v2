@@ -19,6 +19,7 @@ import {
   type PanelEstateFilters,
 } from "@/app/panel/properties/_types/panel-estates.types";
 import { EmptyState } from "@/components/shared/empty-state";
+import { FilterSelect } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,21 +30,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 
 import { PanelPropertyRow } from "./panel-property-row";
-
-const ANY = "__any__";
 
 /**
  * The panel's listing table. Which files come back depends on the caller's
@@ -289,44 +281,5 @@ export function PanelPropertiesView() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; title: string }[];
-}) {
-  const items = useMemo(
-    () => [
-      { value: ANY, label },
-      ...options.map((option) => ({ value: option.value, label: option.title })),
-    ],
-    [label, options],
-  );
-
-  return (
-    <Select
-      value={value || ANY}
-      items={items}
-      onValueChange={(next) => onChange(next === ANY ? "" : String(next ?? ""))}
-    >
-      <SelectTrigger aria-label={label} className="w-full">
-        <SelectValue placeholder={label} />
-      </SelectTrigger>
-      <SelectContent>
-        {items.map((item) => (
-          <SelectItem key={item.value} value={item.value}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
   );
 }

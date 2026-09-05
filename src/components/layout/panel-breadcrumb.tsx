@@ -30,6 +30,7 @@ const DETAIL_LABELS: ReadonlyArray<{
   label: string;
 }> = [
   { prefix: routes.panel.requests, suffix: "/edit", label: "ویرایش تقاضا" },
+  { prefix: routes.panel.members, suffix: "/edit", label: "ویرایش عضو" },
   { prefix: routes.panel.properties, suffix: "/edit", label: "ویرایش ملک" },
   { prefix: routes.panel.properties, suffix: "/preview", label: "پیش‌نمایش ملک" },
   { prefix: routes.panel.properties, suffix: "/manage", label: "مدیریت آگهی" },
