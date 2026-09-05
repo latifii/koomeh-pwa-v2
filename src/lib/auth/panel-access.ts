@@ -52,6 +52,8 @@ export function canAccess(
 const PANEL_ROUTE_ACCESS: ReadonlyArray<readonly [string, PanelAudience]> = [
   [routes.panel.contacts, "admin"],
   [routes.panel.members, "admin"],
+  [routes.panel.estateOperations, "admin"],
+  [routes.panel.customerOperations, "admin"],
   [routes.panel.agentStats, "staff"],
   [routes.panel.appointments, "staff"],
   [routes.panel.tasks, "staff"],

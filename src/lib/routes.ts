@@ -87,6 +87,8 @@ export const routes = {
     conversations: "/panel/conversations",
     conversation: (id: string | number) => `/panel/conversations/${id}`,
     contacts: "/panel/contacts",
+    estateOperations: "/panel/estate-operations",
+    customerOperations: "/panel/customer-operations",
     members: "/panel/members",
     newMember: "/panel/members/new",
     editMember: (id: string | number) => `/panel/members/${id}/edit`,
