@@ -5,7 +5,6 @@ import Image from "next/image";
 import { ImagePlus, Star, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
-import { uploadEstateImage } from "@/app/panel/properties/_api/estate-submit.service";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
@@ -24,22 +23,23 @@ type Upload = {
   error?: string;
 };
 
-/** A photo the listing already has, as the edit endpoint hands it over. */
+/** A picture already attached to whatever is being edited. */
 export type ExistingImage = { id: number; url: string };
 
 /**
- * Uploads one file per request, as the API requires, and hands the resulting
- * ids up to the form. Previews come from object URLs so a picture appears the
- * moment it is chosen rather than after the round trip.
+ * Uploads one file per request and hands the resulting ids up to the form.
  *
- * On the edit form it also shows the photos the listing already has. Those are
- * on the server, so removing one is a real deletion with nothing to undo it —
- * hence the confirmation on the tile itself.
+ * Written once and given the upload call rather than hard-wired to one: the
+ * listing form and the branch form both do exactly this against different
+ * endpoints, and the fiddly parts — the object-URL preview so a picture appears
+ * before the round trip finishes, the room left, the cover, the confirmation on
+ * a deletion that cannot be undone — are the parts worth not having twice.
  */
-export function PropertyImageUploader({
+export function ImageUploader({
   imageIds,
   coverImageId,
   maxImages,
+  upload,
   onChange,
   onCoverChange,
   existing = [],
@@ -48,6 +48,11 @@ export function PropertyImageUploader({
   imageIds: number[];
   coverImageId: number | null;
   maxImages: number;
+  /** Sends one file and answers with the id to list in `images[]`. */
+  upload: (
+    file: File,
+    onProgress?: (percent: number) => void,
+  ) => Promise<{ id: number }>;
   onChange: (ids: number[]) => void;
   onCoverChange: (id: number | null) => void;
   existing?: ExistingImage[];
@@ -68,7 +73,9 @@ export function PropertyImageUploader({
 
     const room = maxImages - imageIds.length;
     if (room <= 0) {
-      toast.error(`حداکثر ${maxImages.toLocaleString("fa-IR")} تصویر می‌توانید اضافه کنید.`);
+      toast.error(
+        `حداکثر ${maxImages.toLocaleString("fa-IR")} تصویر می‌توانید اضافه کنید.`,
+      );
       return;
     }
 
@@ -94,10 +101,9 @@ export function PropertyImageUploader({
       setUploads((current) => [...current, { key, preview, progress: 0 }]);
 
       try {
-        const response = await uploadEstateImage(file, (percent) =>
+        const { id } = await upload(file, (percent) =>
           patch(key, { progress: percent }),
         );
-        const id = response.result.id;
         patch(key, { id, progress: 100 });
 
         const next = [...imageIds, id];
@@ -137,8 +143,8 @@ export function PropertyImageUploader({
     <div className="grid grid-cols-1 gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Typography variant="small">
-          تا {maxImages.toLocaleString("fa-IR")} تصویر · jpg، png یا webp · حداکثر
-          ۵ مگابایت
+          تا {maxImages.toLocaleString("fa-IR")} تصویر · jpg، png یا webp ·
+          حداکثر ۵ مگابایت
         </Typography>
         <Typography variant="small">
           {imageIds.length.toLocaleString("fa-IR")} تصویر
@@ -238,11 +244,7 @@ export function PropertyImageUploader({
           >
             {/* Local preview: a blob URL Next's optimizer cannot process. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={upload.preview}
-              alt=""
-              className="size-full object-cover"
-            />
+            <img src={upload.preview} alt="" className="size-full object-cover" />
 
             {upload.error ? (
               <figcaption className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-destructive/85 p-2 text-center text-white">

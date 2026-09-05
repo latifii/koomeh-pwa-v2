@@ -13,6 +13,7 @@ import {
   createEstate,
   deleteEstateImage,
   updateEstate,
+  uploadEstateImage,
 } from "@/app/panel/properties/_api/estate-submit.service";
 import {
   estateFormDefaults,
@@ -41,7 +42,7 @@ import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 
-import { PropertyImageUploader } from "./property-image-uploader";
+import { ImageUploader } from "@/components/shared/image-uploader";
 
 
 const numericLabels: Record<string, string> = {
@@ -479,12 +480,17 @@ export function PropertyForm({ edit }: { edit?: EstateEditData }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <PropertyImageUploader
+          <ImageUploader
             imageIds={images}
             coverImageId={coverImageId}
             maxImages={maxImages}
-            onChange={(ids) => form.setValue("images", ids)}
-            onCoverChange={(id) => form.setValue("cover_image_id", id)}
+            upload={async (file, onProgress) =>
+              (await uploadEstateImage(file, onProgress)).result
+            }
+            onChange={(ids: number[]) => form.setValue("images", ids)}
+            onCoverChange={(id: number | null) =>
+              form.setValue("cover_image_id", id)
+            }
             existing={existingImages}
             onRemoveExisting={edit ? removeExistingImage : undefined}
           />
