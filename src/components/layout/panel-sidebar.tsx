@@ -8,11 +8,9 @@ import { ChevronDown, UserRound } from "lucide-react";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import {
   PANEL_NAV_ITEMS,
-  isNavigable,
   visibleGroups,
   visiblePrimaryLinks,
   visibleQuickActions,
-  type PanelNavEntry,
   type PanelNavItem,
 } from "@/components/layout/panel-nav.config";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -165,45 +163,6 @@ export function PanelQuickActions({
   );
 }
 
-/** The «به‌زودی» chip, shared by the two kinds of unfinished row. */
-function SoonBadge({ muted }: { muted?: boolean }) {
-  return (
-    <span
-      className={cn(
-        "shrink-0 rounded px-1.5 py-0.5 text-[10px] leading-none font-medium",
-        muted
-          ? "bg-muted/60 text-muted-foreground/70"
-          : "bg-muted text-muted-foreground",
-      )}
-    >
-      به‌زودی
-    </span>
-  );
-}
-
-/**
- * A row for a page that does not exist yet.
- *
- * Rendered rather than dropped so the menu keeps the shape the old panel had —
- * an administrator who used that one counts what is missing. Not a link and not
- * focusable: there is nowhere to go, and a tab stop that does nothing is worse
- * than no tab stop.
- */
-function NavPlaceholder({ item }: { item: PanelNavEntry }) {
-  const Icon = item.icon;
-
-  return (
-    <div
-      aria-disabled="true"
-      className="flex h-9 w-full cursor-default items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-muted-foreground/70"
-    >
-      <Icon className="size-4 shrink-0 opacity-60" />
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-      <SoonBadge muted />
-    </div>
-  );
-}
-
 function NavLink({
   item,
   active,
@@ -247,8 +206,6 @@ function NavLink({
           )}
         />
         <span className="min-w-0 flex-1 truncate">{item.label}</span>
-
-        {item.soon && <SoonBadge />}
       </Link>
     </MaybeClose>
   );
@@ -325,18 +282,14 @@ export function PanelNav({
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="mt-1 flex flex-col gap-0.5">
-                {group.items.map((item) =>
-                  isNavigable(item) ? (
-                    <NavLink
-                      key={item.href}
-                      item={item}
-                      active={activeHref === item.href}
-                      inDrawer={inDrawer}
-                    />
-                  ) : (
-                    <NavPlaceholder key={item.label} item={item} />
-                  ),
-                )}
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    active={activeHref === item.href}
+                    inDrawer={inDrawer}
+                  />
+                ))}
               </div>
             </CollapsibleContent>
           </Collapsible>

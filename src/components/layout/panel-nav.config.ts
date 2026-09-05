@@ -1,45 +1,22 @@
 import {
-  Activity,
   Bell,
-  Building,
   Building2,
-  Calculator,
   CalendarDays,
-  ClipboardCheck,
   ClipboardList,
   ContactRound,
-  FileClock,
-  FileSignature,
-  Flag,
-  Gauge,
   Heart,
-  History,
   KeyRound,
   LayoutDashboard,
   ListTodo,
-  Map,
-  MapPin,
   MessageCircle,
-  Network,
-  Newspaper,
   Plus,
   Scale,
-  SearchCheck,
-  Settings,
-  Signpost,
-  StickyNote,
-  Store,
   Trophy,
-  UserCheck,
   UserRound,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 
-import {
-  canAccess,
-  type PanelAudience,
-} from "@/lib/auth/panel-access";
+import { canAccess, type PanelAudience } from "@/lib/auth/panel-access";
 import type { PanelViewer } from "@/lib/auth/permissions";
 import { routes } from "@/lib/routes";
 
@@ -61,25 +38,17 @@ import { routes } from "@/lib/routes";
  * around a block. A group with nothing visible in it is not rendered at all,
  * so nobody is shown an empty "office administration" heading.
  *
- * Some entries have no `href`. Those are the parts of the old admin menu that
- * this API has not been given yet — searching the spec for `admin`, `users`,
- * `setting`, `contract`, `province`, `edits` or `appraisal` returns nothing, and
- * "performance" exists only per record (`/estates/{id}/operations`), never as
- * the office-wide list the old panel had. They are listed anyway, greyed and
- * inert, because an administrator who used the old panel counts what is missing
- * and a shorter menu reads as features taken away rather than services not yet
- * moved across. Each becomes a real entry the day its endpoint exists.
+ * Every entry here goes somewhere that works. Pages whose service does not
+ * exist yet are not listed — not greyed, not marked "soon", not listed. A menu
+ * is a set of promises, and the ones it cannot keep belong in the roadmap
+ * rather than in front of somebody trying to get work done.
  */
 
-/** A row in the menu. */
-export type PanelNavEntry = {
-  /** Absent while the service behind the page does not exist yet. */
-  href?: string;
+export type PanelNavItem = {
+  href: string;
   label: string;
   icon: LucideIcon;
   audience: PanelAudience;
-  /** The page (or the service behind it) is not finished. */
-  soon?: boolean;
   /**
    * The topic this page belongs to when it is not listed under one — the two
    * quick actions live above the menu but are still part of a section as far as
@@ -88,29 +57,10 @@ export type PanelNavEntry = {
   groupId?: string;
 };
 
-/** A row you can actually open. */
-export type PanelNavItem = PanelNavEntry & { href: string };
-
-export function isNavigable(entry: PanelNavEntry): entry is PanelNavItem {
-  return typeof entry.href === "string";
-}
-
-/**
- * A page the old panel had and this one cannot have yet, for want of an
- * endpoint. No route, so nothing can link to it by accident.
- */
-function planned(
-  label: string,
-  icon: LucideIcon,
-  audience: PanelAudience,
-): PanelNavEntry {
-  return { label, icon, audience, soon: true };
-}
-
 export type PanelNavGroup = {
   id: string;
   label: string;
-  items: PanelNavEntry[];
+  items: PanelNavItem[];
 };
 
 /**
@@ -168,9 +118,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         icon: Building2,
         audience: "member",
       },
-      planned("عملکرد املاک", Gauge, "admin"),
-      planned("گزارش‌های مشکل در املاک", Flag, "admin"),
-      planned("ویرایش‌های املاک", FileClock, "admin"),
       {
         href: routes.panel.favorites,
         label: "علاقه‌مندی‌ها",
@@ -183,20 +130,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         icon: Scale,
         audience: "everyone",
       },
-      {
-        href: routes.panel.savedSearches,
-        label: "جست‌وجوهای ذخیره‌شده",
-        icon: SearchCheck,
-        audience: "everyone",
-        soon: true,
-      },
-      {
-        href: routes.panel.history,
-        label: "بازدیدهای اخیر",
-        icon: History,
-        audience: "everyone",
-        soon: true,
-      },
     ],
   },
   {
@@ -208,21 +141,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         label: "تقاضاهای ملکی",
         icon: ClipboardList,
         audience: "member",
-      },
-      {
-        href: routes.panel.matches,
-        label: "مشتریان و املاک متناسب",
-        icon: Network,
-        audience: "staff",
-        soon: true,
-      },
-      planned("عملکرد مشتریان", ClipboardCheck, "staff"),
-      {
-        href: routes.panel.notes,
-        label: "یادداشت‌های من",
-        icon: StickyNote,
-        audience: "everyone",
-        soon: true,
       },
     ],
   },
@@ -248,13 +166,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         icon: Trophy,
         audience: "staff",
       },
-      {
-        href: routes.panel.activities,
-        label: "فعالیت‌ها",
-        icon: Activity,
-        audience: "staff",
-        soon: true,
-      },
     ],
   },
   {
@@ -267,19 +178,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         icon: ContactRound,
         audience: "admin",
       },
-      // The old menu's order, kept, so an administrator finds things where
-      // they left them.
-      planned("شعبه‌ها", Store, "admin"),
-      planned("تنظیمات", Settings, "admin"),
-      planned("لیست استان‌ها", Map, "admin"),
-      planned("لیست شهرها", Building, "admin"),
-      planned("لیست محله‌ها", MapPin, "admin"),
-      planned("لیست خیابان‌ها", Signpost, "admin"),
-      planned("اعضای سیستم", Users, "admin"),
-      planned("عملکرد کارشناسان", UserCheck, "admin"),
-      planned("مدیریت قرارداد", FileSignature, "admin"),
-      planned("مدیریت مطالب", Newspaper, "admin"),
-      planned("کارشناسی قیمت", Calculator, "admin"),
     ],
   },
   {
@@ -308,16 +206,11 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
   },
 ];
 
-/**
- * Every entry that has somewhere to go, in one flat list — for label lookups
- * such as the breadcrumb, and for deciding which row is the current one. The
- * planned entries are left out: nothing can navigate to them, so nothing should
- * try to name them either.
- */
+/** Every entry in one flat list — for label lookups such as the breadcrumb. */
 export const PANEL_NAV_ITEMS: PanelNavItem[] = [
   ...PANEL_PRIMARY_LINKS,
   ...PANEL_QUICK_ACTIONS,
-  ...PANEL_NAV_GROUPS.flatMap((group) => group.items.filter(isNavigable)),
+  ...PANEL_NAV_GROUPS.flatMap((group) => group.items),
 ];
 
 export function visibleQuickActions(viewer: PanelViewer): PanelNavItem[] {
