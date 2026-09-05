@@ -410,7 +410,7 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button size="lg" disabled={mutation.isPending || isNavigating}>
+        <Button type="submit" size="lg" disabled={mutation.isPending || isNavigating}>
           {mutation.isPending || isNavigating ? (
             <Spinner data-icon="inline-start" />
           ) : (

@@ -413,7 +413,7 @@ export function CustomerProfileView({ id }: { id: string }) {
                   rows={2}
                   placeholder="نتیجه‌ی تماس یا نکته‌ای درباره‌ی این مشتری"
                 />
-                <Button size="sm" className="w-fit" disabled={addNote.isPending}>
+                <Button type="submit" size="sm" className="w-fit" disabled={addNote.isPending}>
                   {addNote.isPending && <Spinner data-icon="inline-start" />}
                   ثبت یادداشت
                 </Button>

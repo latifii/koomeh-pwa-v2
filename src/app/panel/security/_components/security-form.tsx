@@ -83,7 +83,7 @@ export function SecuritySettings() {
               />
             </div>
 
-            <Button disabled={mutation.isPending}>
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? (
                 <Spinner data-icon="inline-start" />
               ) : (
