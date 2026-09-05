@@ -8,7 +8,6 @@ import {
   Flag,
   Monitor,
   MoreVertical,
-  RotateCcw,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -27,6 +26,7 @@ import {
   type EstateReportFilters,
 } from "@/app/panel/_admin/_schemas/admin-lists.schema";
 import { EmptyState } from "@/components/shared/empty-state";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
 import { FilterSelect } from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Pagination } from "@/components/shared/pagination";
@@ -100,48 +100,46 @@ export function EstateReportsView() {
   const meta = list.data?.meta;
   const items = list.data?.items ?? [];
   const statuses = list.data?.statuses ?? [];
-  const isFiltered = Object.values(filters).some((value) => value !== "");
+
+  const chips = filterChips(
+    filters,
+    defaultEstateReportFilters,
+    {
+      estate_id: { label: "کد ملک" },
+      status: { label: "وضعیت", options: statuses },
+    },
+    setFilter,
+  );
 
   return (
     <AdminGate title="گزارش‌های مشکل فقط برای مدیران است">
       <div className="grid grid-cols-1 gap-4">
-        <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <Input
-              value={filters.estate_id}
-              onChange={(event) => setFilter("estate_id", event.target.value)}
-              placeholder="کد ملک"
-              inputMode="numeric"
-            />
-            <FilterSelect
-              label="همه‌ی وضعیت‌ها"
-              value={filters.status}
-              onChange={(value) => setFilter("status", value)}
-              options={statuses}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Typography variant="small" className="flex items-center gap-1.5">
-              <Flag className="size-3.5 text-brand/70" />
-              {meta ? `${meta.total.toLocaleString("fa-IR")} گزارش` : "در حال شمردن…"}
-            </Typography>
-            {isFiltered && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilters(defaultEstateReportFilters);
-                  setPage(1);
-                }}
-              >
-                <RotateCcw />
-                پاک کردن فیلترها
-              </Button>
-            )}
-          </div>
-        </div>
+        <PanelFilterBar
+          icon={Flag}
+          count={meta?.total}
+          unit="گزارش"
+          pending={!meta}
+          columns={2}
+          chips={chips}
+          onClear={() => {
+            setFilters(defaultEstateReportFilters);
+            setPage(1);
+          }}
+        >
+          <Input
+            value={filters.estate_id}
+            onChange={(event) => setFilter("estate_id", event.target.value)}
+            placeholder="کد ملک"
+            aria-label="کد ملک"
+            inputMode="numeric"
+          />
+          <FilterSelect
+            label="همه‌ی وضعیت‌ها"
+            value={filters.status}
+            onChange={(value) => setFilter("status", value)}
+            options={statuses}
+          />
+        </PanelFilterBar>
 
         {list.isPending && <ListSkeleton count={5} />}
 

@@ -8,8 +8,6 @@ import {
   ChevronRight,
   MoreVertical,
   Pencil,
-  RotateCcw,
-  Search,
   ShieldAlert,
   Trash2,
   UserRoundCog,
@@ -34,7 +32,8 @@ import {
 } from "@/app/panel/members/_schemas/members.schema";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { EmptyState } from "@/components/shared/empty-state";
-import { FilterSelect } from "@/components/shared/form";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
+import { FilterCombobox, FilterSelect } from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -145,73 +144,69 @@ export function MembersView() {
     })),
   ];
 
-  const isFiltered = Object.values(filters).some((value) => value !== "");
+  const isFiltered =
+    search !== "" || Object.values(filters).some((value) => value !== "");
+
+  const chips = filterChips(
+    filters,
+    defaultMemberFilters,
+    {
+      role_id: { label: "نقش", options: roleFilterOptions },
+      status: { label: "وضعیت", options: statuses },
+      branch_id: { label: "شعبه", options: branches },
+      username: { label: "شماره" },
+    },
+    setFilter,
+  );
 
   return (
     <div className="grid grid-cols-1 gap-4">
-      <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-        <div className="relative">
-          <Search className="absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="جست‌وجوی نام یا نام خانوادگی"
-            className="ps-9"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <FilterSelect
-            label="همه‌ی نقش‌ها"
-            value={filters.role_id}
-            onChange={(value) => setFilter("role_id", value)}
-            options={roleFilterOptions}
-          />
-          <FilterSelect
-            label="همه‌ی وضعیت‌ها"
-            value={filters.status}
-            onChange={(value) => setFilter("status", value)}
-            options={statuses}
-          />
-          <FilterSelect
-            label="همه‌ی شعبه‌ها"
-            value={filters.branch_id}
-            onChange={(value) => setFilter("branch_id", value)}
-            options={branches}
-          />
-          <Input
-            value={filters.username}
-            onChange={(event) => setFilter("username", event.target.value)}
-            placeholder="شماره همراه"
-            inputMode="numeric"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Typography variant="small" className="flex items-center gap-1.5">
-            <Users className="size-3.5 text-brand/70" />
-            {meta
-              ? `${meta.total.toLocaleString("fa-IR")} حساب`
-              : "در حال شمردن…"}
-          </Typography>
-
-          {isFiltered && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setFilters(defaultMemberFilters);
-                setSearch("");
-                setPage(1);
-              }}
-            >
-              <RotateCcw />
-              پاک کردن فیلترها
-            </Button>
-          )}
-        </div>
-      </div>
+      <PanelFilterBar
+        icon={Users}
+        count={meta?.total}
+        unit="حساب"
+        pending={!meta}
+        columns={4}
+        search={{
+          value: search,
+          onChange: setSearch,
+          placeholder: "جست‌وجوی نام یا نام خانوادگی",
+        }}
+        chips={chips}
+        isFiltered={isFiltered}
+        onClear={() => {
+          setFilters(defaultMemberFilters);
+          setSearch("");
+          setPage(1);
+        }}
+      >
+        <FilterSelect
+          label="همه‌ی نقش‌ها"
+          value={filters.role_id}
+          onChange={(value) => setFilter("role_id", value)}
+          options={roleFilterOptions}
+        />
+        <FilterSelect
+          label="همه‌ی وضعیت‌ها"
+          value={filters.status}
+          onChange={(value) => setFilter("status", value)}
+          options={statuses}
+        />
+        <FilterCombobox
+          label="همه‌ی شعبه‌ها"
+          value={filters.branch_id}
+          onChange={(value) => setFilter("branch_id", value)}
+          options={branches}
+          emptyText="شعبه‌ای با این نام نیست"
+        />
+        <Input
+          value={filters.username}
+          onChange={(event) => setFilter("username", event.target.value)}
+          placeholder="شماره همراه"
+          aria-label="شماره همراه"
+          inputMode="numeric"
+        />
+      </PanelFilterBar>
 
       {list.isPending && <ListSkeleton count={6} />}
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Building2, FileClock, RotateCcw, UserRound } from "lucide-react";
+import { ArrowLeft, Building2, FileClock, UserRound } from "lucide-react";
 
 import { AdminGate } from "@/app/panel/_admin/_components/admin-gate";
 import { estateEditsQueryOptions } from "@/app/panel/_admin/_queries/admin-lists.query";
@@ -12,19 +12,15 @@ import {
   type EstateEditFilters,
 } from "@/app/panel/_admin/_schemas/admin-lists.schema";
 import { EmptyState } from "@/components/shared/empty-state";
-import {
-  FilterCombobox,
-  FilterSelect,
-  JalaliDateInput,
-} from "@/components/shared/form";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
+import { FilterCombobox, JalaliDateInput } from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
+import { toJalaliDisplay } from "@/lib/jalali-date";
 import { routes } from "@/lib/routes";
 
 /**
@@ -49,76 +45,70 @@ export function EstateEditsView() {
 
   const meta = list.data?.meta;
   const items = list.data?.items ?? [];
-  const isFiltered = Object.values(filters).some((value) => value !== "");
+
+  const chips = filterChips(
+    filters,
+    defaultEstateEditFilters,
+    {
+      estate_id: { label: "کد ملک" },
+      user_id: { label: "کارشناس", options: list.data?.agents ?? [] },
+      type: { label: "فیلد", options: list.data?.fields ?? [] },
+      datefrom: { label: "از", format: toJalaliDisplay },
+      dateto: { label: "تا", format: toJalaliDisplay },
+    },
+    setFilter,
+  );
 
   return (
     <AdminGate title="تاریخچه‌ی ویرایش‌ها فقط برای مدیران است">
       <div className="grid grid-cols-1 gap-4">
-        <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <Input
-              value={filters.estate_id}
-              onChange={(event) => setFilter("estate_id", event.target.value)}
-              placeholder="کد ملک"
-              inputMode="numeric"
-            />
-            <FilterCombobox
-              label="همه‌ی کارشناسان"
-              value={filters.user_id}
-              onChange={(value) => setFilter("user_id", value)}
-              options={list.data?.agents ?? []}
-              emptyText="کارشناسی با این نام نیست"
-            />
-            <FilterSelect
-              label="همه‌ی فیلدها"
-              value={filters.type}
-              onChange={(value) => setFilter("type", value)}
-              options={list.data?.fields ?? []}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label htmlFor="edits-from">از تاریخ</Label>
-              <JalaliDateInput
-                id="edits-from"
-                value={filters.datefrom}
-                placeholder="از ابتدا"
-                onChange={(value) => setFilter("datefrom", value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="edits-to">تا تاریخ</Label>
-              <JalaliDateInput
-                id="edits-to"
-                value={filters.dateto}
-                placeholder="تا امروز"
-                onChange={(value) => setFilter("dateto", value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Typography variant="small" className="flex items-center gap-1.5">
-              <FileClock className="size-3.5 text-brand/70" />
-              {meta ? `${meta.total.toLocaleString("fa-IR")} تغییر` : "در حال شمردن…"}
-            </Typography>
-            {isFiltered && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilters(defaultEstateEditFilters);
-                  setPage(1);
-                }}
-              >
-                <RotateCcw />
-                پاک کردن فیلترها
-              </Button>
-            )}
-          </div>
-        </div>
+        <PanelFilterBar
+          icon={FileClock}
+          count={meta?.total}
+          unit="تغییر"
+          pending={!meta}
+          chips={chips}
+          onClear={() => {
+            setFilters(defaultEstateEditFilters);
+            setPage(1);
+          }}
+        >
+          <Input
+            value={filters.estate_id}
+            onChange={(event) => setFilter("estate_id", event.target.value)}
+            placeholder="کد ملک"
+            aria-label="کد ملک"
+            inputMode="numeric"
+          />
+          <FilterCombobox
+            label="همه‌ی کارشناسان"
+            value={filters.user_id}
+            onChange={(value) => setFilter("user_id", value)}
+            options={list.data?.agents ?? []}
+            emptyText="کارشناسی با این نام نیست"
+          />
+          {/* Every editable column of a listing — sixty-odd names, so it is
+              typed into rather than scrolled through. */}
+          <FilterCombobox
+            label="همه‌ی فیلدها"
+            value={filters.type}
+            onChange={(value) => setFilter("type", value)}
+            options={list.data?.fields ?? []}
+            emptyText="فیلدی با این نام نیست"
+          />
+          <JalaliDateInput
+            value={filters.datefrom}
+            placeholder="از تاریخ"
+            aria-label="از تاریخ"
+            onChange={(value) => setFilter("datefrom", value)}
+          />
+          <JalaliDateInput
+            value={filters.dateto}
+            placeholder="تا تاریخ"
+            aria-label="تا تاریخ"
+            onChange={(value) => setFilter("dateto", value)}
+          />
+        </PanelFilterBar>
 
         {list.isPending && <ListSkeleton count={6} />}
 

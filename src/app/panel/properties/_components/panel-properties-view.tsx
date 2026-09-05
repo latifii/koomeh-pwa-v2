@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
-import { Building2, LoaderCircle, Map, Rows3, RotateCcw, Search } from "lucide-react";
+import { Building2, LoaderCircle, Map, Rows3, RotateCcw } from "lucide-react";
 
 import {
   actionCopy,
@@ -19,7 +19,8 @@ import {
   type PanelEstateFilters,
 } from "@/app/panel/properties/_types/panel-estates.types";
 import { EmptyState } from "@/components/shared/empty-state";
-import { FilterSelect } from "@/components/shared/form";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
+import { FilterCombobox, FilterSelect } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,7 +30,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
@@ -99,70 +99,44 @@ export function PanelPropertiesView() {
   const set = (patch: Partial<PanelEstateFilters>) =>
     setFilters((current) => ({ ...current, ...patch }));
 
+  const isFiltered = Object.entries(filters).some(
+    ([key, value]) =>
+      value !== defaultPanelEstateFilters[key as keyof PanelEstateFilters],
+  );
+
+  const chips = filterChips(
+    filters,
+    defaultPanelEstateFilters,
+    {
+      confirmation: {
+        label: "وضعیت",
+        options: options.data?.confirmation_statuses ?? [],
+      },
+      dealType: { label: "معامله", options: options.data?.deal_types ?? [] },
+      estateType: { label: "نوع", options: options.data?.estate_types ?? [] },
+      expert: { label: "مشاور", options: options.data?.experts ?? [] },
+    },
+    (key, value) => set({ [key]: value }),
+  );
+
   return (
     <div className="grid grid-cols-1 gap-4">
-      <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-        <div className="relative">
-          <Search className="pointer-events-none absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={filters.query}
-            onChange={(event) => set({ query: event.target.value })}
-            placeholder="جستجوی عنوان یا کد آگهی"
-            aria-label="جستجوی عنوان یا کد آگهی"
-            className="ps-9"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <FilterSelect
-            label="وضعیت"
-            value={filters.confirmation}
-            onChange={(value) => set({ confirmation: value })}
-            options={options.data?.confirmation_statuses ?? []}
-          />
-          <FilterSelect
-            label="نوع معامله"
-            value={filters.dealType}
-            onChange={(value) => set({ dealType: value })}
-            options={options.data?.deal_types ?? []}
-          />
-          <FilterSelect
-            label="نوع ملک"
-            value={filters.estateType}
-            onChange={(value) => set({ estateType: value })}
-            options={options.data?.estate_types ?? []}
-          />
-          {/* The API only fills the expert list for staff. */}
-          {(options.data?.experts.length ?? 0) > 0 && (
-            <FilterSelect
-              label="مشاور"
-              value={filters.expert}
-              onChange={(value) => set({ expert: value })}
-              options={options.data?.experts ?? []}
-            />
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Typography variant="small" className="flex items-center gap-1.5">
-            <Building2 className="size-4 text-brand" />
-            {list.isPending
-              ? "در حال بارگذاری…"
-              : `${total.toLocaleString("fa-IR")} آگهی`}
-            {scope?.own_only === false && " (همه‌ی آگهی‌ها)"}
-          </Typography>
-
-          {filters !== defaultPanelEstateFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFilters(defaultPanelEstateFilters)}
-            >
-              <RotateCcw data-icon="inline-start" />
-              پاک کردن فیلترها
-            </Button>
-          )}
-
+      <PanelFilterBar
+        icon={Building2}
+        count={list.isPending ? undefined : total}
+        unit="آگهی"
+        pending={list.isPending}
+        note={scope?.own_only === false ? "همه‌ی آگهی‌ها" : undefined}
+        columns={4}
+        search={{
+          value: filters.query,
+          onChange: (value) => set({ query: value }),
+          placeholder: "جستجوی عنوان یا کد آگهی",
+        }}
+        chips={chips}
+        isFiltered={isFiltered}
+        onClear={() => setFilters(defaultPanelEstateFilters)}
+        actions={
           <Button
             variant="outline"
             size="sm"
@@ -173,10 +147,39 @@ export function PanelPropertiesView() {
             ) : (
               <Rows3 data-icon="inline-start" />
             )}
-            {view === "list" ? "نمایش روی نقشه" : "نمایش فهرستی"}
+            {view === "list" ? "نقشه" : "فهرست"}
           </Button>
-        </div>
-      </div>
+        }
+      >
+        <FilterSelect
+          label="وضعیت"
+          value={filters.confirmation}
+          onChange={(value) => set({ confirmation: value })}
+          options={options.data?.confirmation_statuses ?? []}
+        />
+        <FilterSelect
+          label="نوع معامله"
+          value={filters.dealType}
+          onChange={(value) => set({ dealType: value })}
+          options={options.data?.deal_types ?? []}
+        />
+        <FilterSelect
+          label="نوع ملک"
+          value={filters.estateType}
+          onChange={(value) => set({ estateType: value })}
+          options={options.data?.estate_types ?? []}
+        />
+        {/* The API only fills the expert list for staff. */}
+        {(options.data?.experts.length ?? 0) > 0 && (
+          <FilterCombobox
+            label="مشاور"
+            value={filters.expert}
+            onChange={(value) => set({ expert: value })}
+            options={options.data?.experts ?? []}
+            emptyText="مشاوری با این نام نیست"
+          />
+        )}
+      </PanelFilterBar>
 
       {view === "map" ? (
         <div className="space-y-2">

@@ -11,7 +11,6 @@ import {
   EyeOff,
   MousePointerClick,
   Network,
-  RotateCcw,
   Trash2,
   X,
 } from "lucide-react";
@@ -32,7 +31,8 @@ import {
   type RelationFilters,
 } from "@/app/panel/_admin/_schemas/admin-lists.schema";
 import { EmptyState } from "@/components/shared/empty-state";
-import { FilterSelect } from "@/components/shared/form";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
+import { FilterCombobox, FilterSelect } from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
@@ -107,60 +107,65 @@ export function RelationsView() {
 
   const meta = list.data?.meta;
   const items = list.data?.items ?? [];
-  const isFiltered = Object.values(filters).some((value) => value !== "");
+
+  const chips = filterChips(
+    filters,
+    defaultRelationFilters,
+    {
+      estate_id: { label: "کد ملک" },
+      customer_id: { label: "کد تقاضا" },
+      customer_expert_id: {
+        label: "مشاور",
+        options: list.data?.agents ?? [],
+      },
+      status: { label: "وضعیت", options: list.data?.statuses ?? [] },
+    },
+    setFilter,
+  );
 
   return (
     <AdminGate title="مشتریان و املاک متناسب فقط برای مدیران است">
       <div className="grid grid-cols-1 gap-4">
-        <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <Input
-              value={filters.estate_id}
-              onChange={(event) => setFilter("estate_id", event.target.value)}
-              placeholder="کد ملک"
-              inputMode="numeric"
-            />
-            <Input
-              value={filters.customer_id}
-              onChange={(event) => setFilter("customer_id", event.target.value)}
-              placeholder="کد تقاضا"
-              inputMode="numeric"
-            />
-            <FilterSelect
-              label="همه‌ی مشاوران"
-              value={filters.customer_expert_id}
-              onChange={(value) => setFilter("customer_expert_id", value)}
-              options={list.data?.agents ?? []}
-            />
-            <FilterSelect
-              label="همه‌ی وضعیت‌ها"
-              value={filters.status}
-              onChange={(value) => setFilter("status", value)}
-              options={list.data?.statuses ?? []}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Typography variant="small" className="flex items-center gap-1.5">
-              <Network className="size-3.5 text-brand/70" />
-              {meta ? `${meta.total.toLocaleString("fa-IR")} پیشنهاد` : "در حال شمردن…"}
-            </Typography>
-            {isFiltered && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilters(defaultRelationFilters);
-                  setPage(1);
-                }}
-              >
-                <RotateCcw />
-                پاک کردن فیلترها
-              </Button>
-            )}
-          </div>
-        </div>
+        <PanelFilterBar
+          icon={Network}
+          count={meta?.total}
+          unit="پیشنهاد"
+          pending={!meta}
+          columns={4}
+          chips={chips}
+          onClear={() => {
+            setFilters(defaultRelationFilters);
+            setPage(1);
+          }}
+        >
+          <Input
+            value={filters.estate_id}
+            onChange={(event) => setFilter("estate_id", event.target.value)}
+            placeholder="کد ملک"
+            aria-label="کد ملک"
+            inputMode="numeric"
+          />
+          <Input
+            value={filters.customer_id}
+            onChange={(event) => setFilter("customer_id", event.target.value)}
+            placeholder="کد تقاضا"
+            aria-label="کد تقاضا"
+            inputMode="numeric"
+          />
+          <FilterCombobox
+            label="همه‌ی مشاوران"
+            value={filters.customer_expert_id}
+            onChange={(value) => setFilter("customer_expert_id", value)}
+            options={list.data?.agents ?? []}
+            emptyText="مشاوری با این نام نیست"
+          />
+          <FilterSelect
+            label="همه‌ی وضعیت‌ها"
+            value={filters.status}
+            onChange={(value) => setFilter("status", value)}
+            options={list.data?.statuses ?? []}
+          />
+        </PanelFilterBar>
 
         {list.isPending && <ListSkeleton count={5} />}
 

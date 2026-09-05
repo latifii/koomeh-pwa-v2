@@ -99,6 +99,13 @@ export function parseJalali(
   return isValidJalali(date) ? date : null;
 }
 
+
+/** A stored `1405/06/10` as `۱۴۰۵/۰۶/۱۰`, or the raw text when it is not a day. */
+export function toJalaliDisplay(value: string): string {
+  const parsed = parseJalali(value);
+  return parsed ? formatJalaliDisplay(parsed) : value;
+}
+
 export function isValidJalali(date: JalaliDate): boolean {
   return isValidJalaaliDate(date.jy, date.jm, date.jd);
 }

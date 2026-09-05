@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  RotateCcw,
   ShieldAlert,
   Trash2,
   UserRound,
@@ -31,6 +30,7 @@ import {
 } from "@/app/panel/_operations/_schemas/operations.schema";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { EmptyState } from "@/components/shared/empty-state";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
 import {
   FilterCombobox,
   FilterSelect,
@@ -39,10 +39,11 @@ import {
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { panelViewer } from "@/lib/auth/permissions";
+import { toJalaliDisplay } from "@/lib/jalali-date";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -110,72 +111,76 @@ export function OperationsView({ kind }: { kind: OperationKind }) {
 
   const meta = list.data?.meta;
   const items = list.data?.items ?? [];
-  const isFiltered = Object.values(filters).some((value) => value !== "");
+
+  const chips = filterChips(
+    filters,
+    defaultOperationFilters,
+    {
+      estate_id: { label: "کد ملک" },
+      customer_id: { label: "کد مشتری" },
+      user_id: { label: "کارشناس", options: whoOptions },
+      type: { label: "نوع", options: typeOptions },
+      datefrom: { label: "از", format: toJalaliDisplay },
+      dateto: { label: "تا", format: toJalaliDisplay },
+    },
+    setFilter,
+  );
 
   return (
     <div className="grid grid-cols-1 gap-4">
-      <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {/* Typing, not scrolling: this list is every agent and every branch. */}
-          <FilterCombobox
-            label="همه‌ی کارشناسان"
-            value={filters.user_id}
-            onChange={(value) => setFilter("user_id", value)}
-            options={whoOptions}
-            emptyText="کارشناسی با این نام نیست"
-          />
-          <FilterSelect
-            label="همه‌ی نوع‌ها"
-            value={filters.type}
-            onChange={(value) => setFilter("type", value)}
-            options={typeOptions}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="ops-from">از تاریخ</Label>
-            <JalaliDateInput
-              id="ops-from"
-              value={filters.datefrom}
-              placeholder="از ابتدا"
-              onChange={(value) => setFilter("datefrom", value)}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="ops-to">تا تاریخ</Label>
-            <JalaliDateInput
-              id="ops-to"
-              value={filters.dateto}
-              placeholder="تا امروز"
-              onChange={(value) => setFilter("dateto", value)}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Typography variant="small" className="flex items-center gap-1.5">
-            <Activity className="size-3.5 text-brand/70" />
-            {meta ? `${meta.total.toLocaleString("fa-IR")} نتیجه` : "در حال شمردن…"}
-            {list.data?.scope === "own" && " · فقط نتایج شما"}
-          </Typography>
-
-          {isFiltered && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setFilters(defaultOperationFilters);
-                setPage(1);
-              }}
-            >
-              <RotateCcw />
-              پاک کردن فیلترها
-            </Button>
-          )}
-        </div>
-      </div>
+      <PanelFilterBar
+        icon={Activity}
+        count={meta?.total}
+        unit="نتیجه"
+        pending={!meta}
+        note={list.data?.scope === "own" ? "فقط نتایج شما" : undefined}
+        chips={chips}
+        onClear={() => {
+          setFilters(defaultOperationFilters);
+          setPage(1);
+        }}
+      >
+        <Input
+          value={filters.estate_id}
+          onChange={(event) => setFilter("estate_id", event.target.value)}
+          placeholder="کد ملک"
+          aria-label="کد ملک"
+          inputMode="numeric"
+        />
+        <Input
+          value={filters.customer_id}
+          onChange={(event) => setFilter("customer_id", event.target.value)}
+          placeholder="کد مشتری"
+          aria-label="کد مشتری"
+          inputMode="numeric"
+        />
+        {/* Typing, not scrolling: this list is every agent and every branch. */}
+        <FilterCombobox
+          label="همه‌ی کارشناسان"
+          value={filters.user_id}
+          onChange={(value) => setFilter("user_id", value)}
+          options={whoOptions}
+          emptyText="کارشناسی با این نام نیست"
+        />
+        <FilterSelect
+          label="همه‌ی نوع‌ها"
+          value={filters.type}
+          onChange={(value) => setFilter("type", value)}
+          options={typeOptions}
+        />
+        <JalaliDateInput
+          value={filters.datefrom}
+          placeholder="از تاریخ"
+          aria-label="از تاریخ"
+          onChange={(value) => setFilter("datefrom", value)}
+        />
+        <JalaliDateInput
+          value={filters.dateto}
+          placeholder="تا تاریخ"
+          aria-label="تا تاریخ"
+          onChange={(value) => setFilter("dateto", value)}
+        />
+      </PanelFilterBar>
 
       {list.isPending && <ListSkeleton count={6} />}
 

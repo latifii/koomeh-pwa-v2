@@ -8,7 +8,6 @@ import {
   FileSignature,
   MapPin,
   Pencil,
-  RotateCcw,
   Trash2,
   UserRound,
 } from "lucide-react";
@@ -26,6 +25,7 @@ import {
   type ContractFilters,
 } from "@/app/panel/contracts/_schemas/contracts.schema";
 import { EmptyState } from "@/components/shared/empty-state";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
 import {
   FilterCombobox,
   FilterSelect,
@@ -36,9 +36,9 @@ import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
+import { toJalaliDisplay } from "@/lib/jalali-date";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -71,91 +71,87 @@ export function ContractsView() {
 
   const meta = list.data?.meta;
   const items = list.data?.items ?? [];
-  const isFiltered = Object.values(filters).some((value) => value !== "");
+
+  const chips = filterChips(
+    filters,
+    defaultContractFilters,
+    {
+      contractid: { label: "شماره" },
+      estate_name: { label: "فروشنده" },
+      customer_name: { label: "خریدار" },
+      type: { label: "معامله", options: options.data?.deal_types ?? [] },
+      estate_type: { label: "نوع ملک", options: options.data?.estate_types ?? [] },
+      expert: { label: "مشاور", options: options.data?.agents ?? [] },
+      create_date_of: { label: "از", format: toJalaliDisplay },
+      create_date_to: { label: "تا", format: toJalaliDisplay },
+    },
+    setFilter,
+  );
 
   return (
     <AdminGate title="قولنامه‌ها فقط برای مدیران است">
       <div className="grid grid-cols-1 gap-4">
-        <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <Input
-              value={filters.contractid}
-              onChange={(event) => setFilter("contractid", event.target.value)}
-              placeholder="شماره قولنامه"
-            />
-            <Input
-              value={filters.estate_name}
-              onChange={(event) => setFilter("estate_name", event.target.value)}
-              placeholder="نام فروشنده / موجر"
-            />
-            <Input
-              value={filters.customer_name}
-              onChange={(event) => setFilter("customer_name", event.target.value)}
-              placeholder="نام خریدار / مستاجر"
-            />
-            <FilterSelect
-              label="همه‌ی نوع‌های معامله"
-              value={filters.type}
-              onChange={(value) => setFilter("type", value)}
-              options={options.data?.deal_types ?? []}
-            />
-            <FilterSelect
-              label="همه‌ی نوع‌های ملک"
-              value={filters.estate_type}
-              onChange={(value) => setFilter("estate_type", value)}
-              options={options.data?.estate_types ?? []}
-            />
-            <FilterCombobox
-              label="همه‌ی مشاوران"
-              value={filters.expert}
-              onChange={(value) => setFilter("expert", value)}
-              options={options.data?.agents ?? []}
-              emptyText="مشاوری با این نام نیست"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label htmlFor="contracts-from">از تاریخ</Label>
-              <JalaliDateInput
-                id="contracts-from"
-                value={filters.create_date_of}
-                placeholder="از ابتدا"
-                onChange={(value) => setFilter("create_date_of", value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="contracts-to">تا تاریخ</Label>
-              <JalaliDateInput
-                id="contracts-to"
-                value={filters.create_date_to}
-                placeholder="تا امروز"
-                onChange={(value) => setFilter("create_date_to", value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Typography variant="small" className="flex items-center gap-1.5">
-              <FileSignature className="size-3.5 text-brand/70" />
-              {meta ? `${meta.total.toLocaleString("fa-IR")} قولنامه` : "در حال شمردن…"}
-            </Typography>
-            {isFiltered && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilters(defaultContractFilters);
-                  setPage(1);
-                }}
-              >
-                <RotateCcw />
-                پاک کردن فیلترها
-              </Button>
-            )}
-          </div>
-        </div>
+        <PanelFilterBar
+          icon={FileSignature}
+          count={meta?.total}
+          unit="قولنامه"
+          pending={!meta}
+          chips={chips}
+          onClear={() => {
+            setFilters(defaultContractFilters);
+            setPage(1);
+          }}
+        >
+          <Input
+            value={filters.contractid}
+            onChange={(event) => setFilter("contractid", event.target.value)}
+            placeholder="شماره قولنامه"
+            aria-label="شماره قولنامه"
+          />
+          <Input
+            value={filters.estate_name}
+            onChange={(event) => setFilter("estate_name", event.target.value)}
+            placeholder="نام فروشنده / موجر"
+            aria-label="نام فروشنده یا موجر"
+          />
+          <Input
+            value={filters.customer_name}
+            onChange={(event) => setFilter("customer_name", event.target.value)}
+            placeholder="نام خریدار / مستاجر"
+            aria-label="نام خریدار یا مستاجر"
+          />
+          <FilterSelect
+            label="همه‌ی نوع‌های معامله"
+            value={filters.type}
+            onChange={(value) => setFilter("type", value)}
+            options={options.data?.deal_types ?? []}
+          />
+          <FilterSelect
+            label="همه‌ی نوع‌های ملک"
+            value={filters.estate_type}
+            onChange={(value) => setFilter("estate_type", value)}
+            options={options.data?.estate_types ?? []}
+          />
+          <FilterCombobox
+            label="همه‌ی مشاوران"
+            value={filters.expert}
+            onChange={(value) => setFilter("expert", value)}
+            options={options.data?.agents ?? []}
+            emptyText="مشاوری با این نام نیست"
+          />
+          <JalaliDateInput
+            value={filters.create_date_of}
+            placeholder="از تاریخ"
+            aria-label="از تاریخ"
+            onChange={(value) => setFilter("create_date_of", value)}
+          />
+          <JalaliDateInput
+            value={filters.create_date_to}
+            placeholder="تا تاریخ"
+            aria-label="تا تاریخ"
+            onChange={(value) => setFilter("create_date_to", value)}
+          />
+        </PanelFilterBar>
 
         {list.isPending && <ListSkeleton count={5} />}
 

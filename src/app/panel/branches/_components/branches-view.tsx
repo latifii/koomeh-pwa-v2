@@ -9,7 +9,6 @@ import {
   MapPin,
   Pencil,
   Phone,
-  RotateCcw,
   Store,
   Trash2,
 } from "lucide-react";
@@ -29,12 +28,12 @@ import {
   type BranchFilters,
 } from "@/app/panel/branches/_schemas/branches.schema";
 import { EmptyState } from "@/components/shared/empty-state";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
 import { FilterSelect } from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
@@ -85,45 +84,41 @@ export function BranchesView() {
   const items = list.data?.items ?? [];
   const isFiltered = Object.values(filters).some((value) => value !== "");
 
+  const chips = filterChips(
+    filters,
+    defaultBranchFilters,
+    { status: { label: "وضعیت", options: STATUS_OPTIONS } },
+    setFilter,
+  );
+
   return (
     <AdminGate title="مدیریت شعب فقط برای مدیران است">
       <div className="grid grid-cols-1 gap-4">
-        <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <Input
-              value={filters.name}
-              onChange={(event) => setFilter("name", event.target.value)}
-              placeholder="جست‌وجوی نام شعبه"
-            />
-            <FilterSelect
-              label="همه‌ی وضعیت‌ها"
-              value={filters.status}
-              onChange={(value) => setFilter("status", value)}
-              options={STATUS_OPTIONS}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Typography variant="small" className="flex items-center gap-1.5">
-              <Store className="size-3.5 text-brand/70" />
-              {meta ? `${meta.total.toLocaleString("fa-IR")} شعبه` : "در حال شمردن…"}
-            </Typography>
-            {isFiltered && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilters(defaultBranchFilters);
-                  setPage(1);
-                }}
-              >
-                <RotateCcw />
-                پاک کردن فیلترها
-              </Button>
-            )}
-          </div>
-        </div>
+        <PanelFilterBar
+          icon={Store}
+          count={meta?.total}
+          unit="شعبه"
+          pending={!meta}
+          columns={2}
+          search={{
+            value: filters.name,
+            onChange: (value) => setFilter("name", value),
+            placeholder: "جست‌وجوی نام شعبه",
+          }}
+          chips={chips}
+          isFiltered={isFiltered}
+          onClear={() => {
+            setFilters(defaultBranchFilters);
+            setPage(1);
+          }}
+        >
+          <FilterSelect
+            label="همه‌ی وضعیت‌ها"
+            value={filters.status}
+            onChange={(value) => setFilter("status", value)}
+            options={STATUS_OPTIONS}
+          />
+        </PanelFilterBar>
 
         {list.isPending && <ListSkeleton count={3} />}
 

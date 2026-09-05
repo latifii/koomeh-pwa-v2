@@ -10,7 +10,6 @@ import {
   MapPin,
   Phone,
   RotateCcw,
-  Search,
   StickyNote,
 } from "lucide-react";
 
@@ -24,10 +23,10 @@ import {
   type CustomerFilters,
 } from "@/app/panel/requests/_types/customers.types";
 import { EmptyState } from "@/components/shared/empty-state";
-import { FilterSelect } from "@/components/shared/form";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
+import { FilterCombobox, FilterSelect } from "@/components/shared/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
@@ -81,6 +80,29 @@ export function CustomersView() {
   const set = (patch: Partial<CustomerFilters>) =>
     setFilters((current) => ({ ...current, ...patch }));
 
+  const isFiltered = Object.entries(filters).some(
+    ([key, value]) =>
+      value !== defaultCustomerFilters[key as keyof CustomerFilters],
+  );
+
+  const chips = filterChips(
+    filters,
+    defaultCustomerFilters,
+    {
+      requestType: {
+        label: "نوع تقاضا",
+        options: options.data?.request_types ?? [],
+      },
+      status: { label: "وضعیت", options: options.data?.statuses ?? [] },
+      estateType: {
+        label: "نوع ملک",
+        options: options.data?.estate_types ?? [],
+      },
+      agent: { label: "مشاور", options: options.data?.agents ?? [] },
+    },
+    (key, value) => set({ [key]: value }),
+  );
+
   return (
     <div className="grid grid-cols-1 gap-4">
       {summary && (
@@ -91,67 +113,49 @@ export function CustomersView() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-        <div className="relative">
-          <Search className="pointer-events-none absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={filters.query}
-            onChange={(event) => set({ query: event.target.value })}
-            placeholder="جستجوی نام یا شماره موبایل"
-            aria-label="جستجوی نام یا شماره موبایل"
-            className="ps-9"
+      <PanelFilterBar
+        icon={ClipboardList}
+        count={list.isPending ? undefined : (first?.total ?? 0)}
+        unit="تقاضا"
+        pending={list.isPending}
+        columns={4}
+        search={{
+          value: filters.query,
+          onChange: (value) => set({ query: value }),
+          placeholder: "جستجوی نام یا شماره موبایل",
+        }}
+        chips={chips}
+        isFiltered={isFiltered}
+        onClear={() => setFilters(defaultCustomerFilters)}
+      >
+        <FilterSelect
+          label="نوع تقاضا"
+          value={filters.requestType}
+          onChange={(value) => set({ requestType: value })}
+          options={options.data?.request_types ?? []}
+        />
+        <FilterSelect
+          label="وضعیت"
+          value={filters.status}
+          onChange={(value) => set({ status: value })}
+          options={options.data?.statuses ?? []}
+        />
+        <FilterSelect
+          label="نوع ملک"
+          value={filters.estateType}
+          onChange={(value) => set({ estateType: value })}
+          options={options.data?.estate_types ?? []}
+        />
+        {(options.data?.agents.length ?? 0) > 0 && (
+          <FilterCombobox
+            label="مشاور"
+            value={filters.agent}
+            onChange={(value) => set({ agent: value })}
+            options={options.data?.agents ?? []}
+            emptyText="مشاوری با این نام نیست"
           />
-        </div>
-
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <FilterSelect
-            label="نوع تقاضا"
-            value={filters.requestType}
-            onChange={(value) => set({ requestType: value })}
-            options={options.data?.request_types ?? []}
-          />
-          <FilterSelect
-            label="وضعیت"
-            value={filters.status}
-            onChange={(value) => set({ status: value })}
-            options={options.data?.statuses ?? []}
-          />
-          <FilterSelect
-            label="نوع ملک"
-            value={filters.estateType}
-            onChange={(value) => set({ estateType: value })}
-            options={options.data?.estate_types ?? []}
-          />
-          {(options.data?.agents.length ?? 0) > 0 && (
-            <FilterSelect
-              label="مشاور"
-              value={filters.agent}
-              onChange={(value) => set({ agent: value })}
-              options={options.data?.agents ?? []}
-            />
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Typography variant="small" className="flex items-center gap-1.5">
-            <ClipboardList className="size-4 text-brand" />
-            {list.isPending
-              ? "در حال بارگذاری…"
-              : `${(first?.total ?? 0).toLocaleString("fa-IR")} تقاضا`}
-          </Typography>
-
-          {filters !== defaultCustomerFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFilters(defaultCustomerFilters)}
-            >
-              <RotateCcw data-icon="inline-start" />
-              پاک کردن فیلترها
-            </Button>
-          )}
-        </div>
-      </div>
+        )}
+      </PanelFilterBar>
 
       {list.isError ? (
         <EmptyState

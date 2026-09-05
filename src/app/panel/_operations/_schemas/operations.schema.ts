@@ -82,6 +82,10 @@ export type OperationFilterOptions = z.infer<
 export type OperationKind = "estate" | "customer";
 
 export type OperationFilters = {
+  /** Both lists take a listing code and a customer code; the API has always
+      accepted them and the page never offered them. */
+  estate_id: string;
+  customer_id: string;
   user_id: string;
   type: string;
   datefrom: string;
@@ -89,6 +93,8 @@ export type OperationFilters = {
 };
 
 export const defaultOperationFilters: OperationFilters = {
+  estate_id: "",
+  customer_id: "",
   user_id: "",
   type: "",
   datefrom: "",

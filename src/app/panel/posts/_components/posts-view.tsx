@@ -8,7 +8,6 @@ import {
   EyeOff,
   Newspaper,
   Pencil,
-  RotateCcw,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
@@ -24,12 +23,12 @@ import {
 import articleImage from "@/assets/images/card/apartman.webp";
 import { ApiImage } from "@/components/shared/api-image";
 import { EmptyState } from "@/components/shared/empty-state";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
 import { FilterSelect } from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
@@ -88,57 +87,56 @@ export function PostsView() {
   const items = list.data?.items ?? [];
   const isFiltered = Object.values(filters).some((value) => value !== "");
 
+  const chips = filterChips(
+    filters,
+    defaultPostFilters,
+    {
+      category_id: { label: "دسته", options: list.data?.categories ?? [] },
+      active: { label: "وضعیت", options: ACTIVE_OPTIONS },
+      type: { label: "نوع", options: TYPE_OPTIONS },
+    },
+    setFilter,
+  );
+
   return (
     <AdminGate title="مدیریت مطالب فقط برای مدیران است">
       <div className="grid grid-cols-1 gap-4">
-        <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <Input
-              value={filters.title}
-              onChange={(event) => setFilter("title", event.target.value)}
-              placeholder="جست‌وجوی عنوان"
-            />
-            <FilterSelect
-              label="همه‌ی دسته‌ها"
-              value={filters.category_id}
-              onChange={(value) => setFilter("category_id", value)}
-              options={list.data?.categories ?? []}
-            />
-            <FilterSelect
-              label="همه‌ی وضعیت‌ها"
-              value={filters.active}
-              onChange={(value) => setFilter("active", value)}
-              options={ACTIVE_OPTIONS}
-            />
-            <FilterSelect
-              label="همه‌ی نوع‌ها"
-              value={filters.type}
-              onChange={(value) => setFilter("type", value)}
-              options={TYPE_OPTIONS}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Typography variant="small" className="flex items-center gap-1.5">
-              <Newspaper className="size-3.5 text-brand/70" />
-              {meta ? `${meta.total.toLocaleString("fa-IR")} مطلب` : "در حال شمردن…"}
-            </Typography>
-            {isFiltered && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilters(defaultPostFilters);
-                  setPage(1);
-                }}
-              >
-                <RotateCcw />
-                پاک کردن فیلترها
-              </Button>
-            )}
-          </div>
-        </div>
+        <PanelFilterBar
+          icon={Newspaper}
+          count={meta?.total}
+          unit="مطلب"
+          pending={!meta}
+          search={{
+            value: filters.title,
+            onChange: (value) => setFilter("title", value),
+            placeholder: "جست‌وجوی عنوان",
+          }}
+          chips={chips}
+          isFiltered={isFiltered}
+          onClear={() => {
+            setFilters(defaultPostFilters);
+            setPage(1);
+          }}
+        >
+          <FilterSelect
+            label="همه‌ی دسته‌ها"
+            value={filters.category_id}
+            onChange={(value) => setFilter("category_id", value)}
+            options={list.data?.categories ?? []}
+          />
+          <FilterSelect
+            label="همه‌ی وضعیت‌ها"
+            value={filters.active}
+            onChange={(value) => setFilter("active", value)}
+            options={ACTIVE_OPTIONS}
+          />
+          <FilterSelect
+            label="همه‌ی نوع‌ها"
+            value={filters.type}
+            onChange={(value) => setFilter("type", value)}
+            options={TYPE_OPTIONS}
+          />
+        </PanelFilterBar>
 
         {list.isPending && <ListSkeleton count={5} />}
 
