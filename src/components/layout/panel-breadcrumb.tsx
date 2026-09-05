@@ -71,10 +71,12 @@ export function PanelBreadcrumb() {
       (entry.suffix ? pathname.endsWith(entry.suffix) : true),
   );
 
+  const onDetailPage = Boolean(item && item.href !== pathname);
+
   const currentLabel = item
-    ? item.href === pathname
-      ? item.label
-      : (detail?.label ?? item.label)
+    ? onDetailPage
+      ? (detail?.label ?? item.label)
+      : item.label
     : "داشبورد";
 
   const groupLabel = item ? groupLabelFor(item) : null;
@@ -87,6 +89,12 @@ export function PanelBreadcrumb() {
         { label: "خانه", href: routes.home },
         { label: "پنل کاربری", href: routes.panel.dashboard },
         ...(groupLabel ? [{ label: groupLabel }] : []),
+        // On a record's own page the list it came from is a step in the trail,
+        // and a step you can take back — without it the only way out of a
+        // conversation was the browser's back button.
+        ...(onDetailPage && item
+          ? [{ label: item.label, href: item.href }]
+          : []),
         { label: currentLabel },
       ]}
     />
