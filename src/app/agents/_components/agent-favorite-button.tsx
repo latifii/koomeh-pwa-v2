@@ -41,7 +41,7 @@ export function AgentFavoriteButton({
       >
         <Heart
           data-icon="inline-start"
-          className={cn(isSaved && "fill-current text-rose-400")}
+          className={cn(isSaved && "fill-current text-destructive")}
         />
         {isSaved ? "نشان‌شده" : "نشان کردن"}
       </Button>
@@ -59,7 +59,7 @@ export function AgentFavoriteButton({
       // `relative` lifts it above the card's stretched link.
       className={cn(
         "relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border text-muted-foreground transition-colors hover:border-brand/40 hover:text-brand disabled:opacity-60",
-        isSaved && "border-rose-200 text-rose-500 dark:border-rose-500/40",
+        isSaved && "border-destructive/40 text-destructive",
         className,
       )}
     >

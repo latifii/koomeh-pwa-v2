@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Medal, ShieldAlert, Trophy } from "lucide-react";
+import { Medal, ShieldAlert, Store, Trophy } from "lucide-react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { usePanelAccess } from "@/app/panel/_admin/_components/admin-gate";
@@ -29,6 +29,17 @@ import { cn } from "@/lib/utils";
 function score(value: number): string {
   return value.toLocaleString("fa-IR", { maximumFractionDigits: 1 });
 }
+
+/**
+ * Gold, silver, bronze — the three medals were all the same brand colour, so
+ * first place looked exactly like third and the podium said nothing the rank
+ * number next to it did not already say.
+ */
+const MEDALS: Record<number, string> = {
+  1: "text-medal-gold",
+  2: "text-medal-silver",
+  3: "text-medal-bronze",
+};
 
 /**
  * The scoreboard. Ranks come from the API already sorted, so nothing here
@@ -250,8 +261,8 @@ export function AgentStatsBoard() {
                         <span className="flex items-center gap-1">
                           {item.rank !== null &&
                             item.rank !== undefined &&
-                            item.rank <= 3 && (
-                              <Medal className="size-4 text-brand" />
+                            MEDALS[item.rank] && (
+                              <Medal className={cn("size-4", MEDALS[item.rank])} />
                             )}
                           {item.rank?.toLocaleString("fa-IR") ?? "—"}
                         </span>
@@ -264,17 +275,18 @@ export function AgentStatsBoard() {
                               {item.name.trim().charAt(0)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="min-w-0">
+                          <span className="flex min-w-0 flex-wrap items-center gap-1.5">
                             <Typography as="span" variant="body">
                               {item.name}
                             </Typography>
                             {item.branch?.name && (
-                              <Typography
-                                variant="small"
-                                className="text-muted-foreground"
+                              <Badge
+                                variant="secondary"
+                                className="gap-1 bg-muted font-normal text-muted-foreground"
                               >
+                                <Store className="size-3" />
                                 {item.branch.name}
-                              </Typography>
+                              </Badge>
                             )}
                           </span>
                         </span>

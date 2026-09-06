@@ -54,7 +54,7 @@ export function FormSubmitButton({
 
 export function FormSuccessMessage({ message }: { message: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-emerald-700 dark:text-emerald-300">
+    <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 p-3 text-success">
       <Check className="size-4" />
       <Typography variant="small" className="text-current">
         {message}

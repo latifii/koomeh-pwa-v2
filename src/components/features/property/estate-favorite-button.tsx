@@ -39,7 +39,7 @@ export function EstateFavoriteButton({
         // Saved reads as a filled chip, the same way the pin does on the
         // saved-files page — a filled outline on dark glass is too quiet to
         // tell apart from an empty one at this size.
-        isSaved && "border-white/60 bg-white/85 text-rose-500 hover:bg-white",
+        isSaved && "border-white/60 bg-white/85 text-destructive hover:bg-white",
         className,
       )}
     >

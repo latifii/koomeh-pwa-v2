@@ -161,7 +161,7 @@ export function BranchesView() {
                     variant="secondary"
                     className={cn(
                       approved
-                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        ? "bg-success/10 text-success"
                         : "bg-muted text-muted-foreground",
                     )}
                   >

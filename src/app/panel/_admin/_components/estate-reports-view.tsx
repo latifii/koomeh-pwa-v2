@@ -49,7 +49,7 @@ import { cn } from "@/lib/utils";
 /** What each status should look like once somebody has ruled on it. */
 const statusTone: Record<string, string> = {
   pending: "bg-secondary/25 text-secondary-foreground",
-  verified: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  verified: "bg-success/10 text-success",
   rejected: "bg-muted text-muted-foreground",
 };
 
