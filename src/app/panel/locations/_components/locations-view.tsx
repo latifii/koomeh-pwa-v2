@@ -39,7 +39,7 @@ import {
 } from "@/app/panel/locations/_api/locations.service";
 import type { LocationLevel } from "@/app/panel/locations/_schemas/locations.schema";
 import { EmptyState } from "@/components/shared/empty-state";
-import { FilterSelect } from "@/components/shared/form";
+import { FilterCombobox } from "@/components/shared/form";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { Pagination } from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
@@ -471,7 +471,9 @@ function PlacesPanel({ level }: { level: Exclude<LocationLevel, "provinces"> }) 
             placeholder="جست‌وجوی نام"
           />
           {level === "cities" && (
-            <FilterSelect
+            /* Thirty-one provinces is past the point where a dropdown is
+               something you read rather than something you scroll. */
+            <FilterCombobox
               label="همه‌ی استان‌ها"
               value={province}
               onChange={(value) => {
@@ -482,6 +484,7 @@ function PlacesPanel({ level }: { level: Exclude<LocationLevel, "provinces"> }) 
                 value: String(row.id),
                 title: row.name,
               }))}
+              emptyText="استانی با این نام نیست"
             />
           )}
         </div>
