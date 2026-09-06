@@ -21,10 +21,12 @@ import {
   type CustomerFormValues,
 } from "@/app/panel/requests/_schemas/customer-submit.schema";
 import {
+  FormMoneyField,
   FormTextField,
   FormTextareaField,
   LookupSelect,
   MultiSelectField,
+  SEARCHABLE_FROM,
   type FormContext,
 } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
@@ -281,6 +283,7 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
                 label="مشاور پرونده"
                 options={result.agents}
                 allowEmpty
+                searchable={result.agents.length >= SEARCHABLE_FROM}
               />
             )}
           </div>
@@ -326,15 +329,15 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {isRent ? (
               <>
-                <FormTextField {...context} name="mortgage_min" label="ودیعه از" inputMode="numeric" />
-                <FormTextField {...context} name="mortgage_max" label="ودیعه تا" inputMode="numeric" />
-                <FormTextField {...context} name="rent_min" label="اجاره از" inputMode="numeric" />
-                <FormTextField {...context} name="rent_max" label="اجاره تا" inputMode="numeric" />
+                <FormMoneyField control={form.control} name="mortgage_min" label="ودیعه از" />
+                <FormMoneyField control={form.control} name="mortgage_max" label="ودیعه تا" />
+                <FormMoneyField control={form.control} name="rent_min" label="اجاره از" />
+                <FormMoneyField control={form.control} name="rent_max" label="اجاره تا" />
               </>
             ) : (
               <>
-                <FormTextField {...context} name="price_min" label="قیمت از" inputMode="numeric" />
-                <FormTextField {...context} name="price_max" label="قیمت تا" inputMode="numeric" />
+                <FormMoneyField control={form.control} name="price_min" label="قیمت از" />
+                <FormMoneyField control={form.control} name="price_max" label="قیمت تا" />
               </>
             )}
             <FormTextField {...context} name="area_min" label="متراژ از" inputMode="numeric" />
@@ -346,7 +349,7 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
             name="districts"
             label="محله‌های موردنظر"
             options={result.districts}
-            scrollable
+            searchable
           />
         </CardContent>
       </Card>
@@ -370,6 +373,7 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
                   label={field.label}
                   options={field.options}
                   allowEmpty
+                  searchable={field.options.length >= SEARCHABLE_FROM}
                 />
               ))}
 
@@ -393,6 +397,7 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
                 name={`fields.${field.key}`}
                 label={field.label}
                 options={field.options}
+                dedupeTitles
               />
             ))}
 

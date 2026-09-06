@@ -3,7 +3,11 @@
 import { useMemo } from "react";
 import { Controller, type Control, type FieldValues, type Path } from "react-hook-form";
 
-import { FieldMessage } from "@/components/shared/form";
+import { FieldMessage } from "@/components/shared/form/form-controls";
+import {
+  LookupCombobox,
+  MultiLookupCombobox,
+} from "@/components/shared/form/lookup-combobox";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -26,6 +30,9 @@ import { cn } from "@/lib/utils";
  * whatever field is passed rather than a list someone has to remember to
  * extend.
  *
+ * Both take `searchable`, which swaps the control for the combobox in
+ * `lookup-combobox` — same props, same value shape, with a text box in front.
+ *
  * `FormSelectField` in `form-controls` stays the right choice for a plain
  * string select. These add the "not selected" sentinel and the lookup
  * `{ value, title }` shape the API returns.
@@ -37,9 +44,46 @@ import { cn } from "@/lib/utils";
  */
 export const LOOKUP_NONE = "__none__";
 
+/**
+ * From this many options on, a dropdown stops being something you can read and
+ * becomes something you have to scroll, so the schema-driven fields hand over
+ * to the searchable combobox. Twelve catches usage type, floor, floor count and
+ * units per floor without turning a four-entry list into a text box.
+ */
+export const SEARCHABLE_FROM = 12;
+
 export type LookupOption = { value: string; title: string };
 
 export function LookupSelect<TValues extends FieldValues>({
+  searchable,
+  ...props
+}: {
+  control: Control<TValues>;
+  name: Path<TValues>;
+  label: string;
+  options: LookupOption[];
+  required?: boolean;
+  /** Adds the "not selected" entry, for a field the API treats as optional. */
+  allowEmpty?: boolean;
+  /** Type-to-filter instead of a dropdown. See {@link SEARCHABLE_FROM}. */
+  searchable?: boolean;
+}) {
+  // A dispatcher rather than an early return inside the select: the two bodies
+  // call different hooks, so the branch has to sit above both of them.
+  return searchable ? (
+    <LookupCombobox
+      control={props.control}
+      name={props.name}
+      label={props.label}
+      options={props.options}
+      required={props.required}
+    />
+  ) : (
+    <PlainLookupSelect {...props} />
+  );
+}
+
+function PlainLookupSelect<TValues extends FieldValues>({
   control,
   name,
   label,
@@ -52,7 +96,6 @@ export function LookupSelect<TValues extends FieldValues>({
   label: string;
   options: LookupOption[];
   required?: boolean;
-  /** Adds the "not selected" entry, for a field the API treats as optional. */
   allowEmpty?: boolean;
 }) {
   const items = useMemo(
@@ -113,11 +156,8 @@ export function LookupSelect<TValues extends FieldValues>({
 }
 
 export function MultiSelectField<TValues extends FieldValues>({
-  control,
-  name,
-  label,
-  options,
-  scrollable,
+  searchable,
+  ...props
 }: {
   control: Control<TValues>;
   name: Path<TValues>;
@@ -125,6 +165,37 @@ export function MultiSelectField<TValues extends FieldValues>({
   options: LookupOption[];
   /** District lists run to hundreds, so they get their own scroll box. */
   scrollable?: boolean;
+  /** Chips in a text box instead of a wall of toggles. */
+  searchable?: boolean;
+  /** Hides options the API sent under a title another option already has. */
+  dedupeTitles?: boolean;
+}) {
+  return searchable ? (
+    <MultiLookupCombobox
+      control={props.control}
+      name={props.name}
+      label={props.label}
+      options={props.options}
+    />
+  ) : (
+    <ToggleMultiSelect {...props} />
+  );
+}
+
+function ToggleMultiSelect<TValues extends FieldValues>({
+  control,
+  name,
+  label,
+  options,
+  scrollable,
+  dedupeTitles,
+}: {
+  control: Control<TValues>;
+  name: Path<TValues>;
+  label: string;
+  options: LookupOption[];
+  scrollable?: boolean;
+  dedupeTitles?: boolean;
 }) {
   return (
     <div className="space-y-2">
@@ -135,6 +206,9 @@ export function MultiSelectField<TValues extends FieldValues>({
         name={name}
         render={({ field, fieldState }) => {
           const selected: string[] = Array.isArray(field.value) ? field.value : [];
+          const visible = dedupeTitles
+            ? keepFirstByTitle(options, selected)
+            : options;
 
           const toggle = (value: string) =>
             field.onChange(
@@ -151,7 +225,7 @@ export function MultiSelectField<TValues extends FieldValues>({
                   scrollable && "max-h-44 overflow-y-auto rounded-lg border p-2",
                 )}
               >
-                {options.map((option) => {
+                {visible.map((option) => {
                   const active = selected.includes(option.value);
 
                   return (
@@ -180,4 +254,32 @@ export function MultiSelectField<TValues extends FieldValues>({
       />
     </div>
   );
+}
+
+/**
+ * Drops options that repeat a title an earlier option already used.
+ *
+ * A workaround for the backend's option table, not a general nicety: the
+ * estate form's `facilities` group comes back with thirty-three separate ids
+ * — 336 and 348 through 378, minus a couple — every one of them titled
+ * "بالکن". Rendered as they are, the امکانات box is a wall of identical chips
+ * where picking any one of them is a coin toss. Until those rows are fixed or
+ * removed at the source, only the first of each title is offered.
+ *
+ * An id that is already stored on the record always survives, whichever
+ * duplicate it happens to be, so opening and saving an existing listing does
+ * not quietly drop what somebody chose.
+ */
+function keepFirstByTitle(
+  options: LookupOption[],
+  selected: string[],
+): LookupOption[] {
+  const seen = new Set<string>();
+
+  return options.filter((option) => {
+    if (selected.includes(option.value)) return true;
+    if (seen.has(option.title)) return false;
+    seen.add(option.title);
+    return true;
+  });
 }

@@ -26,10 +26,12 @@ import {
   type EstateFormValues,
 } from "@/app/panel/properties/_schemas/estate-submit.schema";
 import {
+  FormMoneyField,
   FormTextField,
   FormTextareaField,
   LookupSelect,
   MultiSelectField,
+  SEARCHABLE_FROM,
   type FormContext,
 } from "@/components/shared/form";
 import { Button } from "@/components/ui/button";
@@ -56,6 +58,9 @@ const numericLabels: Record<string, string> = {
   money_paid: "مبلغ پرداختی",
   loan: "وام",
 };
+
+/** The numeric fields that hold Toman, and so want thousands separators. */
+const moneyKeys = new Set(["money_paid", "loan"]);
 
 /**
  * The listing form, for both writing one and editing one. Its option fields are
@@ -316,25 +321,22 @@ export function PropertyForm({ edit }: { edit?: EstateEditData }) {
             />
             {isRent ? (
               <>
-                <FormTextField
-                  {...context}
+                <FormMoneyField
+                  control={form.control}
                   name="mortgage"
                   label="ودیعه (تومان)"
-                  inputMode="numeric"
                 />
-                <FormTextField
-                  {...context}
+                <FormMoneyField
+                  control={form.control}
                   name="rent"
                   label="اجاره ماهانه (تومان)"
-                  inputMode="numeric"
                 />
               </>
             ) : (
-              <FormTextField
-                {...context}
+              <FormMoneyField
+                control={form.control}
                 name="price"
                 label="قیمت کل (تومان)"
-                inputMode="numeric"
               />
             )}
           </div>
@@ -379,6 +381,7 @@ export function PropertyForm({ edit }: { edit?: EstateEditData }) {
               label={`محله${result.city ? ` (${result.city.name})` : ""}`}
               options={result.districts}
               allowEmpty
+              searchable
             />
             <FormTextField {...context} name="address" label="نشانی" />
           </div>
@@ -442,20 +445,30 @@ export function PropertyForm({ edit }: { edit?: EstateEditData }) {
                   label={field.label}
                   options={field.options}
                   allowEmpty
+                  searchable={field.options.length >= SEARCHABLE_FROM}
                 />
               ))}
 
             {result.numeric_fields
               .filter((key) => key !== "area")
-              .map((key) => (
-                <FormTextField
-                  key={key}
-                  {...context}
-                  name={`numbers.${key}`}
-                  label={numericLabels[key] ?? key}
-                  inputMode="numeric"
-                />
-              ))}
+              .map((key) =>
+                moneyKeys.has(key) ? (
+                  <FormMoneyField
+                    key={key}
+                    control={form.control}
+                    name={`numbers.${key}`}
+                    label={numericLabels[key] ?? key}
+                  />
+                ) : (
+                  <FormTextField
+                    key={key}
+                    {...context}
+                    name={`numbers.${key}`}
+                    label={numericLabels[key] ?? key}
+                    inputMode="numeric"
+                  />
+                ),
+              )}
           </div>
 
           {result.fields
@@ -467,6 +480,7 @@ export function PropertyForm({ edit }: { edit?: EstateEditData }) {
                 name={`fields.${field.key}`}
                 label={field.label}
                 options={field.options}
+                dedupeTitles
               />
             ))}
         </CardContent>
