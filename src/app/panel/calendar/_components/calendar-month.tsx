@@ -62,17 +62,20 @@ export function CalendarMonth() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <CalendarFilterBar
-          filters={filters}
-          onChange={setFilters}
-          options={options.data}
-        />
-        <Button type="button" onClick={openCreate}>
-          <Plus className="size-4" />
-          رویداد جدید
-        </Button>
-      </div>
+      <CalendarFilterBar
+        filters={filters}
+        onChange={setFilters}
+        options={options.data}
+        count={month.data?.stats?.total}
+        pending={month.isPending}
+        onClear={() => setFilters({})}
+        actions={
+          <Button type="button" size="sm" onClick={openCreate}>
+            <Plus className="size-4" />
+            رویداد جدید
+          </Button>
+        }
+      />
 
       {moving && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand bg-brand/5 p-3">
@@ -107,15 +110,18 @@ export function CalendarMonth() {
 
       {month.isSuccess && (
         <>
+          {/* Back on the right, forward on the left — the way the language
+              reads. The two buttons were the other way round, so the arrow
+              pointing back sat where the next month should be. */}
           <div className="flex items-center justify-between gap-2">
             <Button
               type="button"
               size="icon"
               variant="outline"
-              aria-label="ماه بعد"
-              onClick={() => setAnchor(month.data.nextAnchor ?? undefined)}
+              aria-label="ماه قبل"
+              onClick={() => setAnchor(month.data.prevAnchor ?? undefined)}
             >
-              <ChevronLeft className="size-4" />
+              <ChevronRight className="size-4" />
             </Button>
 
             <div className="text-center">
@@ -131,10 +137,10 @@ export function CalendarMonth() {
               type="button"
               size="icon"
               variant="outline"
-              aria-label="ماه قبل"
-              onClick={() => setAnchor(month.data.prevAnchor ?? undefined)}
+              aria-label="ماه بعد"
+              onClick={() => setAnchor(month.data.nextAnchor ?? undefined)}
             >
-              <ChevronRight className="size-4" />
+              <ChevronLeft className="size-4" />
             </Button>
           </div>
 

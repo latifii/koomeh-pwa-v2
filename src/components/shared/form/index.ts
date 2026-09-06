@@ -10,6 +10,7 @@ export {
 } from "./form-controls";
 export { FILTER_ANY, FilterSelect } from "./filter-select";
 export { FilterCombobox } from "./filter-combobox";
+export { FormColorField, type ColorOption } from "./color-field";
 export {
   FormDateField,
   JalaliDateInput,

@@ -180,6 +180,14 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         icon: ClipboardList,
         audience: "member",
       },
+      // Also the second quick action above the menu, for the same reason
+      // «ثبت ملک» is listed twice.
+      {
+        href: routes.panel.newRequest,
+        label: "ثبت تقاضا",
+        icon: Plus,
+        audience: "member",
+      },
       {
         href: routes.panel.relations,
         label: "مشتریان و املاک متناسب",

@@ -152,6 +152,8 @@ export const calendarEventFormSchema = z.object({
   all_day: z.boolean(),
   type: z.string().optional(),
   priority: z.string().optional(),
+  /** `#F06210`, or empty to take the colour of the event's type. */
+  color: z.string().optional(),
   location: z.string().trim().optional(),
   remind_before: z.string().optional(),
   members: z.array(z.number().int()),
@@ -176,6 +178,7 @@ export const calendarEventFormDefaults: CalendarEventFormValues = {
   all_day: false,
   type: "",
   priority: "",
+  color: "",
   location: "",
   remind_before: "30",
   members: [],

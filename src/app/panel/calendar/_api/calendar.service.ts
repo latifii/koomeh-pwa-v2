@@ -84,6 +84,9 @@ function toEventBody(values: CalendarEventFormValues) {
     all_day: values.all_day,
     type: values.type ? Number(values.type) : null,
     priority: values.priority ? Number(values.priority) : null,
+    // Empty means "no colour of its own", and the backend then paints the
+    // event in its type's colour — which is what the type list carries.
+    color: normalizedText(values.color) ?? null,
     location: normalizedText(values.location) ?? null,
     remind_before: values.remind_before ? Number(values.remind_before) : null,
     members: values.members,

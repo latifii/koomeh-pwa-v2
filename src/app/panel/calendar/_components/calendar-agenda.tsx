@@ -62,37 +62,42 @@ export function CalendarAgenda() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          <Select
-            items={RANGE_ITEMS}
-            value={String(days)}
-            onValueChange={(value) => setDays(Number(value) || 30)}
-          >
-            <SelectTrigger aria-label="بازه" size="sm" className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {RANGE_ITEMS.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <CalendarFilterBar
-            filters={filters}
-            onChange={setFilters}
-            options={options.data}
-          />
-        </div>
-
-        <Button type="button" onClick={openCreate}>
-          <Plus className="size-4" />
-          رویداد جدید
-        </Button>
-      </div>
+      <CalendarFilterBar
+        filters={filters}
+        onChange={setFilters}
+        options={options.data}
+        count={agenda.isPending ? undefined : totalEvents}
+        pending={agenda.isPending}
+        onClear={() => {
+          setFilters({});
+          setDays(30);
+        }}
+        actions={
+          <Button type="button" size="sm" onClick={openCreate}>
+            <Plus className="size-4" />
+            رویداد جدید
+          </Button>
+        }
+      >
+        {/* The range is the view, not a filter — it has a default rather than
+            an empty state, so «پاک کردن همه» resets it instead of clearing it. */}
+        <Select
+          items={RANGE_ITEMS}
+          value={String(days)}
+          onValueChange={(value) => setDays(Number(value) || 30)}
+        >
+          <SelectTrigger aria-label="بازه" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {RANGE_ITEMS.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CalendarFilterBar>
 
       {agenda.isPending && (
         <div className="space-y-3">
