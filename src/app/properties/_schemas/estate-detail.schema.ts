@@ -69,7 +69,18 @@ export const estateLocationSchema = z.object({
   estate_id: z.number().int().optional(),
   city: placeSchema.nullable().optional(),
   district: placeSchema.nullable().optional(),
-  street: z.string().nullable().optional(),
+  /*
+   * A street is a place like the city and district above it, not a name: the
+   * API sends `{ id, name, url }`, and `null` for a file that never got one.
+   * Typing it as a plain string here took down the detail page of every
+   * listing that actually has one — eighteen of a hundred and forty-four
+   * sampled from search, each a 500 rather than a page.
+   *
+   * The string arm is kept because the panel's list endpoint is documented
+   * with the same field and only the object form has been seen live; a name on
+   * its own still reads as a street rather than as a reason to fail.
+   */
+  street: z.union([placeSchema, z.string()]).nullable().optional(),
   district_area: z.union([z.string(), z.number()]).nullable().optional(),
   address_label: z.string().nullable().optional(),
   is_full_address: z.boolean().default(false),

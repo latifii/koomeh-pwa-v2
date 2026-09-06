@@ -47,7 +47,8 @@ const panelEstateSchema = z.object({
     .object({
       city: placeSchema.nullable().optional(),
       district: placeSchema.nullable().optional(),
-      street: z.string().nullable().optional(),
+      /** A place, as on the public detail response — see its `street` note. */
+      street: z.union([placeSchema, z.string()]).nullable().optional(),
       address_label: z.string().nullable().optional(),
       latitude: z.union([z.string(), z.number()]).nullable().optional(),
       longitude: z.union([z.string(), z.number()]).nullable().optional(),

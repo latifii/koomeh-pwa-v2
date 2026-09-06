@@ -35,6 +35,13 @@ function text(value: string | null | undefined): string | undefined {
   return normalized || undefined;
 }
 
+/** A place reference reads as its name; the API also sends bare names. */
+function placeName(
+  value: { name: string } | string | null | undefined,
+): string | undefined {
+  return text(typeof value === "string" ? value : value?.name);
+}
+
 function coordinate(
   value: string | number | null | undefined,
 ): number | undefined {
@@ -101,7 +108,7 @@ export function mapEstateLocation(dto: EstateLocationDto): EstateLocationView {
     cityName: text(dto.city?.name),
     districtName: text(dto.district?.name),
     districtId: dto.district?.id,
-    street: text(dto.street),
+    street: placeName(dto.street),
     addressLabel: text(dto.address_label),
     isFullAddress: dto.is_full_address,
     hasMap: dto.has_map && lat !== undefined && lng !== undefined,
