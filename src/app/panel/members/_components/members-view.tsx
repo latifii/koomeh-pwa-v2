@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -30,7 +30,7 @@ import {
   type MemberFilters,
   type MemberRow,
 } from "@/app/panel/members/_schemas/members.schema";
-import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import { usePanelAccess } from "@/app/panel/_admin/_components/admin-gate";
 import { EmptyState } from "@/components/shared/empty-state";
 import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
 import { FilterCombobox, FilterSelect } from "@/components/shared/form";
@@ -49,7 +49,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
-import { panelViewer, roleTitle } from "@/lib/auth/permissions";
+import { roleTitle } from "@/lib/auth/permissions";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -63,8 +63,7 @@ import { cn } from "@/lib/utils";
  * empty filter and "no role" have to stay different things.
  */
 export function MembersView() {
-  const user = useSessionStore((state) => state.session?.user);
-  const viewer = useMemo(() => panelViewer(user), [user]);
+  const access = usePanelAccess("admin");
 
   const [filters, setFilters] = useState<MemberFilters>(defaultMemberFilters);
   const [search, setSearch] = useState("");
@@ -113,7 +112,10 @@ export function MembersView() {
 
   const [confirming, setConfirming] = useState<number | null>(null);
 
-  if (!viewer.isAdmin) {
+  // Nothing is refused until the session has actually been read.
+  if (access.pending) return <ListSkeleton count={5} />;
+
+  if (!access.allowed) {
     return (
       <EmptyState
         icon={ShieldAlert}

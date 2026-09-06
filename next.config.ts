@@ -66,7 +66,23 @@ const securityHeaders = [
   },
 ];
 
+/**
+ * Stamped into `SW_URL`, so each build registers a script URL the browser has
+ * not seen. `public/sw.js` has no hash in its name and its contents rarely
+ * change, so without this a deploy installed no new worker at all and the page
+ * cache went on serving the previous build. Set `NEXT_PUBLIC_SW_VERSION` in the
+ * deploy environment — a commit SHA, say — to make it reproducible.
+ *
+ * Read once at module scope: `next build` loads this file once per compiler,
+ * and the server and client bundles must agree on the value.
+ */
+const SW_VERSION = process.env.NEXT_PUBLIC_SW_VERSION ?? String(Date.now());
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_SW_VERSION: SW_VERSION,
+  },
+
   images: {
     // Next 16 only serves qualities listed here; 75 is the default, 90 is for
     // large hero/city photography that visibly softens at 75.

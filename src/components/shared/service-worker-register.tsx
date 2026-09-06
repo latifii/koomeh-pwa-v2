@@ -3,7 +3,32 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
-import { SW_MESSAGES, SW_URL } from "@/lib/service-worker";
+import {
+  fetchLiveVersion,
+  SW_MESSAGES,
+  SW_URL,
+  SW_VERSION,
+  swUrlFor,
+} from "@/lib/service-worker";
+
+/** How often to ask whether a new build has been deployed. */
+const UPDATE_INTERVAL_MS = 15 * 60 * 1000;
+
+/** The soonest a tab coming back into view will ask again. */
+const UPDATE_THROTTLE_MS = 2 * 60 * 1000;
+
+/**
+ * How long to wait for the handover before reloading anyway.
+ *
+ * Accepting the prompt posts `SKIP_WAITING` and waits for `controllerchange`.
+ * If that message is lost — the worker was killed between the click and the
+ * post, say — nothing at all happens and the toast sits there having done
+ * nothing. Reloading regardless is safe: the reload itself is what picks up
+ * the new build.
+ */
+const HANDOVER_TIMEOUT_MS = 3000;
+
+const TOAST_ID = "sw-update";
 
 /**
  * Registers the service worker and offers the update rather than forcing it.
@@ -13,6 +38,14 @@ import { SW_MESSAGES, SW_URL } from "@/lib/service-worker";
  * page rendered by the old one can answer a chunk request with the wrong
  * build's file — a blank screen with a module error, on someone mid-form. So a
  * new version waits until the visitor accepts, then the page reloads into it.
+ *
+ * The asking has to be *timely*, which it was not. A browser looks for a new
+ * worker on navigation, and inside an App Router app almost nothing is a
+ * navigation — so the only moment the check ran was a full page load, which is
+ * to say the moment the visitor pressed refresh. The prompt then landed on top
+ * of the reload they had just asked for, and accepting it reloaded a second
+ * time. Now the check runs on a timer and when a tab comes back into view, so
+ * the offer arrives while reading rather than in the middle of something.
  *
  * Registration is skipped in development: a worker that survives HMR serves
  * stale bundles and makes every subsequent change look like it did not apply.
@@ -26,22 +59,67 @@ export function ServiceWorkerRegister() {
     if (!("serviceWorker" in navigator)) return;
 
     let cancelled = false;
+    let reloading = false;
+    let lastCheck = 0;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const cleanups: (() => void)[] = [];
+
+    const reloadOnce = () => {
+      if (reloading) return;
+      reloading = true;
+      window.location.reload();
+    };
 
     const promptFor = (worker: ServiceWorker) => {
       if (prompted.current) return;
       prompted.current = true;
 
       toast("نسخه جدید کومه آماده است", {
+        id: TOAST_ID,
         description: "برای اعمال تغییرات صفحه دوباره بارگذاری می‌شود.",
         duration: Infinity,
         action: {
           label: "بارگذاری",
-          onClick: () => worker.postMessage({ type: SW_MESSAGES.skipWaiting }),
+          onClick: () => {
+            worker.postMessage({ type: SW_MESSAGES.skipWaiting });
+            setTimeout(reloadOnce, HANDOVER_TIMEOUT_MS);
+          },
         },
       });
     };
 
     const watch = (registration: ServiceWorkerRegistration) => {
+      /*
+       * Ask the server which build is live, and register that one.
+       *
+       * `registration.update()` alone cannot find a deploy here: it re-fetches
+       * the script URL this page registered, and that URL carries this page's
+       * own build stamp — so an open tab was asking about its own version and
+       * always hearing no. Registering the *live* version's URL is what makes
+       * the browser install the new worker, and a different script URL is
+       * exactly the signal it acts on.
+       *
+       * The plain `update()` still runs when the versions agree, so a change
+       * to `sw.js` itself is not missed either.
+       */
+      const check = async () => {
+        const now = Date.now();
+        if (now - lastCheck < UPDATE_THROTTLE_MS) return;
+        lastCheck = now;
+
+        const live = await fetchLiveVersion();
+
+        // A failed check is a network problem, not something to report.
+        if (live && live !== SW_VERSION) {
+          await navigator.serviceWorker
+            .register(swUrlFor(live), { scope: "/" })
+            .catch(() => undefined);
+          return;
+        }
+
+        await registration.update().catch(() => undefined);
+      };
+
       // A worker can already be waiting from a previous visit.
       if (registration.waiting && navigator.serviceWorker.controller) {
         promptFor(registration.waiting);
@@ -61,6 +139,22 @@ export function ServiceWorkerRegister() {
             promptFor(installing);
           }
         });
+      });
+
+      timer = setInterval(() => void check(), UPDATE_INTERVAL_MS);
+
+      // Coming back to the page is the moment worth checking on: a tab left
+      // open across a deploy is exactly the case the timer alone handles
+      // slowly. `focus` covers switching windows, `visibilitychange` covers
+      // switching tabs; the throttle stops the pair from asking twice.
+      const onReturn = () => {
+        if (document.visibilityState !== "hidden") void check();
+      };
+      document.addEventListener("visibilitychange", onReturn);
+      window.addEventListener("focus", onReturn);
+      cleanups.push(() => {
+        document.removeEventListener("visibilitychange", onReturn);
+        window.removeEventListener("focus", onReturn);
       });
     };
 
@@ -97,11 +191,9 @@ export function ServiceWorkerRegister() {
      * build that the new worker may no longer serve.
      */
     const hadController = Boolean(navigator.serviceWorker.controller);
-    let reloading = false;
     const onControllerChange = () => {
-      if (!hadController || reloading) return;
-      reloading = true;
-      window.location.reload();
+      if (!hadController) return;
+      reloadOnce();
     };
     navigator.serviceWorker.addEventListener(
       "controllerchange",
@@ -110,6 +202,8 @@ export function ServiceWorkerRegister() {
 
     return () => {
       cancelled = true;
+      if (timer) clearInterval(timer);
+      for (const off of cleanups) off();
       window.removeEventListener("load", start);
       navigator.serviceWorker.removeEventListener(
         "controllerchange",

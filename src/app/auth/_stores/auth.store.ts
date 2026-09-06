@@ -41,13 +41,30 @@ export function seedSession(session: ClientSession | null): void {
   state.applySession(session);
 }
 
-async function fetchSession(): Promise<ClientSession | null> {
+/**
+ * `unread` is not the same answer as `null`.
+ *
+ * The route returns `null` for a visitor who is genuinely signed out, and that
+ * is a fact worth acting on. A request that never arrived is not: it used to
+ * collapse into the same `null`, so one failed call — a dropped connection, a
+ * server restart — signed the visitor out of the store while their cookie was
+ * still perfectly good. In the panel that surfaced as «فقط برای مدیران است»
+ * appearing for a second on an administrator's own page.
+ */
+type SessionRead =
+  | { read: true; session: ClientSession | null }
+  | { read: false };
+
+async function fetchSession(): Promise<SessionRead> {
   try {
     const response = await fetch("/api/auth/session", { cache: "no-store" });
-    if (!response.ok) return null;
-    return (await response.json()) as ClientSession | null;
+    if (!response.ok) return { read: false };
+    return {
+      read: true,
+      session: (await response.json()) as ClientSession | null,
+    };
   } catch {
-    return null;
+    return { read: false };
   }
 }
 
@@ -61,7 +78,19 @@ export const useSessionStore = create<SessionState>((set) => ({
   status: "loading",
 
   refreshSession: async () => {
-    const session = await fetchSession();
+    const result = await fetchSession();
+
+    if (!result.read) {
+      // Keep whatever is already here — a failed read is not a sign-out. The
+      // one thing that must not happen is staying in `loading` forever, so a
+      // first read that fails settles as signed out rather than pending.
+      set((state) =>
+        state.status === "loading" ? { status: "unauthenticated" } : {},
+      );
+      return;
+    }
+
+    const { session } = result;
     setAccessToken(session?.accessToken);
     set({
       session,

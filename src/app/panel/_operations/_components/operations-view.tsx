@@ -28,7 +28,7 @@ import {
   type OperationKind,
   type OperationRow,
 } from "@/app/panel/_operations/_schemas/operations.schema";
-import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import { usePanelAccess } from "@/app/panel/_admin/_components/admin-gate";
 import { EmptyState } from "@/components/shared/empty-state";
 import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
 import {
@@ -42,7 +42,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
-import { panelViewer } from "@/lib/auth/permissions";
 import { toJalaliDisplay } from "@/lib/jalali-date";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -54,8 +53,7 @@ import { cn } from "@/lib/utils";
  * on the backend they are one table.
  */
 export function OperationsView({ kind }: { kind: OperationKind }) {
-  const user = useSessionStore((state) => state.session?.user);
-  const viewer = useMemo(() => panelViewer(user), [user]);
+  const access = usePanelAccess("admin");
 
   const [filters, setFilters] = useState<OperationFilters>(
     defaultOperationFilters,
@@ -99,7 +97,11 @@ export function OperationsView({ kind }: { kind: OperationKind }) {
       ? options.data?.estate_operation_types
       : options.data?.customer_operation_types) ?? [];
 
-  if (!viewer.isAdmin) {
+  // Nothing is refused until the session has actually been read; an unread
+  // one looks exactly like a visitor with no roles.
+  if (access.pending) return <ListSkeleton count={5} />;
+
+  if (!access.allowed) {
     return (
       <EmptyState
         icon={ShieldAlert}

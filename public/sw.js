@@ -23,15 +23,51 @@
  * the cache below is only ever a fallback for someone who is not.
  */
 
-const VERSION = "v1";
+/*
+ * The build this worker belongs to, from the `?v=` the page registers it with.
+ *
+ * It used to be the literal "v1", which meant this file was byte-identical
+ * after every deploy — so the browser found no update, no new worker installed,
+ * and `koomeh-pages-v1` went on serving HTML from a build that had been
+ * replaced weeks ago. That HTML still worked, because the chunks it names were
+ * cached beside it, so the site simply showed an old version until someone
+ * pressed Ctrl+F5 to go around the worker entirely.
+ *
+ * A changed script URL is what tells the browser to install a new worker, and
+ * the version is what keeps the two builds' HTML in separate caches.
+ */
+const VERSION = new URL(self.location.href).searchParams.get("v") || "dev";
 
+/*
+ * Only the caches holding HTML carry the version.
+ *
+ * A page is tied to one build — it names that build's chunks — so it must not
+ * outlive it. Everything else is addressed by content: `/_next/static/` URLs
+ * contain a hash, optimized images carry their parameters, map tiles are
+ * coordinates. Those stay across deploys, so an update does not cost the
+ * visitor every image they had offline.
+ */
 const CACHES = {
   shell: `koomeh-shell-${VERSION}`,
-  static: `koomeh-static-${VERSION}`,
-  images: `koomeh-images-${VERSION}`,
   pages: `koomeh-pages-${VERSION}`,
-  tiles: `koomeh-tiles-${VERSION}`,
+  static: "koomeh-static",
+  images: "koomeh-images",
+  tiles: "koomeh-tiles",
 };
+
+/** Caches whose name ends in a version, and whose older generations go. */
+const VERSIONED_PREFIXES = ["koomeh-shell-", "koomeh-pages-"];
+
+/**
+ * The content-addressed caches used to be versioned too, so browsers that ran
+ * the old worker still hold `koomeh-static-v1` and friends. Nothing will ever
+ * read them again; they are swept once, here.
+ */
+const ABANDONED_PREFIXES = [
+  "koomeh-static-",
+  "koomeh-images-",
+  "koomeh-tiles-",
+];
 
 const OFFLINE_URL = "/offline";
 
@@ -96,11 +132,19 @@ self.addEventListener("activate", (event) => {
         await self.registration.navigationPreload.enable();
       }
 
+      // The previous build's pages and offline shell, and nothing else: the
+      // content-addressed caches are still valid and are expensive to refill.
       const keep = new Set(Object.values(CACHES));
       const names = await caches.keys();
       await Promise.all(
         names
-          .filter((name) => name.startsWith("koomeh-") && !keep.has(name))
+          .filter(
+            (name) =>
+              !keep.has(name) &&
+              [...VERSIONED_PREFIXES, ...ABANDONED_PREFIXES].some((prefix) =>
+                name.startsWith(prefix),
+              ),
+          )
           .map((name) => caches.delete(name)),
       );
       await self.clients.claim();

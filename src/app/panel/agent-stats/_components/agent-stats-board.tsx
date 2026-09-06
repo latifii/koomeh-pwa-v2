@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Medal, ShieldAlert, Trophy } from "lucide-react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import { usePanelAccess } from "@/app/panel/_admin/_components/admin-gate";
 import type { AgentStatsRange } from "@/app/panel/agent-stats/_api/agent-stats.service";
 import { AgentStatsDetailDialog } from "@/app/panel/agent-stats/_components/agent-stats-detail-dialog";
 import {
@@ -34,13 +35,17 @@ function score(value: number): string {
  */
 export function AgentStatsBoard() {
   const user = useSessionStore((state) => state.session?.user);
-  const isStaff = Boolean(user?.isExpert || user?.isAdmin);
+  const access = usePanelAccess("staff");
+  const isStaff = access.allowed;
 
   const [range, setRange] = useState<AgentStatsRange>({});
   const [selected, setSelected] = useState<number | null>(null);
 
   const league = useQuery(agentStatsLeagueQueryOptions(range, isStaff));
   const mine = useQuery(myAgentStatsQueryOptions(range, isStaff));
+
+  // Nothing is refused until the session has actually been read.
+  if (access.pending) return <Skeleton className="h-96 rounded-2xl" />;
 
   if (!isStaff) {
     return (

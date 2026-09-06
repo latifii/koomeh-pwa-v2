@@ -44,7 +44,11 @@ function loadWorker(): FetchHandler[] {
   };
 
   const scope: Record<string, unknown> = {
-    location: { origin: "https://koomeh.ir" },
+    location: {
+      origin: "https://koomeh.ir",
+      // The worker reads its version out of its own script URL.
+      href: "https://koomeh.ir/sw.js?v=test-build",
+    },
     addEventListener: (type: string, fn: FetchHandler) => {
       (handlers[type] ??= []).push(fn);
     },

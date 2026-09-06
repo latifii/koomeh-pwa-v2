@@ -26,6 +26,15 @@ const SW = fs.readFileSync(
 
 const PAGE = "https://koomeh.ir/properties/1";
 
+/**
+ * The worker takes its version from the `?v=` the page registers it with, so
+ * the harness has to register it the way the page does — and the cache names
+ * below follow from that.
+ */
+const SW_HREF = "https://koomeh.ir/sw.js?v=test-build";
+const PAGES_CACHE = "koomeh-pages-test-build";
+const SHELL_CACHE = "koomeh-shell-test-build";
+
 type Body = { ok?: boolean; body: string; clone?: () => Body };
 
 function reply(body: string, ok = true): Body {
@@ -58,17 +67,21 @@ function makeWorker({
     };
   };
 
-  openCache("koomeh-pages-v1");
-  if (cached) stores.get("koomeh-pages-v1")!.set(PAGE, reply("CACHED"));
+  openCache(PAGES_CACHE);
+  if (cached) stores.get(PAGES_CACHE)!.set(PAGE, reply("CACHED"));
   stores.set(
-    "koomeh-shell-v1",
+    SHELL_CACHE,
     offlinePage ? new Map([["/offline", reply("OFFLINE")]]) : new Map(),
   );
 
+  const listeners = new Map<string, (event: unknown) => void>();
+
   const sandbox: Record<string, unknown> = {
     self: {
-      addEventListener: () => {},
-      location: { origin: "https://koomeh.ir" },
+      addEventListener: (type: string, handler: (event: unknown) => void) => {
+        listeners.set(type, handler);
+      },
+      location: { origin: "https://koomeh.ir", href: SW_HREF },
       registration: { navigationPreload: { enable: async () => {} } },
       clients: { claim: async () => {} },
       skipWaiting: () => {},
@@ -92,7 +105,14 @@ function makeWorker({
   vm.createContext(sandbox);
   vm.runInContext(SW, sandbox);
 
-  return { sandbox, pages: stores.get("koomeh-pages-v1")! };
+  /** Runs one of the worker's lifecycle handlers and waits for its work. */
+  const dispatch = async (type: string) => {
+    const waits: Promise<unknown>[] = [];
+    listeners.get(type)?.({ waitUntil: (p: Promise<unknown>) => waits.push(p) });
+    await Promise.all(waits);
+  };
+
+  return { sandbox, stores, dispatch, pages: stores.get(PAGES_CACHE)! };
 }
 
 function navigationEvent(preload?: Body) {
@@ -179,6 +199,56 @@ test("a real failure with a cached page serves the page, not the offline screen"
   const res = await (sandbox as unknown as Worker).navigationFirst(navigationEvent());
 
   assert.equal(res.body, "CACHED");
+});
+
+/**
+ * The bug this pins: `VERSION` was the literal "v1", so `sw.js` was
+ * byte-identical after every deploy, no new worker ever installed, and
+ * `koomeh-pages-v1` went on serving HTML from a build that had been replaced.
+ * The page still rendered — its chunks were cached beside it — so the site
+ * simply showed an old version until somebody pressed Ctrl+F5 to go around the
+ * worker entirely.
+ */
+test("activating a new build drops the old build's pages", async () => {
+  const { stores, dispatch } = makeWorker({
+    cached: true,
+    fetchImpl: async () => reply("LIVE"),
+  });
+
+  // What a browser that ran an earlier build is holding.
+  stores.set("koomeh-pages-old-build", new Map([[PAGE, reply("STALE")]]));
+  stores.set("koomeh-shell-old-build", new Map());
+
+  await dispatch("activate");
+
+  assert.equal(stores.has("koomeh-pages-old-build"), false);
+  assert.equal(stores.has("koomeh-shell-old-build"), false);
+  assert.ok(stores.has(PAGES_CACHE), "dropped its own page cache");
+});
+
+test("activating a new build keeps what is addressed by content", async () => {
+  const { stores, dispatch } = makeWorker({ fetchImpl: async () => reply("LIVE") });
+
+  // Chunk URLs carry a hash and image URLs carry their parameters, so these
+  // stay valid across deploys — and refilling them costs the visitor real
+  // bytes, including anything they had available offline.
+  stores.set("koomeh-static", new Map([["/_next/static/chunk.js", reply("JS")]]));
+  stores.set("koomeh-images", new Map([["/_next/image?url=a", reply("IMG")]]));
+  stores.set("koomeh-tiles", new Map([["https://tile/1", reply("TILE")]]));
+
+  // The generation the first worker wrote, before they stopped being versioned.
+  stores.set("koomeh-static-v1", new Map([["/_next/static/old.js", reply("OLD")]]));
+
+  await dispatch("activate");
+
+  assert.ok(stores.has("koomeh-static"));
+  assert.ok(stores.has("koomeh-images"));
+  assert.ok(stores.has("koomeh-tiles"));
+  assert.equal(
+    stores.has("koomeh-static-v1"),
+    false,
+    "left the abandoned versioned cache behind",
+  );
 });
 
 test("a preloaded navigation is used instead of fetching again", async () => {

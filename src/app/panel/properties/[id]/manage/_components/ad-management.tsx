@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, Eye, ShieldAlert, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 
-import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import { usePanelAccess } from "@/app/panel/_admin/_components/admin-gate";
 import { estateManagementQueryOptions } from "@/app/properties/_queries/estate-staff.query";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -26,10 +26,13 @@ import { routes } from "@/lib/routes";
  * here would mean offering buttons the API will refuse.
  */
 export function AdManagement({ estateId }: { estateId: number }) {
-  const user = useSessionStore((state) => state.session?.user);
-  const isStaff = Boolean(user?.isExpert || user?.isAdmin);
+  const access = usePanelAccess("staff");
+  const isStaff = access.allowed;
 
   const management = useQuery(estateManagementQueryOptions(estateId, isStaff));
+
+  // Nothing is refused until the session has actually been read.
+  if (access.pending) return <Skeleton className="h-72 rounded-2xl" />;
 
   if (!isStaff) {
     return (
