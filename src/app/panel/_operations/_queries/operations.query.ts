@@ -33,11 +33,20 @@ export function operationsQueryOptions(
   });
 }
 
-/** Agents, branches and both type lists — shared by the two pages. */
-export function operationFiltersQueryOptions() {
+/**
+ * Agents, branches and both type lists.
+ *
+ * Shared by the two performance pages and by the scoreboard, which wants the
+ * same «مشاور / شعبه» list rather than a second one built from whoever happens
+ * to be in the table. `enabled` is not decoration: the route is under `/admin`
+ * and answers 403 to an agent, so a page that also serves experts has to ask
+ * only when the viewer is an administrator.
+ */
+export function operationFiltersQueryOptions(enabled = true) {
   return queryOptions({
     queryKey: operationQueryKeys.filters(),
     queryFn: async ({ signal }) => (await getOperationFilters(signal)).result,
+    enabled,
     staleTime: 30 * 60 * 1_000,
   });
 }

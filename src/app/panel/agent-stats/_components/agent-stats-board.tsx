@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Medal, ShieldAlert, Trophy } from "lucide-react";
 
@@ -12,16 +12,18 @@ import {
   agentStatsLeagueQueryOptions,
   myAgentStatsQueryOptions,
 } from "@/app/panel/agent-stats/_queries/agent-stats.query";
+import { operationFiltersQueryOptions } from "@/app/panel/_operations/_queries/operations.query";
 import { EmptyState } from "@/components/shared/empty-state";
-import { JalaliDateInput } from "@/components/shared/form";
+import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
+import { FilterCombobox, JalaliDateInput } from "@/components/shared/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
+import { toJalaliDisplay } from "@/lib/jalali-date";
 import { cn } from "@/lib/utils";
 
 function score(value: number): string {
@@ -38,11 +40,66 @@ export function AgentStatsBoard() {
   const access = usePanelAccess("staff");
   const isStaff = access.allowed;
 
-  const [range, setRange] = useState<AgentStatsRange>({});
+  const [dates, setDates] = useState({ datefrom: "", dateto: "" });
+  /**
+   * One control for both, the way the performance pages do it: a branch comes
+   * back from the filter list with a negative id, so the sign says which of the
+   * two was picked. A branch narrows the table — `branch_id` is a parameter the
+   * league takes — and an agent opens their own score breakdown, which is the
+   * only shape the API offers for one person.
+   */
+  const [who, setWho] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
+
+  const branchId = who.startsWith("-") ? Math.abs(Number(who)) : undefined;
+  const range: AgentStatsRange = useMemo(
+    () => ({
+      datefrom: dates.datefrom || undefined,
+      dateto: dates.dateto || undefined,
+      branchId,
+    }),
+    [dates.datefrom, dates.dateto, branchId],
+  );
 
   const league = useQuery(agentStatsLeagueQueryOptions(range, isStaff));
   const mine = useQuery(myAgentStatsQueryOptions(range, isStaff));
+  // The same list the two performance pages use — but that route is admin-only,
+  // so an agent gets the names out of the table they are already looking at.
+  const filterOptions = useQuery(
+    operationFiltersQueryOptions(isStaff && access.viewer.isAdmin),
+  );
+
+  const whoOptions = useMemo(() => {
+    const branches = (filterOptions.data?.branches ?? []).map((branch) => ({
+      value: branch.value,
+      title: `شعبه‌ی ${branch.title}`,
+    }));
+    const agents =
+      filterOptions.data?.agents ??
+      (league.data?.items ?? []).map((item) => ({
+        value: String(item.id),
+        title: item.name,
+      }));
+    return [...branches, ...agents];
+  }, [filterOptions.data, league.data]);
+
+  const chips = filterChips(
+    { ...dates, who },
+    { datefrom: "", dateto: "", who: "" },
+    {
+      who: { label: "مشاور", options: whoOptions },
+      datefrom: { label: "از", format: toJalaliDisplay },
+      dateto: { label: "تا", format: toJalaliDisplay },
+    },
+    (key, value) => {
+      if (key === "who") {
+        setWho(value);
+        setSelected(value && !value.startsWith("-") ? Number(value) : null);
+        return;
+      }
+      setDates((current) => ({ ...current, [key]: value }));
+    },
+  );
 
   // Nothing is refused until the session has actually been read.
   if (access.pending) return <Skeleton className="h-96 rounded-2xl" />;
@@ -58,6 +115,7 @@ export function AgentStatsBoard() {
   }
 
   const myRow = league.data?.items.find((item) => item.id === user?.id) ?? null;
+
   // Counters come back as a flat map with a lot of zeros; only what happened
   // is worth showing.
   const activeCounters = Object.entries(mine.data?.counters ?? {}).filter(
@@ -66,40 +124,52 @@ export function AgentStatsBoard() {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardContent className="flex flex-wrap items-end gap-3 p-4">
-          <div className="w-48 space-y-1">
-            <Label htmlFor="stats-from">از تاریخ</Label>
-            <JalaliDateInput
-              id="stats-from"
-              value={range.datefrom ?? ""}
-              placeholder="از ابتدا"
-              onChange={(value) =>
-                setRange((current) => ({ ...current, datefrom: value }))
-              }
-            />
-          </div>
-          <div className="w-48 space-y-1">
-            <Label htmlFor="stats-to">تا تاریخ</Label>
-            <JalaliDateInput
-              id="stats-to"
-              value={range.dateto ?? ""}
-              placeholder="تا امروز"
-              onChange={(value) =>
-                setRange((current) => ({ ...current, dateto: value }))
-              }
-            />
-          </div>
-          <Button type="button" variant="outline" onClick={() => setRange({})}>
-            بازه‌ی پیش‌فرض
-          </Button>
-          {league.data?.range && (
-            <Typography variant="small" className="text-muted-foreground">
-              {`بازه: ${league.data.range.from} تا ${league.data.range.to}`}
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
+      <PanelFilterBar
+        icon={Trophy}
+        count={league.data?.items.length}
+        unit="مشاور"
+        pending={league.isPending}
+        note={
+          league.data?.range
+            ? `بازه ${league.data.range.from} تا ${league.data.range.to}`
+            : undefined
+        }
+        chips={chips}
+        onClear={() => {
+          setDates({ datefrom: "", dateto: "" });
+          setWho("");
+          setSelected(null);
+        }}
+      >
+        <FilterCombobox
+          label="همه‌ی مشاوران"
+          value={who}
+          onChange={(value) => {
+            setWho(value);
+            // A branch narrows the table; a name opens that person's card,
+            // because the API scores one agent through its own route.
+            setSelected(value && !value.startsWith("-") ? Number(value) : null);
+          }}
+          options={whoOptions}
+          emptyText="مشاوری با این نام نیست"
+        />
+        <JalaliDateInput
+          value={dates.datefrom}
+          placeholder="از تاریخ"
+          aria-label="از تاریخ"
+          onChange={(value) =>
+            setDates((current) => ({ ...current, datefrom: value }))
+          }
+        />
+        <JalaliDateInput
+          value={dates.dateto}
+          placeholder="تا تاریخ"
+          aria-label="تا تاریخ"
+          onChange={(value) =>
+            setDates((current) => ({ ...current, dateto: value }))
+          }
+        />
+      </PanelFilterBar>
 
       {myRow && (
         <Card className="border-brand">
