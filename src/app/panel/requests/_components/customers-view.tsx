@@ -239,6 +239,7 @@ export function CustomersView() {
         unit="مشتری"
         pending={list.isPending}
         columns={4}
+        phoneColumns={2}
         search={{
           value: filters.query,
           onChange: (value) => set({ query: value }),

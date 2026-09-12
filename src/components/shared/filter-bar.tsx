@@ -39,8 +39,13 @@ export type FilterChip = {
  *   current state used to mean looking at every control in turn, and a filter
  *   scrolled out of view on a phone was invisible entirely.
  * - **Room on a phone.** Six controls push the results a screen and a half
- *   down; collapsed, the count and the chips stay and the results are where
- *   they should be. It is always open from `sm` up.
+ *   down; collapsed, the count, the search box and the chips stay and the
+ *   results are where they should be. It is always open from `sm` up.
+ *
+ * On a phone the header is two rows, not one: the title, the count and the
+ * toggle share the first, and the page's actions (a «فیلترهای بیشتر», a map
+ * switch) take a full-width second — one row could not hold all of it at
+ * 360px without the buttons cutting into the count.
  */
 export function PanelFilterBar({
   icon: Icon,
@@ -51,6 +56,7 @@ export function PanelFilterBar({
   note,
   search,
   columns = 3,
+  phoneColumns = 1,
   chips = [],
   isFiltered = chips.length > 0,
   onClear,
@@ -72,6 +78,8 @@ export function PanelFilterBar({
     placeholder: string;
   };
   columns?: 2 | 3 | 4;
+  /** Controls per row on a phone — two when the labels are short enough. */
+  phoneColumns?: 1 | 2;
   chips?: FilterChip[];
   /** Whether anything is applied — chips do not cover a free-text search. */
   isFiltered?: boolean;
@@ -91,11 +99,11 @@ export function PanelFilterBar({
 
   return (
     <section data-slot="filter-bar" className="rounded-xl border bg-card">
-      <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b px-3 py-2">
         <Typography
           as="h2"
           variant="small"
-          className="flex items-center gap-1.5 font-medium text-foreground"
+          className="flex shrink-0 items-center gap-1.5 font-medium text-foreground"
         >
           <SlidersHorizontal className="size-4 text-brand" />
           {title}
@@ -106,7 +114,7 @@ export function PanelFilterBar({
           )}
         </Typography>
 
-        <span className="flex min-w-0 items-center gap-1">
+        <span className="ms-auto flex min-w-0 items-center gap-1">
           <Typography
             variant="small"
             className="flex min-w-0 items-center gap-1.5 truncate"
@@ -118,8 +126,6 @@ export function PanelFilterBar({
             </span>
           </Typography>
 
-          {actions}
-
           <Button
             type="button"
             variant="ghost"
@@ -130,33 +136,49 @@ export function PanelFilterBar({
             className="sm:hidden"
           >
             <ChevronDown
-              className={cn("size-4 transition-transform", open && "rotate-180")}
+              className={cn(
+                "size-4 transition-transform",
+                open && "rotate-180",
+              )}
             />
           </Button>
         </span>
+
+        {/* A row of their own on a phone, where each action stretches to share
+            the width; inline after the count from `sm` up. */}
+        {actions && (
+          <div className="flex basis-full items-center gap-2 [&>*]:flex-1 sm:basis-auto sm:[&>*]:flex-none">
+            {actions}
+          </div>
+        )}
       </div>
+
+      {/* The search box stays out when the rest folds — it is the first thing
+          anybody reaches for, and a hidden search is a missing one. */}
+      {search && (
+        <div className="relative p-3">
+          <Search className="pointer-events-none absolute inset-s-6 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search.value}
+            onChange={(event) => search.onChange(event.target.value)}
+            placeholder={search.placeholder}
+            aria-label={search.placeholder}
+            className="ps-9"
+          />
+        </div>
+      )}
 
       <div
         className={cn(
-          "grid grid-cols-1 gap-2 p-3",
+          "grid gap-2 p-3",
+          phoneColumns === 1 ? "grid-cols-1" : "grid-cols-2",
+          search && "pt-0",
           columns === 2 && "sm:grid-cols-2",
           columns === 3 && "sm:grid-cols-2 lg:grid-cols-3",
           columns === 4 && "sm:grid-cols-2 lg:grid-cols-4",
           !open && "hidden sm:grid",
         )}
       >
-        {search && (
-          <div className="relative sm:col-span-full">
-            <Search className="pointer-events-none absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search.value}
-              onChange={(event) => search.onChange(event.target.value)}
-              placeholder={search.placeholder}
-              aria-label={search.placeholder}
-              className="ps-9"
-            />
-          </div>
-        )}
         {children}
       </div>
 

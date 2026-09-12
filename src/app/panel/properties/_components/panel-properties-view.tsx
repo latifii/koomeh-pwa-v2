@@ -112,7 +112,10 @@ export function PanelPropertiesView() {
   const total = list.data?.pages[0]?.total ?? 0;
   const scope = list.data?.pages[0]?.scope ?? options.data?.scope;
   const isStaff = scope ? scope.role !== "user" : false;
-  const advancedCount = countAdvancedFilters(filters, defaultPanelEstateFilters);
+  const advancedCount = countAdvancedFilters(
+    filters,
+    defaultPanelEstateFilters,
+  );
   const dialog = status.pending ? actionCopy[status.pending.action] : undefined;
 
   const set = (patch: Partial<PanelEstateFilters>) =>
@@ -133,13 +136,31 @@ export function PanelPropertiesView() {
     filters,
     defaultPanelEstateFilters,
     {
-      confirmation: { label: "وضعیت", options: options.data?.confirmation_statuses ?? [] },
+      confirmation: {
+        label: "وضعیت",
+        options: options.data?.confirmation_statuses ?? [],
+      },
       dealType: { label: "معامله", options: options.data?.deal_types ?? [] },
       estateType: { label: "نوع", options: options.data?.estate_types ?? [] },
       expert: { label: "مشاور", options: options.data?.experts ?? [] },
-      expertType: { label: "نوع مشاور", options: options.data?.expert_types ?? [] },
-      visibility: { label: "نمایش", options: [{ value: "1", title: "قابل نمایش" }, { value: "0", title: "مخفی" }] },
-      divar: { label: "منبع", options: [{ value: "1", title: "دیوار" }, { value: "2", title: "غیر دیوار" }] },
+      expertType: {
+        label: "نوع مشاور",
+        options: options.data?.expert_types ?? [],
+      },
+      visibility: {
+        label: "نمایش",
+        options: [
+          { value: "1", title: "قابل نمایش" },
+          { value: "0", title: "مخفی" },
+        ],
+      },
+      divar: {
+        label: "منبع",
+        options: [
+          { value: "1", title: "دیوار" },
+          { value: "2", title: "غیر دیوار" },
+        ],
+      },
       ownerName: { label: "مالک" },
       ownerPhone: { label: "موبایل مالک" },
       buildingName: { label: "مجتمع" },
@@ -207,6 +228,7 @@ export function PanelPropertiesView() {
         pending={list.isPending}
         note={scope?.own_only === false ? "همه‌ی آگهی‌ها" : undefined}
         columns={4}
+        phoneColumns={2}
         search={{
           value: filters.query,
           onChange: (value) => set({ query: value }),
@@ -216,8 +238,12 @@ export function PanelPropertiesView() {
         isFiltered={isFiltered}
         onClear={() => setFilters(defaultPanelEstateFilters)}
         actions={
-          <span className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setDrawerOpen(true)}>
+          <span className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setDrawerOpen(true)}
+            >
               <SlidersHorizontal data-icon="inline-start" />
               فیلترهای بیشتر
               {advancedCount > 0 && (
@@ -275,7 +301,10 @@ export function PanelPropertiesView() {
             label="مرتب‌سازی: تاریخ انتشار"
             value={filters.order}
             onChange={(value) =>
-              set({ order: value, orderBy: value ? filters.orderBy || "desc" : "" })
+              set({
+                order: value,
+                orderBy: value ? filters.orderBy || "desc" : "",
+              })
             }
             options={[...PANEL_ESTATE_SORT_OPTIONS]}
           />
@@ -370,7 +399,10 @@ export function PanelPropertiesView() {
                 disabled={list.isFetchingNextPage}
               >
                 {list.isFetchingNextPage && (
-                  <LoaderCircle data-icon="inline-start" className="animate-spin" />
+                  <LoaderCircle
+                    data-icon="inline-start"
+                    className="animate-spin"
+                  />
                 )}
                 آگهی‌های بیشتر
               </Button>
