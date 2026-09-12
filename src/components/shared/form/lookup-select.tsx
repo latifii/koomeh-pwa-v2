@@ -163,8 +163,6 @@ export function MultiSelectField<TValues extends FieldValues>({
   name: Path<TValues>;
   label: string;
   options: LookupOption[];
-  /** District lists run to hundreds, so they get their own scroll box. */
-  scrollable?: boolean;
   /** Chips in a text box instead of a wall of toggles. */
   searchable?: boolean;
   /** Hides options the API sent under a title another option already has. */
@@ -187,14 +185,12 @@ function ToggleMultiSelect<TValues extends FieldValues>({
   name,
   label,
   options,
-  scrollable,
   dedupeTitles,
 }: {
   control: Control<TValues>;
   name: Path<TValues>;
   label: string;
   options: LookupOption[];
-  scrollable?: boolean;
   dedupeTitles?: boolean;
 }) {
   return (
@@ -219,12 +215,7 @@ function ToggleMultiSelect<TValues extends FieldValues>({
 
           return (
             <>
-              <div
-                className={cn(
-                  "flex flex-wrap gap-2",
-                  scrollable && "max-h-44 overflow-y-auto rounded-lg border p-2",
-                )}
-              >
+              <div className="flex flex-wrap gap-2">
                 {visible.map((option) => {
                   const active = selected.includes(option.value);
 

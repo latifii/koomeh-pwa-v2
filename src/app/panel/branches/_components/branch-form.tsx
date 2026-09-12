@@ -242,7 +242,7 @@ export function BranchForm({ branch }: { branch?: BranchDetail }) {
               name="districts"
               label="محله‌های تحت پوشش"
               options={districts.data?.result.items ?? []}
-              scrollable
+              searchable
             />
           ) : (
             <Typography variant="small">
