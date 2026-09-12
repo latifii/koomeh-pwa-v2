@@ -101,6 +101,13 @@ renew      navigation → src/proxy.ts refreshes before the page renders
   two places at once: the axios interceptor keeps a single in-flight promise and
   the proxy refreshes once per request. Adding a third caller will invalidate
   live sessions.
+- **Only a rejected token ends a session.** The refresh route and the proxy
+  delete the cookie when `/api/refresh` answers 400/401 (`isTokenRejected`) —
+  never on a 5xx, a timeout or a network error, which say nothing about the
+  token. On those the cookie stays and the next 401 retries. And once a
+  rotation has succeeded the old token is spent, so `buildSession` keeps the
+  new pair even if `/api/me` fails afterwards, falling back to the user
+  already in the cookie.
 - **Never read the session cookie from client code.** It is httpOnly by design.
   Use `useSessionStore`; on the server use `getSession()`.
 - **Server-side API calls must pass their own token.** The axios interceptor

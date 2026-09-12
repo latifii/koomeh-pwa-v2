@@ -4,7 +4,11 @@ import axios, {
 } from "axios";
 import { type ZodType } from "zod";
 
-import { getAccessToken, setAccessToken } from "./access-token";
+import {
+  getAccessToken,
+  notifySessionLost,
+  setAccessToken,
+} from "./access-token";
 import { normalizeApiError } from "./api-error";
 import { apiConfig } from "./config";
 
@@ -35,21 +39,36 @@ type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean };
  * Refresh tokens rotate — spending one twice invalidates the pair — so every
  * 401 in a burst waits on the same in-flight refresh instead of starting its own.
  */
-let pendingRefresh: Promise<string | undefined> | null = null;
+let pendingRefresh: Promise<RefreshOutcome> | null = null;
 
-async function refreshAccessToken(): Promise<string | undefined> {
-  pendingRefresh ??= (async () => {
+/**
+ * `rejected` and `unavailable` are not the same failure. A 401 from the route
+ * means the cookie is gone — the refresh token was spent, revoked or past its
+ * window — and the store must learn that now. Anything else (a 429 from the
+ * guard, a 5xx, a dropped connection) leaves the cookie exactly where it was;
+ * the request fails and the next 401 tries again.
+ */
+type RefreshOutcome =
+  | { kind: "renewed"; token: string }
+  | { kind: "rejected" }
+  | { kind: "unavailable" };
+
+async function refreshAccessToken(): Promise<RefreshOutcome> {
+  pendingRefresh ??= (async (): Promise<RefreshOutcome> => {
     try {
       const response = await fetch("/api/auth/refresh", {
         method: "POST",
         cache: "no-store",
       });
-      if (!response.ok) return undefined;
+      if (response.status === 401) return { kind: "rejected" };
+      if (!response.ok) return { kind: "unavailable" };
 
       const session = (await response.json()) as { accessToken?: string } | null;
-      return session?.accessToken;
+      return session?.accessToken
+        ? { kind: "renewed", token: session.accessToken }
+        : { kind: "unavailable" };
     } catch {
-      return undefined;
+      return { kind: "unavailable" };
     } finally {
       // Cleared on the next tick so everyone awaiting this attempt shares it.
       queueMicrotask(() => {
@@ -78,16 +97,26 @@ httpClient.interceptors.response.use(
 
     if (!canRetry) return Promise.reject(apiError);
 
-    const token = await refreshAccessToken();
+    const outcome = await refreshAccessToken();
 
-    if (!token) {
+    if (outcome.kind === "rejected") {
+      // The route has already deleted the cookie. Until now the store only
+      // found out on the next window focus, so the header kept showing the
+      // user's name over a session that no longer existed.
       setAccessToken(undefined);
+      notifySessionLost();
       return Promise.reject(apiError);
     }
 
-    setAccessToken(token);
+    if (outcome.kind === "unavailable") {
+      // Nothing changed server-side: keep the token so the next 401 retries
+      // the refresh instead of going out unauthenticated and skipping it.
+      return Promise.reject(apiError);
+    }
+
+    setAccessToken(outcome.token);
     config._retried = true;
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${outcome.token}`;
     return httpClient.request(config);
   },
 );

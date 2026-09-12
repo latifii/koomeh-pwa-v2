@@ -14,6 +14,8 @@ import {
   forgetRefresh,
   recordRefresh,
 } from "@/lib/auth/refresh-guard";
+import { isTokenRejected } from "@/app/auth/_api/auth.service";
+import { ApiError } from "@/lib/api/api-error";
 
 /**
  * The session rules, which are the app's sharpest invariants: a refresh token
@@ -124,4 +126,22 @@ test("signing out forgets the counters", () => {
   assert.equal(checkRefresh(11, NOW + 100), "cooldown");
   forgetRefresh(11);
   assert.equal(checkRefresh(11, NOW + 100), "rotate");
+});
+
+test("only a token the API turned down ends the session", () => {
+  const failed = (status?: number, code: ApiError["code"] = "UNKNOWN_ERROR") =>
+    new ApiError("refresh failed", { code, userMessage: "", status });
+
+  // A spent, revoked or malformed refresh token: the cookie has to go.
+  assert.equal(isTokenRejected(failed(401, "UNAUTHORIZED")), true);
+  assert.equal(isTokenRejected(failed(400, "BAD_REQUEST")), true);
+
+  // The backend having a bad moment says nothing about the token. Deleting
+  // the cookie here is what signed visitors out during a database repair.
+  assert.equal(isTokenRejected(failed(500, "SERVER_ERROR")), false);
+  assert.equal(isTokenRejected(failed(503, "SERVER_ERROR")), false);
+  assert.equal(isTokenRejected(failed(429, "RATE_LIMITED")), false);
+  assert.equal(isTokenRejected(failed(undefined, "NETWORK_ERROR")), false);
+  assert.equal(isTokenRejected(failed(undefined, "TIMEOUT")), false);
+  assert.equal(isTokenRejected(new TypeError("fetch failed")), false);
 });

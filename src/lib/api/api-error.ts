@@ -165,9 +165,16 @@ export function normalizeApiError(error: unknown): ApiError {
     }
 
     const status = error.response.status;
+    // A 4xx message is the API explaining what was wrong with the request and
+    // is often the most useful text there is. A 5xx message is not: the
+    // backend answers those with the raw exception, and «Table 'images' is
+    // marked as crashed and should be repaired» once reached the home page
+    // that way.
+    const serverMessage =
+      status < 500 ? responseMessage(error.response.data) : undefined;
     return new ApiError(error.message, {
       code: codeFromStatus(status),
-      userMessage: responseMessage(error.response.data) ?? userMessageFromStatus(status),
+      userMessage: serverMessage ?? userMessageFromStatus(status),
       status,
       details: error.response.data,
       retryable: status === 408 || status === 429 || status >= 500,

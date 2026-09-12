@@ -6,7 +6,7 @@ import {
   type SiteSessionResponse,
   type TokenPairDto,
 } from "@/app/auth/_schemas/auth.schema";
-import { ApiError } from "@/lib/api/api-error";
+import { ApiError, isApiError } from "@/lib/api/api-error";
 import { apiConfig } from "@/lib/api/config";
 
 /**
@@ -141,6 +141,21 @@ export async function refresh(refreshToken: string): Promise<TokenPairDto> {
       body: { refresh_token: refreshToken },
     }),
   );
+}
+
+/**
+ * Whether a failed `refresh` means the token itself is dead.
+ *
+ * The API answers a spent, revoked or expired refresh token with 401 (400 for
+ * a malformed one). Everything else — a 5xx while the database is being
+ * repaired, a timeout, a dropped connection — says nothing about the token,
+ * and used to be treated the same way: the cookie was deleted and a visitor
+ * with a perfectly good session found themselves signed out because the
+ * backend had a bad second.
+ */
+export function isTokenRejected(error: unknown): boolean {
+  if (!isApiError(error)) return false;
+  return error.status === 400 || error.status === 401 || error.status === 403;
 }
 
 export async function logout(token: string, allDevices = false): Promise<void> {

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { buildSession } from "@/app/auth/_api/build-session";
-import { refresh } from "@/app/auth/_api/auth.service";
+import { isTokenRejected, refresh } from "@/app/auth/_api/auth.service";
 import {
   AFTER_SIGN_IN,
   CALLBACK_PARAM,
@@ -89,15 +89,26 @@ export async function proxy(request: NextRequest) {
 
   if (isAccessExpired(session)) {
     try {
-      current = await buildSession(await refresh(session.refreshToken));
-      renewed = await encryptSession(current);
-    } catch {
-      // The rotation failed — the stored refresh token is spent or revoked.
-      return withoutSession(
-        protectedPath
-          ? redirect(request, routes.auth.login, `${pathname}${search}`)
-          : NextResponse.next(),
+      current = await buildSession(
+        await refresh(session.refreshToken),
+        session.user,
       );
+      renewed = await encryptSession(current);
+    } catch (error) {
+      // The API turned the token down — spent, revoked, or past its window.
+      if (isTokenRejected(error)) {
+        return withoutSession(
+          protectedPath
+            ? redirect(request, routes.auth.login, `${pathname}${search}`)
+            : NextResponse.next(),
+        );
+      }
+
+      // The API could not be asked. The cookie is still valid, so it stays;
+      // the page renders with the token it has and the browser's interceptor
+      // retries the refresh on the first 401. Signing someone out because the
+      // backend was briefly down is the one outcome this must never produce.
+      console.error("[auth] refresh unavailable in proxy; keeping the session:", error);
     }
   }
 

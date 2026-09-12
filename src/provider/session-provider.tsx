@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
+import { onSessionLost } from "@/lib/api/access-token";
 
 /**
  * Loads the session into the browser store.
@@ -38,6 +39,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [refreshSession]);
+
+  // The interceptor's refresh came back 401 and the cookie is gone. Re-read it
+  // rather than clearing the store outright: the cookie stays the source of
+  // truth, and this is the same read the header trusted a moment ago.
+  useEffect(
+    () =>
+      onSessionLost(() => {
+        void refreshSession();
+      }),
+    [refreshSession],
+  );
 
   return children;
 }
