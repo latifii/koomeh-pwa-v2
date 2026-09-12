@@ -22,11 +22,42 @@ import { routes } from "@/lib/routes";
  */
 export type PanelAudience = "everyone" | "member" | "staff" | "admin";
 
+/**
+ * The most the panel offers anyone, whatever their role.
+ *
+ * Set to `staff`, which is the brief: every account gets the agent's panel and
+ * nothing beyond it — an administrator included. The twelve office
+ * administration pages (members, branches, settings, contracts, posts,
+ * locations, the SMS module, estate reports and edits, estate and agent
+ * operations) are still in the code with their `admin` audience and are not
+ * offered: the menu never lists them and the proxy sends a visitor on to the
+ * dashboard. Raising this back to `admin` is the whole of re-enabling them.
+ *
+ * This caps *pages*, not what a page does for an administrator. A row's
+ * delete button, the site-wide dashboard, the group tick boxes in the
+ * phonebook all come from the API's own `can_*` flags and `viewer.isAdmin`,
+ * and are deliberately untouched.
+ */
+export const PANEL_AUDIENCE_CAP: PanelAudience = "staff";
+
+const AUDIENCE_RANK: Record<PanelAudience, number> = {
+  everyone: 0,
+  member: 1,
+  staff: 2,
+  admin: 3,
+};
+
+/** Whether the cap alone rules an audience out, before any role is looked at. */
+export function isCapped(audience: PanelAudience): boolean {
+  return AUDIENCE_RANK[audience] > AUDIENCE_RANK[PANEL_AUDIENCE_CAP];
+}
+
 export function canAccess(
   audience: PanelAudience,
   viewer: PanelViewer,
 ): boolean {
   if (!viewer.signedIn) return false;
+  if (isCapped(audience)) return false;
 
   switch (audience) {
     case "everyone":

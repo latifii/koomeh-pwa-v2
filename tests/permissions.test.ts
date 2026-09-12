@@ -3,6 +3,8 @@ import { test } from "vitest";
 
 import {
   canAccess,
+  isCapped,
+  PANEL_AUDIENCE_CAP,
   PARKED_PANEL_ROUTES,
   panelAudienceFor,
   parkedPanelRedirect,
@@ -171,7 +173,40 @@ test("a group with nothing visible in it is not rendered", () => {
     "agent performance has only staff entries",
   );
   assert.ok(plain.some((group) => group.id === "estates"));
-  assert.ok(admin.some((group) => group.id === "system"));
+  assert.equal(
+    admin.some((group) => group.id === "system"),
+    false,
+    "office administration is above the cap, so even an administrator has no such group",
+  );
+});
+
+/**
+ * The brief: every account gets the agent's panel and nothing beyond it. The
+ * administration pages keep their code and their `admin` audience; the cap is
+ * what keeps them out of the menu and off the proxy. Raising the cap is the
+ * whole of bringing them back, so this pins both the value and its effect.
+ */
+test("the panel is capped at the agent's audience, administrators included", () => {
+  assert.equal(PANEL_AUDIENCE_CAP, "staff");
+  assert.equal(isCapped("admin"), true);
+  assert.equal(isCapped("staff"), false);
+
+  const admin = panelViewer(user(["administrator"], { isAdmin: true, isExpert: true }));
+  const agent = panelViewer(user(["expert"], { isExpert: true }));
+
+  // Same menu for both.
+  assert.deepEqual(
+    visibleGroups(admin).map((group) => [group.id, group.items.map((item) => item.href)]),
+    visibleGroups(agent).map((group) => [group.id, group.items.map((item) => item.href)]),
+  );
+
+  // And the admin pages answer the same way for both at the proxy.
+  for (const item of PANEL_NAV_ITEMS.filter((entry) => entry.audience === "admin")) {
+    assert.equal(canAccess(panelAudienceFor(item.href), admin), false, item.href);
+  }
+
+  // The in-page extras are not the cap's business: the viewer still knows.
+  assert.equal(admin.isAdmin, true);
 });
 
 test("no page is offered twice in the same part of the menu", () => {
