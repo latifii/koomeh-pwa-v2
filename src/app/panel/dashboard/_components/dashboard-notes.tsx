@@ -31,9 +31,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 
-const boxes: { key: NoteBoxKey; icon: typeof Quote; fallback: string }[] = [
-  { key: "dailyquote", icon: Quote, fallback: "جمله روز" },
-  { key: "announcements", icon: Megaphone, fallback: "پیام مدیریت" },
+/**
+ * The heading is the box's, not the post's. The API sends each note's own
+ * title — which is whatever the last editor typed, «آفر آگهی» and the like —
+ * and the old dashboard never showed that: its two boxes were always
+ * «جمله روز:» and «پیام مدیریت:».
+ */
+const boxes: { key: NoteBoxKey; icon: typeof Quote; heading: string }[] = [
+  { key: "dailyquote", icon: Quote, heading: "جمله روز:" },
+  { key: "announcements", icon: Megaphone, heading: "پیام مدیریت:" },
 ];
 
 /**
@@ -89,15 +95,13 @@ export function DashboardNotes() {
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {visible.map((box) => {
           const live = notes.data[box.key];
-          const draft = editable?.[box.key];
-          const title = live?.title ?? draft?.title ?? box.fallback;
 
           return (
             <Card key={box.key}>
               <CardHeader className="flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-sm">
                   <box.icon className="size-4 text-brand" />
-                  {title}
+                  {box.heading}
                 </CardTitle>
                 {canEdit && (
                   <Button

@@ -8,7 +8,7 @@ import {
   ChevronLeft,
   ClipboardList,
   RefreshCw,
-  Sparkles,
+  Star,
   TrendingUp,
   UserRound,
 } from "lucide-react";
@@ -30,11 +30,16 @@ import { toAbsoluteMediaUrl } from "@/lib/api/config";
 import { routes } from "@/lib/routes";
 
 import { DashboardNotes } from "./dashboard-notes";
+import { DashboardPerformance } from "./dashboard-performance";
 
 /**
- * The panel's landing page. Every figure is scoped by the API to the caller —
- * an agent sees their own files, an administrator the whole site — and the
- * `scope` it returns is what the heading reflects.
+ * The panel's landing page, section for section the old site's /dashboard for
+ * an agent: upcoming tasks, the two notes, four counters, this week's featured
+ * files and customers, the scoring block (branch averages, the two leagues,
+ * the agent's own stats table) and the customers to follow up. Every figure is
+ * scoped by the API to the caller — an agent sees their own files, an
+ * administrator the whole site — and the `scope` it returns is what the
+ * labels reflect.
  */
 export function DashboardView() {
   const summary = useQuery(dashboardSummaryQueryOptions());
@@ -46,25 +51,26 @@ export function DashboardView() {
 
   const stats = [
     {
-      label: isAll ? "کل فایل‌های فعال" : "فایل‌های من",
+      label: isAll ? "تعداد املاک" : "تعداد املاک من",
       value: summary.data?.estates,
       icon: Building2,
       href: routes.panel.properties,
     },
     {
-      label: isAll ? "کل مشتریان" : "مشتریان من",
+      label: isAll ? "تعداد مشتریان" : "تعداد مشتریان من",
       value: summary.data?.customers,
       icon: UserRound,
       href: routes.panel.requests,
     },
     {
-      label: "فایل‌های امروز سایت",
+      label: "املاک امروز",
       value: summary.data?.estates_today,
       icon: TrendingUp,
       href: routes.panel.properties,
     },
     {
-      label: "نیازمند به‌روزرسانی",
+      // The old card's «املاک منقضی»: files past their show-date window.
+      label: "املاک منقضی",
       value: summary.data?.estates_needing_update ?? undefined,
       icon: RefreshCw,
       href: routes.panel.properties,
@@ -73,6 +79,55 @@ export function DashboardView() {
 
   return (
     <div className="grid grid-cols-1 gap-4">
+      {/* The old page's order: tasks first, then the two notes, the counters,
+          the week's featured files and customers, the scoring block, and the
+          customers to follow up at the end. */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarClock className="size-4 text-brand" />
+            کارهای پیش رو
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tasks.isPending ? (
+            <RowSkeleton />
+          ) : tasks.data?.length ? (
+            <ul className="grid grid-cols-1 gap-2">
+              {tasks.data.map((task) => (
+                <li
+                  key={task.id}
+                  className="flex items-start gap-3 rounded-lg border p-3"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-1.5 size-2 shrink-0 rounded-full"
+                    style={{ background: task.color ?? "var(--brand)" }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <Typography variant="h4" as="p" className="truncate sm:text-sm">
+                      {task.title}
+                    </Typography>
+                    <Typography variant="small" className="mt-0.5">
+                      {task.at_jalali ?? task.at}
+                      {task.location ? ` · ${task.location}` : ""}
+                    </Typography>
+                  </div>
+                  {task.type_label && (
+                    <Badge variant="secondary">{task.type_label}</Badge>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Typography variant="small">
+              رویداد پیش‌رویی در تقویم شما ثبت نشده است.
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
+
+
       <DashboardNotes />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -115,51 +170,31 @@ export function DashboardView() {
       )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarClock className="size-4 text-brand" />
-              کارهای پیش رو
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {tasks.isPending ? (
-              <RowSkeleton />
-            ) : tasks.data?.length ? (
-              <ul className="grid grid-cols-1 gap-2">
-                {tasks.data.map((task) => (
-                  <li
-                    key={task.id}
-                    className="flex items-start gap-3 rounded-lg border p-3"
-                  >
-                    <span
-                      aria-hidden
-                      className="mt-1.5 size-2 shrink-0 rounded-full"
-                      style={{ background: task.color ?? "var(--brand)" }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <Typography variant="h4" as="p" className="truncate sm:text-sm">
-                        {task.title}
-                      </Typography>
-                      <Typography variant="small" className="mt-0.5">
-                        {task.at_jalali ?? task.at}
-                        {task.location ? ` · ${task.location}` : ""}
-                      </Typography>
-                    </div>
-                    {task.type_label && (
-                      <Badge variant="secondary">{task.type_label}</Badge>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Typography variant="small">
-                رویداد پیش‌رویی در تقویم شما ثبت نشده است.
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
+        <HighlightCard
+          title="املاک ویژه"
+          pending={highlights.isPending}
+          items={highlights.data?.estates ?? []}
+          emptyText="این هفته فایل ویژه‌ای ثبت نشده است."
+          codeLabel="کد ملک"
+          codeOf={(item) => item.estate_id}
+          hrefFor={(item) => (item.estate_id ? routes.property(item.estate_id) : undefined)}
+        />
+        <HighlightCard
+          title="مشتریان ویژه"
+          pending={highlights.isPending}
+          items={highlights.data?.customers ?? []}
+          emptyText="این هفته مشتری ویژه‌ای ثبت نشده است."
+          codeLabel="کد مشتری"
+          codeOf={(item) => item.customer_id}
+          hrefFor={(item) =>
+            item.customer_id ? routes.panel.request(item.customer_id) : undefined
+          }
+        />
+      </div>
 
+      <DashboardPerformance />
+
+      <div className="grid grid-cols-1 gap-4">
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -216,40 +251,6 @@ export function DashboardView() {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="size-4 text-brand" />
-            ویژه‌های هفته
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {highlights.isPending ? (
-            <RowSkeleton />
-          ) : (highlights.data?.estates.length ?? 0) +
-              (highlights.data?.customers.length ?? 0) ===
-            0 ? (
-            <Typography variant="small">
-              این هفته فایل یا مشتری ویژه‌ای ثبت نشده است.
-            </Typography>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <HighlightColumn
-                title="فایل‌های ویژه"
-                items={highlights.data?.estates ?? []}
-                hrefFor={(item) =>
-                  item.estate_id ? routes.property(item.estate_id) : undefined
-                }
-              />
-              <HighlightColumn
-                title="مشتریان ویژه"
-                items={highlights.data?.customers ?? []}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
@@ -263,69 +264,97 @@ type Highlight = {
   created_at_jalali?: string | null;
 };
 
-function HighlightColumn({
+/**
+ * One of the two «ویژه» boxes, as the old dashboard drew them: the code, who
+ * logged it, when, and the note — the box itself always present, so an empty
+ * week reads as «none this week» rather than as a missing section.
+ */
+function HighlightCard({
   title,
+  pending,
   items,
+  emptyText,
+  codeLabel,
+  codeOf,
   hrefFor,
 }: {
   title: string;
+  pending: boolean;
   items: Highlight[];
-  hrefFor?: (item: Highlight) => string | undefined;
+  emptyText: string;
+  codeLabel: string;
+  codeOf: (item: Highlight) => number | null | undefined;
+  hrefFor: (item: Highlight) => string | undefined;
 }) {
-  if (items.length === 0) return null;
-
   return (
-    <div>
-      <Typography variant="small" className="mb-2 font-medium text-foreground">
-        {title}
-      </Typography>
-      <ul className="grid grid-cols-1 gap-2">
-        {items.slice(0, 5).map((item) => {
-          const href = hrefFor?.(item);
-          const body = (
-            <>
-              <Avatar className="size-8 shrink-0">
-                {item.agent?.photo && (
-                  <AvatarImage
-                    src={toAbsoluteMediaUrl(item.agent.photo) ?? ""}
-                    alt={item.agent.name ?? ""}
-                  />
-                )}
-                <AvatarFallback className="text-[10px]">
-                  {item.agent?.name?.charAt(0) ?? "؟"}
-                </AvatarFallback>
-              </Avatar>
-              <span className="min-w-0 flex-1">
-                <Typography variant="small" className="line-clamp-2 text-foreground">
-                  {item.comment?.trim() || "بدون توضیح"}
-                </Typography>
-                <Typography as="span" variant="small" className="block truncate text-[11px]">
-                  {item.agent?.name}
-                  {item.created_at_jalali ? ` · ${item.created_at_jalali}` : ""}
-                </Typography>
-              </span>
-            </>
-          );
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Star className="size-4 text-brand" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {pending ? (
+          <RowSkeleton />
+        ) : items.length === 0 ? (
+          <Typography variant="small">{emptyText}</Typography>
+        ) : (
+          <ul className="grid grid-cols-1 gap-2">
+            {items.map((item) => {
+              const href = hrefFor(item);
+              const code = codeOf(item);
+              const body = (
+                <>
+                  <Avatar className="size-8 shrink-0">
+                    {item.agent?.photo && (
+                      <AvatarImage
+                        src={toAbsoluteMediaUrl(item.agent.photo) ?? ""}
+                        alt={item.agent.name ?? ""}
+                      />
+                    )}
+                    <AvatarFallback className="text-[10px]">
+                      {item.agent?.name?.charAt(0) ?? "؟"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      {code ? (
+                        <Typography as="span" variant="small" className="font-medium tabular-nums text-foreground">
+                          {codeLabel} {code.toLocaleString("fa-IR")}
+                        </Typography>
+                      ) : null}
+                      <Typography as="span" variant="small" className="truncate">
+                        {item.agent?.name}
+                        {item.created_at_jalali ? ` · ${item.created_at_jalali}` : ""}
+                      </Typography>
+                    </span>
+                    <Typography variant="small" className="line-clamp-2 text-foreground">
+                      {item.comment?.trim() || "بدون توضیح"}
+                    </Typography>
+                  </span>
+                </>
+              );
 
-          return (
-            <li key={item.id}>
-              {href ? (
-                <Link
-                  href={href}
-                  className="flex items-start gap-2.5 rounded-lg border p-2.5 transition-colors hover:border-brand/30"
-                >
-                  {body}
-                </Link>
-              ) : (
-                <div className="flex items-start gap-2.5 rounded-lg border p-2.5">
-                  {body}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+              return (
+                <li key={item.id}>
+                  {href ? (
+                    <Link
+                      href={href}
+                      className="flex items-start gap-2.5 rounded-lg border p-2.5 transition-colors hover:border-brand/30"
+                    >
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className="flex items-start gap-2.5 rounded-lg border p-2.5">{body}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
