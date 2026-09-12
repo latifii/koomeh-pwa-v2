@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, ImageUp, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
+import { AvatarCropDialog } from "@/components/shared/avatar-crop-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -17,9 +18,11 @@ const MAX_BYTES = 2 * 1024 * 1024;
 /**
  * One picture: the profile photo.
  *
- * Click or drop, a preview the moment a file is picked (an object URL, so
- * nothing waits on the upload), a ring that fills as it goes up, and a way
- * to take the picture down again. The two things that go wrong are caught
+ * Click or drop, then the crop step — the picture behind a round window,
+ * drag and zoom, as Telegram does it — and only what is inside the circle
+ * goes up: a preview the moment it is confirmed (an object URL, so nothing
+ * waits on the upload), a ring that fills as it goes up, and a way to take
+ * the picture down again. The two things that go wrong are caught
  * before the round trip — a file that is not an image, a file over the limit
  * — with the same words the API would use, so the answer is instant.
  */
@@ -47,6 +50,8 @@ export function AvatarUploader({
   const [progress, setProgress] = useState<number | null>(null);
   const [removing, setRemoving] = useState(false);
   const [over, setOver] = useState(false);
+  /** The picked file, waiting to be cropped. */
+  const [cropping, setCropping] = useState<File | null>(null);
 
   // Object URLs leak until revoked; each preview is revoked when replaced.
   useEffect(() => {
@@ -55,13 +60,23 @@ export function AvatarUploader({
     };
   }, [preview]);
 
-  const pick = async (file: File | undefined) => {
+  // Picking only opens the crop; the size limit is checked on what leaves
+  // the crop, since a 6 MB phone photo comes out of it as a 512px square.
+  const pick = (file: File | undefined) => {
     if (!file) return;
 
     if (!ACCEPT.includes(file.type)) {
       toast.error("فقط jpg، png و webp پذیرفته می‌شود.");
+      if (inputRef.current) inputRef.current.value = "";
       return;
     }
+
+    setCropping(file);
+  };
+
+  const send = async (file: File) => {
+    setCropping(null);
+
     if (file.size > MAX_BYTES) {
       toast.error("حجم عکس نباید بیش از ۲ مگابایت باشد.");
       return;
@@ -194,7 +209,8 @@ export function AvatarUploader({
       </div>
 
       <Typography variant="small" className="text-center">
-        jpg، png یا webp · تا ۲ مگابایت · می‌توانید عکس را همین‌جا رها کنید
+        jpg، png یا webp · می‌توانید عکس را همین‌جا رها کنید · پیش از بارگذاری
+        برش می‌خورد
         {pending && (
           <>
             <br />
@@ -204,6 +220,15 @@ export function AvatarUploader({
           </>
         )}
       </Typography>
+
+      <AvatarCropDialog
+        file={cropping}
+        onCancel={() => {
+          setCropping(null);
+          if (inputRef.current) inputRef.current.value = "";
+        }}
+        onCropped={(file) => void send(file)}
+      />
     </div>
   );
 }
