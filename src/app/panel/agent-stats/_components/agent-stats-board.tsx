@@ -26,6 +26,10 @@ import {
   agentStatsLeagueQueryOptions,
   agentStatsReportQueryOptions,
 } from "@/app/panel/agent-stats/_queries/agent-stats.query";
+import {
+  PeriodComparison,
+  type ComparisonMode,
+} from "@/app/panel/agent-stats/_components/period-comparison";
 import type { AgentStatsReport } from "@/app/panel/agent-stats/_schemas/agent-stats.schema";
 import { operationFiltersQueryOptions } from "@/app/panel/_operations/_queries/operations.query";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -40,6 +44,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
@@ -136,6 +142,13 @@ export function AgentStatsBoard() {
    */
   const [who, setWho] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
+  /**
+   * «مقایسه با یک بازه‌ی تاریخی دیگر» — the old page's switch. On, a second
+   * range appears; once both its dates are set the page shows the two
+   * periods side by side instead of the single report.
+   */
+  const [compare, setCompare] = useState(false);
+  const [dates2, setDates2] = useState({ datefrom: "", dateto: "" });
 
   const branchId = who.startsWith("-") ? Math.abs(Number(who)) : undefined;
   const userId = who && !who.startsWith("-") ? Number(who) : undefined;
@@ -154,17 +167,40 @@ export function AgentStatsBoard() {
   );
 
   const isLeague = type === TOTAL;
+  const comparing = compare && Boolean(dates2.datefrom && dates2.dateto);
+  const secondRange: AgentStatsRange = useMemo(
+    () => ({
+      ...reportRange,
+      datefrom: dates2.datefrom || undefined,
+      dateto: dates2.dateto || undefined,
+    }),
+    [reportRange, dates2.datefrom, dates2.dateto],
+  );
+  // What the comparison lines up: the league for everyone, one agent's
+  // breakdown when the page is about one person, else the chosen report.
+  const comparisonMode: ComparisonMode = !isLeague
+    ? { kind: "report", type }
+    : !isAdmin && user
+      ? { kind: "breakdown", agentId: user.id }
+      : userId
+        ? { kind: "breakdown", agentId: userId }
+        : { kind: "league" };
+
   const league = useQuery(
-    agentStatsLeagueQueryOptions(range, isStaff && isLeague),
+    agentStatsLeagueQueryOptions(range, isStaff && isLeague && !comparing),
   );
   const report = useQuery(
-    agentStatsReportQueryOptions(type, reportRange, isStaff && !isLeague),
+    agentStatsReportQueryOptions(
+      type,
+      reportRange,
+      isStaff && !isLeague && !comparing,
+    ),
   );
   // An agent's own breakdown, inline; an administrator opens anyone's in the
   // dialog from the table.
   const mine = useQuery(
     agentStatsDetailQueryOptions(
-      isStaff && !isAdmin && isLeague && user ? user.id : null,
+      isStaff && !isAdmin && isLeague && !comparing && user ? user.id : null,
       range,
     ),
   );
@@ -210,6 +246,7 @@ export function AgentStatsBoard() {
   }
 
   const active = isLeague ? league : report;
+  const title = REPORT_TYPES[0].title;
   const shownRange = active.data?.range;
   const myRow = league.data?.items.find((item) => item.id === user?.id) ?? null;
 
@@ -229,6 +266,8 @@ export function AgentStatsBoard() {
         onClear={() => {
           setType(TOTAL);
           setDates({ datefrom: "", dateto: "" });
+          setDates2({ datefrom: "", dateto: "" });
+          setCompare(false);
           setWho("");
           setSelected(null);
         }}
@@ -285,9 +324,60 @@ export function AgentStatsBoard() {
             setDates((current) => ({ ...current, dateto: value }))
           }
         />
+        <Label className="flex h-9 cursor-pointer items-center justify-between gap-3 rounded-lg border px-3">
+          <span className="truncate">مقایسه با یک بازه‌ی دیگر</span>
+          <Switch
+            checked={compare}
+            onCheckedChange={setCompare}
+            aria-label="مقایسه با یک بازه‌ی تاریخی دیگر"
+          />
+        </Label>
+        {compare && (
+          <>
+            <JalaliDateInput
+              value={dates2.datefrom}
+              placeholder="بازه‌ی دوم: از تاریخ"
+              aria-label="بازه‌ی دوم از تاریخ"
+              onChange={(value) =>
+                setDates2((current) => ({ ...current, datefrom: value }))
+              }
+            />
+            <JalaliDateInput
+              value={dates2.dateto}
+              placeholder="بازه‌ی دوم: تا تاریخ"
+              aria-label="بازه‌ی دوم تا تاریخ"
+              onChange={(value) =>
+                setDates2((current) => ({ ...current, dateto: value }))
+              }
+            />
+          </>
+        )}
       </PanelFilterBar>
 
-      {active.isError && (
+      {compare && !comparing && (
+        <Typography
+          variant="small"
+          className="rounded-lg border border-dashed p-3"
+        >
+          هر دو تاریخِ بازه‌ی دوم را انتخاب کنید تا مقایسه نمایش داده شود.
+          بازه‌ی اول همان فیلتر بالاست؛ خالی باشد یعنی از اول ماه شمسی تا امروز.
+        </Typography>
+      )}
+
+      {comparing && (
+        <PeriodComparison
+          mode={comparisonMode}
+          first={reportRange}
+          second={secondRange}
+          title={
+            REPORT_TYPES.find((option) => option.value === type)?.title ?? title
+          }
+          unit={isLeague ? "امتیاز" : undefined}
+          myId={user?.id}
+        />
+      )}
+
+      {!comparing && active.isError && (
         <EmptyState
           icon={Trophy}
           title="گزارش در دسترس نیست"
@@ -305,9 +395,11 @@ export function AgentStatsBoard() {
       )}
 
       {/* ---------------------------------------------------------- league */}
-      {isLeague && league.isPending && <Skeleton className="h-96 rounded-xl" />}
+      {!comparing && isLeague && league.isPending && (
+        <Skeleton className="h-96 rounded-xl" />
+      )}
 
-      {isLeague && league.isSuccess && !isAdmin && (
+      {!comparing && isLeague && league.isSuccess && !isAdmin && (
         <>
           {myRow ? (
             <Card className="border-brand">
@@ -361,7 +453,7 @@ export function AgentStatsBoard() {
         </>
       )}
 
-      {isLeague && league.isSuccess && isAdmin && (
+      {!comparing && isLeague && league.isSuccess && isAdmin && (
         <>
           {myRow && (
             <Card className="border-brand">
@@ -471,11 +563,11 @@ export function AgentStatsBoard() {
       )}
 
       {/* ---------------------------------------------------------- report */}
-      {!isLeague && report.isPending && (
+      {!comparing && !isLeague && report.isPending && (
         <Skeleton className="h-96 rounded-xl" />
       )}
 
-      {!isLeague && report.isSuccess && (
+      {!comparing && !isLeague && report.isSuccess && (
         <ReportChart
           report={report.data}
           myId={user?.id}
