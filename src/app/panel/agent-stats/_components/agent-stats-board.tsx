@@ -25,6 +25,7 @@ import {
   agentStatsDetailQueryOptions,
   agentStatsLeagueQueryOptions,
   agentStatsReportQueryOptions,
+  myAgentStatsQueryOptions,
 } from "@/app/panel/agent-stats/_queries/agent-stats.query";
 import {
   PeriodComparison,
@@ -34,11 +35,7 @@ import type { AgentStatsReport } from "@/app/panel/agent-stats/_schemas/agent-st
 import { operationFiltersQueryOptions } from "@/app/panel/_operations/_queries/operations.query";
 import { EmptyState } from "@/components/shared/empty-state";
 import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
-import {
-  FilterCombobox,
-  FilterSelect,
-  JalaliDateInput,
-} from "@/components/shared/form";
+import { FilterCombobox, JalaliDateInput } from "@/components/shared/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,7 +46,12 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
-import { toJalaliDisplay } from "@/lib/jalali-date";
+import {
+  daysAgoJalali,
+  formatJalali,
+  todayJalali,
+  toJalaliDisplay,
+} from "@/lib/jalali-date";
 import { cn } from "@/lib/utils";
 
 function score(value: number): string {
@@ -58,6 +60,45 @@ function score(value: number): string {
 
 /** The league — «آمار کلی مشاورین» on the old page — is the default report. */
 const TOTAL = "total";
+
+/**
+ * The old page opened on the last thirty days, not on the month so far as
+ * the dashboard does — and the two give different numbers for the same
+ * person, which is the first thing anybody comparing the pages notices. The
+ * second range, when asked for, is the thirty days before those, as the old
+ * page prefilled it.
+ */
+const RANGE_DAYS = 30;
+
+function defaultRange() {
+  return {
+    datefrom: formatJalali(daysAgoJalali(RANGE_DAYS)),
+    dateto: formatJalali(todayJalali()),
+  };
+}
+
+function previousRange() {
+  return {
+    datefrom: formatJalali(daysAgoJalali(RANGE_DAYS * 2 + 1)),
+    dateto: formatJalali(daysAgoJalali(RANGE_DAYS + 1)),
+  };
+}
+
+/**
+ * The old «آمار کلی مشاورین» listed a few things for an agent that the score
+ * breakdown has no row for — hours present, negotiation sessions, the
+ * inactivity penalty, lateness. They come from the raw counters.
+ */
+const PRESENCE_ROWS: ReadonlyArray<{
+  key: string;
+  label: string;
+  unit?: string;
+}> = [
+  { key: "time", label: "زمان حضور", unit: "ساعت" },
+  { key: "session", label: "جلسه مذاکره حضوری" },
+  { key: "inactivity", label: "عدم فعالیت" },
+  { key: "delay", label: "تأخیر" },
+];
 
 /**
  * The old page's «نوع گزارش», for this site, in its order. Values are what
@@ -134,7 +175,7 @@ export function AgentStatsBoard() {
   const isAdmin = access.viewer.isAdmin;
 
   const [type, setType] = useState(TOTAL);
-  const [dates, setDates] = useState({ datefrom: "", dateto: "" });
+  const [dates, setDates] = useState(defaultRange);
   /**
    * One control for both, the way the performance pages do it: a branch comes
    * back from the filter list with a negative id, so the sign says which of the
@@ -204,6 +245,12 @@ export function AgentStatsBoard() {
       range,
     ),
   );
+  const presence = useQuery(
+    myAgentStatsQueryOptions(
+      range,
+      isStaff && !isAdmin && isLeague && !comparing,
+    ),
+  );
   const filterOptions = useQuery(
     operationFiltersQueryOptions(isStaff && isAdmin),
   );
@@ -218,7 +265,7 @@ export function AgentStatsBoard() {
 
   const chips = filterChips(
     { type, who, ...dates },
-    { type: TOTAL, who: "", datefrom: "", dateto: "" },
+    { type: TOTAL, who: "", ...defaultRange() },
     {
       type: { label: "گزارش", options: [...REPORT_TYPES] },
       who: { label: "مشاور", options: whoOptions },
@@ -231,6 +278,13 @@ export function AgentStatsBoard() {
       else setDates((current) => ({ ...current, [key]: value }));
     },
   );
+
+  const toggleCompare = (on: boolean) => {
+    setCompare(on);
+    // Prefilled with the thirty days before the first range, as the old page
+    // did, so the switch shows a comparison at once instead of a prompt.
+    if (on && !dates2.datefrom && !dates2.dateto) setDates2(previousRange());
+  };
 
   // Nothing is refused until the session has actually been read.
   if (access.pending) return <Skeleton className="h-96 rounded-2xl" />;
@@ -262,21 +316,26 @@ export function AgentStatsBoard() {
             ? `بازه ${shownRange.from} تا ${shownRange.to}`
             : undefined
         }
+        columns={4}
         chips={chips}
+        isFiltered={chips.length > 0}
         onClear={() => {
           setType(TOTAL);
-          setDates({ datefrom: "", dateto: "" });
+          setDates(defaultRange());
           setDates2({ datefrom: "", dateto: "" });
           setCompare(false);
           setWho("");
           setSelected(null);
         }}
       >
-        <FilterSelect
+        {/* Thirty-odd report types is a list to type into, not scroll. Clearing
+            the box goes back to the league. */}
+        <FilterCombobox
           label="نوع گزارش: آمار کلی مشاورین"
           value={type === TOTAL ? "" : type}
           onChange={(value) => setType(value || TOTAL)}
           options={REPORT_TYPES.filter((option) => option.value !== TOTAL)}
+          emptyText="گزارشی با این نام نیست"
         />
         {isAdmin ? (
           <FilterCombobox
@@ -308,49 +367,29 @@ export function AgentStatsBoard() {
             aria-label="مشاور"
           />
         )}
-        <JalaliDateInput
-          value={dates.datefrom}
-          placeholder="از تاریخ"
-          aria-label="از تاریخ"
-          onChange={(value) =>
-            setDates((current) => ({ ...current, datefrom: value }))
-          }
-        />
-        <JalaliDateInput
-          value={dates.dateto}
-          placeholder="تا تاریخ"
-          aria-label="تا تاریخ"
-          onChange={(value) =>
-            setDates((current) => ({ ...current, dateto: value }))
-          }
+        {/* From and to are one thing, so they sit in one cell, side by side. */}
+        <DateRangeInputs
+          value={dates}
+          onChange={setDates}
+          fromLabel="از تاریخ"
+          toLabel="تا تاریخ"
         />
         <Label className="flex h-9 cursor-pointer items-center justify-between gap-3 rounded-lg border px-3">
           <span className="truncate">مقایسه با یک بازه‌ی دیگر</span>
           <Switch
             checked={compare}
-            onCheckedChange={setCompare}
+            onCheckedChange={toggleCompare}
             aria-label="مقایسه با یک بازه‌ی تاریخی دیگر"
           />
         </Label>
         {compare && (
-          <>
-            <JalaliDateInput
-              value={dates2.datefrom}
-              placeholder="بازه‌ی دوم: از تاریخ"
-              aria-label="بازه‌ی دوم از تاریخ"
-              onChange={(value) =>
-                setDates2((current) => ({ ...current, datefrom: value }))
-              }
-            />
-            <JalaliDateInput
-              value={dates2.dateto}
-              placeholder="بازه‌ی دوم: تا تاریخ"
-              aria-label="بازه‌ی دوم تا تاریخ"
-              onChange={(value) =>
-                setDates2((current) => ({ ...current, dateto: value }))
-              }
-            />
-          </>
+          <DateRangeInputs
+            value={dates2}
+            onChange={setDates2}
+            fromLabel="بازه‌ی دوم: از"
+            toLabel="بازه‌ی دوم: تا"
+            className="sm:col-span-2"
+          />
         )}
       </PanelFilterBar>
 
@@ -360,7 +399,7 @@ export function AgentStatsBoard() {
           className="rounded-lg border border-dashed p-3"
         >
           هر دو تاریخِ بازه‌ی دوم را انتخاب کنید تا مقایسه نمایش داده شود.
-          بازه‌ی اول همان فیلتر بالاست؛ خالی باشد یعنی از اول ماه شمسی تا امروز.
+          بازه‌ی اول همان فیلتر بالاست.
         </Typography>
       )}
 
@@ -449,6 +488,26 @@ export function AgentStatsBoard() {
                 group={mine.data.success}
               />
             </>
+          )}
+
+          {presence.isSuccess && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserRound className="size-4 text-brand" />
+                  حضور و فعالیت
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {PRESENCE_ROWS.map((row) => (
+                  <Tile
+                    key={row.key}
+                    label={row.unit ? `${row.label} (${row.unit})` : row.label}
+                    value={presence.data.counters[row.key] ?? 0}
+                  />
+                ))}
+              </CardContent>
+            </Card>
           )}
         </>
       )}
@@ -810,6 +869,41 @@ function Stat({
           </Typography>
         )}
       </Typography>
+    </div>
+  );
+}
+
+/**
+ * «از تاریخ» and «تا تاریخ» as one control: two pickers in one grid cell,
+ * so they stay beside each other however the bar wraps.
+ */
+function DateRangeInputs({
+  value,
+  onChange,
+  fromLabel,
+  toLabel,
+  className,
+}: {
+  value: { datefrom: string; dateto: string };
+  onChange: (value: { datefrom: string; dateto: string }) => void;
+  fromLabel: string;
+  toLabel: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("grid grid-cols-2 gap-2", className)}>
+      <JalaliDateInput
+        value={value.datefrom}
+        placeholder={fromLabel}
+        aria-label={fromLabel}
+        onChange={(datefrom) => onChange({ ...value, datefrom })}
+      />
+      <JalaliDateInput
+        value={value.dateto}
+        placeholder={toLabel}
+        aria-label={toLabel}
+        onChange={(dateto) => onChange({ ...value, dateto })}
+      />
     </div>
   );
 }

@@ -54,6 +54,13 @@ export function todayJalali(): JalaliDate {
   return toJalaali(new Date());
 }
 
+/** The Jalali date `days` days before today — «۳۰ روز گذشته» and the like. */
+export function daysAgoJalali(days: number): JalaliDate {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return toJalaali(date);
+}
+
 /** `1405/06/01` — what the API takes. */
 export function formatJalali(date: JalaliDate): string {
   return `${date.jy}/${pad(date.jm)}/${pad(date.jd)}`;
@@ -99,7 +106,6 @@ export function parseJalali(
   return isValidJalali(date) ? date : null;
 }
 
-
 /** A stored `1405/06/10` as `۱۴۰۵/۰۶/۱۰`, or the raw text when it is not a day. */
 export function toJalaliDisplay(value: string): string {
   const parsed = parseJalali(value);
@@ -116,7 +122,9 @@ export function jalaliToIso(date: JalaliDate): string {
   return `${gy}-${pad(gm)}-${pad(gd)}`;
 }
 
-export function isoToJalali(value: string | null | undefined): JalaliDate | null {
+export function isoToJalali(
+  value: string | null | undefined,
+): JalaliDate | null {
   if (!value) return null;
 
   const match = toEnglishDigits(value)
