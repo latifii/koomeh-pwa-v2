@@ -8,6 +8,7 @@ import type { CalendarFilters } from "@/app/panel/calendar/_api/calendar.service
 import { CalendarEventCard } from "@/app/panel/calendar/_components/calendar-event-card";
 import { CalendarEventDialog } from "@/app/panel/calendar/_components/calendar-event-dialog";
 import { CalendarFilterBar } from "@/app/panel/calendar/_components/calendar-filter-bar";
+import { CalendarMonthStats } from "@/app/panel/calendar/_components/calendar-month-stats";
 import { useCalendarMutations } from "@/app/panel/calendar/_hooks/use-calendar-mutations";
 import {
   calendarMonthQueryOptions,
@@ -110,6 +111,10 @@ export function CalendarMonth() {
 
       {month.isSuccess && (
         <>
+          {/* The old page's four figures, above the grid, for the month shown
+              under the filters in force. */}
+          {month.data.stats && <CalendarMonthStats stats={month.data.stats} />}
+
           {/* Back on the right, forward on the left — the way the language
               reads. The two buttons were the other way round, so the arrow
               pointing back sat where the next month should be. */}
@@ -124,14 +129,9 @@ export function CalendarMonth() {
               <ChevronRight className="size-4" />
             </Button>
 
-            <div className="text-center">
-              <Typography variant="h4">{month.data.title}</Typography>
-              {month.data.stats && (
-                <Typography variant="small" className="text-muted-foreground">
-                  {`${month.data.stats.total} رویداد · ${month.data.stats.done} انجام‌شده · ${month.data.stats.overdue} عقب‌افتاده`}
-                </Typography>
-              )}
-            </div>
+            <Typography variant="h4" className="text-center">
+              {month.data.title}
+            </Typography>
 
             <Button
               type="button"
@@ -145,7 +145,7 @@ export function CalendarMonth() {
           </div>
 
           <div className="overflow-x-auto overflow-y-hidden">
-            <div className="min-w-[42rem]">
+            <div className="min-w-[42rem] m-4">
               <div className="grid grid-cols-7 gap-1 pb-1">
                 {month.data.weekdays.map((weekday) => (
                   <Typography
