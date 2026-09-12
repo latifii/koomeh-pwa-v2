@@ -8,4 +8,6 @@ export const agentStatsQueryKeys = {
     [...agentStatsQueryKeys.all, "me", range] as const,
   detail: (id: number, range: AgentStatsRange) =>
     [...agentStatsQueryKeys.all, "detail", id, range] as const,
+  report: (type: string, range: AgentStatsRange) =>
+    [...agentStatsQueryKeys.all, "report", type, range] as const,
 };

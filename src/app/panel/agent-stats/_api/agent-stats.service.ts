@@ -2,6 +2,7 @@ import {
   agentStatsDetailResponseSchema,
   agentStatsLeagueResponseSchema,
   agentStatsMeResponseSchema,
+  agentStatsReportResponseSchema,
 } from "@/app/panel/agent-stats/_schemas/agent-stats.schema";
 import { getValidated } from "@/lib/api/http-client";
 import { normalizedText, positiveInteger } from "@/lib/api/query-params";
@@ -10,6 +11,7 @@ const endpoints = {
   league: "/api/site3/agent-stats",
   me: "/api/site3/agent-stats/me",
   detail: (id: number) => `/api/site3/agent-stats/${id}`,
+  report: "/api/site3/agent-stats/report",
 } as const;
 
 /**
@@ -20,6 +22,8 @@ export type AgentStatsRange = {
   datefrom?: string;
   dateto?: string;
   branchId?: number;
+  /** One agent. The API ignores it for anyone but an administrator. */
+  userId?: number;
 };
 
 function rangeParams(range: AgentStatsRange) {
@@ -27,7 +31,20 @@ function rangeParams(range: AgentStatsRange) {
     datefrom: normalizedText(range.datefrom),
     dateto: normalizedText(range.dateto),
     branch_id: positiveInteger(range.branchId),
+    user_id: positiveInteger(range.userId),
   };
+}
+
+/** One report type across agents — the old page's «نوع گزارش». */
+export function getAgentStatsReport(
+  type: string,
+  range: AgentStatsRange,
+  signal?: AbortSignal,
+) {
+  return getValidated(endpoints.report, agentStatsReportResponseSchema, {
+    params: { type, ...rangeParams(range) },
+    signal,
+  });
 }
 
 export function getAgentStatsLeague(

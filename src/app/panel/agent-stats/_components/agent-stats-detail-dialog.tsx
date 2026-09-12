@@ -29,7 +29,7 @@ function score(value: number | null | undefined): string {
  * instead of a number the agent has to take on faith. The columns were bare
  * before: three numbers in a row with no heading, so `× ۲` was a guess.
  */
-function ScoreGroup({
+export function ScoreGroup({
   title,
   icon: Icon,
   tone,
@@ -135,7 +135,7 @@ function ScoreGroup({
   );
 }
 
-function Tile({
+export function Tile({
   label,
   value,
   accent = false,

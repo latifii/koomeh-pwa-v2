@@ -3,6 +3,7 @@ import { queryOptions } from "@tanstack/react-query";
 import {
   getAgentStatsDetail,
   getAgentStatsLeague,
+  getAgentStatsReport,
   getMyAgentStats,
   type AgentStatsRange,
 } from "@/app/panel/agent-stats/_api/agent-stats.service";
@@ -33,6 +34,21 @@ export function myAgentStatsQueryOptions(
     queryFn: async ({ signal }) => (await getMyAgentStats(range, signal)).result,
     enabled,
     staleTime: STALE,
+  });
+}
+
+export function agentStatsReportQueryOptions(
+  type: string,
+  range: AgentStatsRange,
+  enabled: boolean,
+) {
+  return queryOptions({
+    queryKey: agentStatsQueryKeys.report(type, range),
+    queryFn: async ({ signal }) =>
+      (await getAgentStatsReport(type, range, signal)).result,
+    enabled,
+    staleTime: STALE,
+    placeholderData: (previous) => previous,
   });
 }
 

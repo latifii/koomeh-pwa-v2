@@ -109,6 +109,46 @@ export const agentStatsDetailResponseSchema = z.object({
   }),
 });
 
+/**
+ * One report type across agents — the old page's «نوع گزارش». A count per
+ * agent, ranked, with the population average; for an agent it is one row
+ * (their own) against the same average.
+ */
+export const agentStatsReportResponseSchema = z.object({
+  status: z.literal("success"),
+  result: z.object({
+    type: z.string(),
+    title: z.string(),
+    unit: z.string().nullable().optional(),
+    range: rangeSchema.nullable().optional(),
+    scope: z.enum(["all", "own"]).default("all"),
+    average: z.number().default(0),
+    total: z.number().default(0),
+    items: z
+      .array(
+        z.object({
+          id: z.number().int(),
+          name: z.string(),
+          photo: z.string().nullable().optional(),
+          branch: z
+            .object({
+              id: z.number().int().nullable().optional(),
+              name: z.string().nullable().optional(),
+            })
+            .nullable()
+            .optional(),
+          count: z.number().default(0),
+          rank: z.number().int().nullable().optional(),
+        }),
+      )
+      .default([]),
+  }),
+});
+
+export type AgentStatsReport = z.infer<
+  typeof agentStatsReportResponseSchema
+>["result"];
+
 export type AgentStatsLeague = z.infer<
   typeof agentStatsLeagueResponseSchema
 >["result"];
