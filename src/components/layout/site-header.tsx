@@ -5,38 +5,35 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
-import { Menu, Phone, PlusCircle } from "lucide-react";
+import {
+  Calculator,
+  Newspaper,
+  PlusCircle,
+  Search,
+  Users,
+} from "lucide-react";
 
 import { AccountMenu } from "@/app/auth/_components/account-menu";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
-import { DrawerAccountAction } from "@/app/auth/_components/drawer-account-action";
 import logoDark from "@/assets/images/logo/logo-new-dark.webp";
 import logoLight from "@/assets/images/logo/logo-new-light.webp";
 import { Container } from "@/components/layout/container";
+import { SiteDrawer, type SiteNavLink } from "@/components/layout/site-drawer";
 import { LinkPending } from "@/components/shared/link-pending";
 import { ModeToggle } from "@/components/shared/mode-toggle";
 import { Button } from "@/components/ui/button";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import { Separator } from "@/components/ui/separator";
-import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 
 /**
- * Panel chrome, kept out of the shared bundle.
+ * The notifications feed, kept out of the shared bundle.
  *
- * This header renders on every route, so a static import here puts the
- * panel sidebar and the notifications feed — query, service and schema — into
- * the first-load JS of every visitor, signed in or not. Neither is needed for
- * first paint: both only render once the session store reports someone signed
- * in, which is after hydration either way.
+ * This header renders on every route, so a static import here puts the feed —
+ * query, service and schema — into the first-load JS of every visitor, signed
+ * in or not. It is not needed for first paint: it only renders once the
+ * session store reports someone signed in, which is after hydration either
+ * way. The panel menu inside the phone drawer is loaded the same way, in
+ * `SiteDrawer`.
  */
 const NotificationBell = dynamic(() =>
   import("@/app/panel/notifications/_components/notification-bell").then(
@@ -44,25 +41,12 @@ const NotificationBell = dynamic(() =>
   ),
 );
 
-const PanelNav = dynamic(() =>
-  import("@/components/layout/panel-sidebar").then((mod) => mod.PanelNav),
-);
-
-const PanelProfile = dynamic(() =>
-  import("@/components/layout/panel-sidebar").then((mod) => mod.PanelProfile),
-);
-
-const PanelQuickActions = dynamic(() =>
-  import("@/components/layout/panel-sidebar").then(
-    (mod) => mod.PanelQuickActions,
-  ),
-);
-
-const navLinks = [
-  { href: routes.properties(), label: "جستجوی ملک" },
-  { href: routes.agents, label: "کارشناسان" },
-  { href: routes.articles, label: "مجله املاک" },
-  { href: routes.tools.commission, label: "محاسبه کمیسیون" },
+/** The icons are for the drawer; the desktop bar shows the words alone. */
+const navLinks: SiteNavLink[] = [
+  { href: routes.properties(), label: "جستجوی ملک", icon: Search },
+  { href: routes.agents, label: "کارشناسان", icon: Users },
+  { href: routes.articles, label: "مجله املاک", icon: Newspaper },
+  { href: routes.tools.commission, label: "محاسبه کمیسیون", icon: Calculator },
   // { href: "/#branches", label: "شعب کومه" },
 ];
 
@@ -184,111 +168,7 @@ export function SiteHeader() {
            */}
           {isAuthenticated && <NotificationBell transparent={transparent} />}
           <AccountMenu transparent={transparent} />
-          <Drawer swipeDirection="left">
-            <DrawerTrigger
-              render={
-                <Button
-                  variant="outline"
-                  size="icon-lg"
-                  className={cn(
-                    "lg:hidden",
-                    transparent &&
-                      "border-white/30 bg-white/10 text-white hover:bg-white/20",
-                  )}
-                  aria-label="باز کردن منو"
-                >
-                  <Menu />
-                </Button>
-              }
-            />
-            <DrawerContent className="flex flex-col p-0">
-              <DrawerHeader className="px-4 pb-3">
-                <DrawerTitle>منوی کومه</DrawerTitle>
-              </DrawerHeader>
-
-              {/*
-               * The drawer is full-height and the panel adds its whole menu
-               * below this, so the middle scrolls and the actions below stay
-               * put. Reaching "sign out" should never mean scrolling past the
-               * whole panel — which is also why the panel's topics arrive
-               * collapsed in this variant.
-               */}
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3">
-                {isAuthenticated && (
-                  <div className="mb-4">
-                    <PanelProfile />
-                  </div>
-                )}
-
-                <nav className="flex flex-col gap-1" aria-label="منوی اصلی">
-                  {navLinks.map((link) => (
-                    <DrawerClose
-                      key={link.href}
-                      nativeButton={false}
-                      render={
-                        <Link
-                          href={link.href}
-                          className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
-                        >
-                          {link.label}
-                        </Link>
-                      }
-                    />
-                  ))}
-                </nav>
-
-                {/*
-                 * Keyed on the session, not on the route: a signed-in visitor
-                 * reading a listing had no way back to their own panel, because
-                 * this only used to render while already inside `/panel`.
-                 */}
-                {isAuthenticated && (
-                  <>
-                    <Separator className="my-4" />
-                    <Typography variant="eyebrow" className="mb-2 px-1">
-                      پنل کاربری
-                    </Typography>
-                    <PanelNav variant="drawer" />
-                  </>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2 border-t p-4">
-                {/*
-                 * Pinned below the scroll, where a thumb reaches. For someone
-                 * signed in this is both of the panel's quick actions, which is
-                 * also why they are not repeated inside the menu above: the
-                 * drawer only ever showed «ثبت ملک» here, and a second copy two
-                 * screens up reads as a bug rather than a shortcut.
-                 */}
-                {isAuthenticated ? (
-                  <PanelQuickActions inDrawer />
-                ) : (
-                  <DrawerClose
-                    nativeButton={false}
-                    render={
-                      <Button
-                        variant="secondary"
-                        nativeButton={false}
-                        render={<Link href={routes.panel.newProperty} />}
-                      >
-                        <PlusCircle />
-                        ثبت ملک
-                      </Button>
-                    }
-                  />
-                )}
-                <DrawerAccountAction />
-                <a
-                  href="tel:02533123456"
-                  className="flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground"
-                >
-                  <Phone className="size-4" />
-                  ۰۲۵-۳۳۱۲۳۴۵۶
-                </a>
-              </div>
-            </DrawerContent>
-          </Drawer>
+          <SiteDrawer links={navLinks} transparent={transparent} />
         </div>
       </Container>
     </header>

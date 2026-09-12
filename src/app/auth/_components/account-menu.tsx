@@ -1,8 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Heart,
   LayoutDashboard,
@@ -11,7 +9,7 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { signOutAction } from "@/app/auth/_actions/auth-actions";
+import { useSignOut } from "@/app/auth/_hooks/use-sign-out";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -36,19 +34,7 @@ import { cn } from "@/lib/utils";
 export function AccountMenu({ transparent }: { transparent?: boolean }) {
   const status = useSessionStore((state) => state.status);
   const session = useSessionStore((state) => state.session);
-  const clearSession = useSessionStore((state) => state.clearSession);
-
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  const signOut = () => {
-    startTransition(async () => {
-      await signOutAction();
-      clearSession();
-      router.replace(routes.home);
-      router.refresh();
-    });
-  };
+  const { signOut, isPending } = useSignOut();
 
   if (status === "loading") {
     return <Skeleton className="hidden h-11 w-24 rounded-xl sm:block" />;

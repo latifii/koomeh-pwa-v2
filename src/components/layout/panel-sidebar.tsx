@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, UserRound } from "lucide-react";
 
+import { useSignOut } from "@/app/auth/_hooks/use-sign-out";
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import {
   PANEL_NAV_ITEMS,
@@ -15,7 +16,7 @@ import {
 } from "@/components/layout/panel-nav.config";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -24,6 +25,7 @@ import {
 import { DrawerClose } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { panelViewer, roleLabel } from "@/lib/auth/permissions";
 import { cn } from "@/lib/utils";
@@ -112,8 +114,10 @@ export function PanelProfile() {
  * The two things people open the panel to do, as buttons rather than rows.
  *
  * Side by side because they are a pair and neither deserves the full width on
- * its own; the listing one carries the brand colour because it is the one the
- * site asks for everywhere else too.
+ * its own; the listing one is the filled, primary button because it is the one
+ * the site asks for everywhere else too, and the other stays an outline so the
+ * pair reads as one main action and one alternative rather than two competing
+ * calls.
  */
 export function PanelQuickActions({
   inDrawer = false,
@@ -145,15 +149,16 @@ export function PanelQuickActions({
               aria-current={active ? "page" : undefined}
               className={cn(
                 buttonVariants({
-                  variant: index === 0 ? "secondary" : "outline",
+                  variant: index === 0 ? "default" : "outline",
+                  size: "sm",
                 }),
-                "h-10 gap-1.5 px-2 text-[13px] font-semibold",
+                "gap-1 px-2 font-semibold",
                 // The form these open is a page like any other, so the button
                 // has to be able to say you are already on it.
                 active && "ring-2 ring-ring ring-offset-1 ring-offset-sidebar",
               )}
             >
-              <Icon className="size-4" />
+              <Icon className="size-3.5" />
               {action.label}
             </Link>
           </MaybeClose>
@@ -299,6 +304,33 @@ export function PanelNav({
   );
 }
 
+/**
+ * The way out, at the foot of the column where every other application keeps
+ * it. Not a nav row: leaving is not a place you go, so it gets no page marker;
+ * and not filled or red at rest, because a button that shouts "leave" next to
+ * the menu is one that gets pressed by accident. It only turns red on hover,
+ * when the intent is already there.
+ */
+function PanelSignOut() {
+  const { signOut, isPending } = useSignOut();
+
+  return (
+    <Button
+      variant="ghost"
+      onClick={signOut}
+      disabled={isPending}
+      className="h-9 w-full justify-start gap-2.5 px-3 text-sm font-medium text-sidebar-foreground/85 hover:bg-destructive/10 hover:text-destructive"
+    >
+      {isPending ? (
+        <Spinner className="size-4" />
+      ) : (
+        <LogOut className="size-4 text-muted-foreground" />
+      )}
+      خروج از حساب
+    </Button>
+  );
+}
+
 export function PanelSidebar() {
   return (
     <aside className="hidden w-72 shrink-0 md:block">
@@ -319,6 +351,12 @@ export function PanelSidebar() {
             Windows scrollbar, arrow buttons and all. */}
         <div className="min-h-0 flex-1 overflow-y-auto p-3 pt-2 [scrollbar-width:thin]">
           <PanelNav />
+        </div>
+        {/* Below the scroll, like the actions above it: the way out should
+            not depend on how long the menu is. */}
+        <Separator className="bg-sidebar-border" />
+        <div className="p-2">
+          <PanelSignOut />
         </div>
       </div>
     </aside>
