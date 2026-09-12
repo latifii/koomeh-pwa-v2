@@ -124,7 +124,13 @@ export function RelationsView() {
   );
 
   return (
-    <AdminGate title="مشتریان و املاک متناسب فقط برای مدیران است">
+    // Staff, not admin: an agent sees the files they proposed, as on the old
+    // menu; the API scopes the rows and keeps delete to the administrator.
+    <AdminGate
+      audience="staff"
+      title="مشتریان و املاک متناسب برای کارشناسان است"
+      description="این فهرست به دسترسی کارشناس یا مدیر نیاز دارد."
+    >
       <div className="grid grid-cols-1 gap-4">
         <PanelFilterBar
           icon={Network}
