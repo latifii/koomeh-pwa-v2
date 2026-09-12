@@ -5,12 +5,19 @@ import Image from "next/image";
 
 import heroImage from "@/assets/images/hero.webp";
 import type { EstateFilters } from "@/app/_lookups/_schemas/lookups.schema";
+import type { HomeStats } from "@/app/_home/_types/home-stats.types";
 import { Typography } from "@/components/ui/typography";
 
 import { HeroSearchForm } from "./hero-search-form";
 import { HeroStats } from "./hero-stats";
 
-export function Hero({ lookups }: { lookups?: EstateFilters }) {
+export function Hero({
+  lookups,
+  stats,
+}: {
+  lookups?: EstateFilters;
+  stats?: HomeStats;
+}) {
   const [dealType, setDealType] = useState("sale");
 
   return (
@@ -60,7 +67,7 @@ export function Hero({ lookups }: { lookups?: EstateFilters }) {
 
           {/* Clear of the quick-services card that overlaps the hero's bottom edge */}
           <div className="absolute inset-x-0 bottom-12 px-page">
-            <HeroStats compact />
+            <HeroStats stats={stats} compact />
           </div>
         </div>
       </div>
@@ -90,7 +97,7 @@ export function Hero({ lookups }: { lookups?: EstateFilters }) {
             lookups={lookups}
           />
 
-          <HeroStats />
+          <HeroStats stats={stats} />
         </div>
       </div>
     </section>

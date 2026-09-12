@@ -1,33 +1,48 @@
-import { Building2, MapPin, UserRound } from "lucide-react";
+import { Building2, KeyRound, UserRound } from "lucide-react";
 
+import type { HomeStats } from "@/app/_home/_types/home-stats.types";
 import { CountUp } from "@/components/ui/count-up";
 import { cn } from "@/lib/utils";
 
-/** Mock headline figures — swap for real counts once the API is wired up. */
-const heroStats = [
-  { icon: Building2, value: 2400, suffix: "+", label: "ملک ثبت‌شده" },
-  { icon: UserRound, value: 40, suffix: "+", label: "مشاور متخصص" },
-  { icon: MapPin, value: 4, label: "شعبه در قم" },
-];
+/**
+ * Shown when the counts could not be fetched — the page must not lose its
+ * headline figures to a slow upstream, and these are the right order of
+ * magnitude for the site.
+ */
+const FALLBACK: HomeStats = { sale: 2400, rent: 800, agents: 40, branches: 4 };
 
 /**
  * One low bar rather than three tall cards: the numbers stay prominent while
- * the block keeps a small footprint over the hero image.
+ * the block keeps a small footprint over the hero image. The figures are the
+ * live counts — published sale files, rent files and active agents.
  */
-export function HeroStats({ compact = false }: { compact?: boolean }) {
+export function HeroStats({
+  stats,
+  compact = false,
+}: {
+  stats?: HomeStats;
+  compact?: boolean;
+}) {
+  const figures = stats ?? FALLBACK;
+  const rows = [
+    { icon: Building2, value: figures.sale, suffix: "+", label: "ملک فروشی" },
+    { icon: KeyRound, value: figures.rent, suffix: "+", label: "ملک اجاره‌ای" },
+    { icon: UserRound, value: figures.agents, label: "مشاور فعال" },
+  ];
+
   return (
     <dl
       className={cn(
         "grid w-full grid-cols-3 divide-x divide-white/15 rounded-2xl border border-white/15 bg-black/25 backdrop-blur-md",
-        compact ? "px-1 py-2" : "max-w-2xl px-2 py-3"
+        compact ? "px-1 py-2" : "max-w-2xl px-2 py-3",
       )}
     >
-      {heroStats.map((stat) => (
+      {rows.map((stat) => (
         <div
           key={stat.label}
           className={cn(
             "flex flex-col items-center gap-0.5",
-            compact ? "px-1" : "px-3"
+            compact ? "px-1" : "px-3",
           )}
         >
           <dd className="flex items-center gap-1.5">
@@ -37,7 +52,7 @@ export function HeroStats({ compact = false }: { compact?: boolean }) {
             <span
               className={cn(
                 "font-heading leading-none font-bold text-white",
-                compact ? "text-lg" : "text-2xl"
+                compact ? "text-lg" : "text-2xl",
               )}
             >
               <CountUp value={stat.value} />
@@ -47,7 +62,7 @@ export function HeroStats({ compact = false }: { compact?: boolean }) {
           <dt
             className={cn(
               "leading-tight text-white/70",
-              compact ? "text-[10px]" : "text-xs"
+              compact ? "text-[10px]" : "text-xs",
             )}
           >
             {stat.label}

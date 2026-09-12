@@ -53,11 +53,16 @@ function MobileStory() {
   return (
     <div className="flex flex-col gap-4 lg:hidden">
       <div className="relative min-h-80 overflow-hidden rounded-3xl">
+        {/* The photo is a 12:5 panorama in a box taller than it is wide, so
+            `object-cover` scales it by *height*: at 320px tall it is ~770 CSS
+            px wide, more than twice the viewport. `sizes` has to say that
+            width, or the optimizer serves a viewport-wide copy and the box
+            upscales it into a blur. */}
         <Image
           src={qomImage}
           alt="نمایی از شهر قم"
           fill
-          sizes="(min-width: 1024px) 1px, calc(100vw - 2rem)"
+          sizes="(min-width: 1024px) 1px, 200vw"
           quality={90}
           className="object-cover"
         />
@@ -114,13 +119,15 @@ function DesktopStory() {
       />
 
       <div className="relative grid grid-cols-[1fr_1.15fr]">
-        {/* The source size follows the rendered column width; object-cover owns the crop. */}
+        {/* A 560px-tall box shows the 12:5 panorama at ~1350 CSS px wide and
+            crops the sides, so the source has to be asked for at that width,
+            not the column's 600px — the narrower copy was being upscaled. */}
         <div className="relative min-h-[560px]">
           <Image
             src={qomImage}
             alt="نمایی از شهر قم"
             fill
-            sizes="(min-width: 1280px) 600px, 50vw"
+            sizes="(min-width: 1280px) 1400px, 120vw"
             quality={90}
             className="object-cover"
           />

@@ -25,8 +25,10 @@ export const getCachedLatestSaleEstates = unstable_cache(
 );
 
 export const getCachedLatestRentEstates = unstable_cache(
-  async (limit: number) =>
-    mapLatestRentEstates(await getLatestRentEstates({ limit })),
+  async (
+    limit: number,
+    params: { estateType?: number; fullMortgage?: boolean } = {},
+  ) => mapLatestRentEstates(await getLatestRentEstates({ limit, ...params })),
   ["home", "latest-rent-estates"],
   {
     revalidate: cacheTtl.latestEstates,

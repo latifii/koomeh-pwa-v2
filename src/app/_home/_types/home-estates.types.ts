@@ -15,14 +15,8 @@ export interface HomeEstateSection {
   items: Estate[];
 }
 
-export interface HomeQuickFilter {
-  label: string;
-  href: string;
-}
-
 export interface HomeRentEstateSection extends HomeEstateSection {
   key: "latest_rent_estates";
-  quickFilters: HomeQuickFilter[];
 }
 
 export interface HomeSaleEstateSection extends HomeEstateSection {

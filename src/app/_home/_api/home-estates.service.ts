@@ -31,6 +31,13 @@ type RequestOptions = {
   signal?: AbortSignal;
 };
 
+type RentRequestOptions = RequestOptions & {
+  /** 1 آپارتمان، 2 ویلایی، 4 تجاری — the API's estate_type. */
+  estateType?: number;
+  /** Only files with no monthly rent. */
+  fullMortgage?: boolean;
+};
+
 export async function getLatestSaleEstates(
   options: RequestOptions = {},
 ): Promise<LatestSaleEstatesResponse> {
@@ -45,13 +52,17 @@ export async function getLatestSaleEstates(
 }
 
 export async function getLatestRentEstates(
-  options: RequestOptions = {},
+  options: RentRequestOptions = {},
 ): Promise<LatestRentEstatesResponse> {
   return getValidated(
     endpoints.latestRentEstates,
     latestRentEstatesResponseSchema,
     {
-      params: { limit: normalizeLimit(options.limit ?? limits.rent, limits.rent) },
+      params: {
+        limit: normalizeLimit(options.limit ?? limits.rent, limits.rent),
+        estate_type: options.estateType,
+        full_mortgage: options.fullMortgage ? 1 : undefined,
+      },
       signal: options.signal,
     },
   );

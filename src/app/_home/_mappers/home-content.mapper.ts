@@ -79,7 +79,22 @@ export function mapCityBranches(
       name: branch.name.trim(),
       address: branch.address.trim(),
       phone: branch.phone,
-      coverImage: toAbsoluteMediaUrl(branch.cover_image),
+      coverImage: branchCoverUrl(branch.cover_image),
     })),
   };
+}
+
+/**
+ * Branch photos live on the main host, but the API built their URLs on the
+ * legacy file host meant for old estate photos, where they 404 — every
+ * branch card showed the placeholder. The backend is fixed; this keeps the
+ * cards right on a server that has not picked that up yet, and is a no-op
+ * once it has.
+ */
+function branchCoverUrl(value: string | null): string | undefined {
+  const url = toAbsoluteMediaUrl(value);
+  return url?.replace(
+    /^https?:\/\/file\.koomeh\.ir\/upload\/images\/branch\//,
+    "https://koomeh.ir/upload/images/branch/",
+  );
 }

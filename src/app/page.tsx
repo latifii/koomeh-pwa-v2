@@ -19,6 +19,7 @@ import { JsonLd } from "@/components/shared/json-ld";
 import { faqSchema } from "@/lib/structured-data";
 import { homeFaqs } from "@/data/home";
 import { getCachedEstateFilters } from "@/app/properties/_cache/estate-search.cache";
+import { getCachedHomeStats } from "@/app/_home/_cache/home-stats.cache";
 
 // Route segment config must be a statically analyzable literal for Next.js.
 export const revalidate = 300;
@@ -26,23 +27,29 @@ export const revalidate = 300;
 export default async function Home() {
   // One server fetch, handed to the hero as a prop. It is cached and shared
   // with the search page, so this is not an extra upstream call.
-  const lookups = await getCachedEstateFilters(undefined)
-    .then((response) => response.result)
-    .catch(() => undefined);
+  const [lookups, stats] = await Promise.all([
+    getCachedEstateFilters(undefined)
+      .then((response) => response.result)
+      .catch(() => undefined),
+    // The counters fall back to fixed figures if this fails.
+    getCachedHomeStats().catch(() => undefined),
+  ]);
 
   return (
     <div className="flex flex-1 flex-col" id="top">
-      <Hero lookups={lookups} />
+      <Hero lookups={lookups} stats={stats} />
       <QuickServicesSection />
       {/* <QuickPaths /> */}
       {/* <TrustStrip /> */}
-      <Suspense fallback={<EstateSectionSkeleton count={8} />}>
-        <LatestSaleEstatesServer />
-      </Suspense>
+      {/* Virtual tours first, then the sale files — the order the client asked
+          for, so the section people cannot get elsewhere leads. */}
       <Suspense
         fallback={<FeatureSectionSkeleton variant="virtual-tour" />}
       >
         <VirtualTourEstatesServer />
+      </Suspense>
+      <Suspense fallback={<EstateSectionSkeleton count={8} />}>
+        <LatestSaleEstatesServer />
       </Suspense>
       <StorySection />
       <Suspense fallback={<EstateSectionSkeleton count={4} withFilters />}>

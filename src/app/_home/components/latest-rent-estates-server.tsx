@@ -1,34 +1,44 @@
 import { getCachedLatestRentEstates } from "@/app/_home/_cache/home-estates.cache";
 import { HOME_ESTATE_LIMITS } from "@/app/_home/_constants/home-limits";
+import { RENT_QUICK_FILTERS } from "@/app/_home/_constants/rent-filters";
+import type { Estate } from "@/data/home";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 
 import { EstateSectionError } from "./estate-section-state";
 import { RentSection } from "./rent-section";
 
 /**
- * Fetched and rendered on the server.
- *
- * This used to hand the data to a client component through a
- * `HydrationBoundary`, which meant the browser downloaded the query, the axios
- * client and the whole Zod schema tree for a `queryFn` that never ran: the
- * data was already hydrated, `staleTime` is five minutes and
- * `refetchOnWindowFocus` is off. The section below has no interactivity of its
- * own, so rendering it here keeps it — and everything it imports — out of the
- * client bundle entirely.
+ * Fetched on the server, one request per chip, in parallel and each cached
+ * on its own — so pressing a chip in the browser swaps cards that are
+ * already there. A chip whose request fails simply has no cards; only all
+ * four failing is an error worth showing.
  */
 export async function LatestRentEstatesServer() {
-  let section;
+  const results = await Promise.allSettled(
+    RENT_QUICK_FILTERS.map((filter) =>
+      getCachedLatestRentEstates(HOME_ESTATE_LIMITS.rent, filter.params),
+    ),
+  );
 
-  try {
-    section = await getCachedLatestRentEstates(HOME_ESTATE_LIMITS.rent);
-  } catch (error) {
+  const first = results.find((result) => result.status === "fulfilled");
+  if (!first) {
+    const failed = results[0];
     return (
       <EstateSectionError
         title="دریافت املاک رهن و اجاره ناموفق بود"
-        message={getApiErrorMessage(error)}
+        message={getApiErrorMessage(
+          failed.status === "rejected" ? failed.reason : undefined,
+        )}
       />
     );
   }
 
-  return <RentSection section={section} />;
+  const variants: Record<string, Estate[]> = {};
+  RENT_QUICK_FILTERS.forEach((filter, index) => {
+    const result = results[index];
+    variants[filter.key] =
+      result.status === "fulfilled" ? result.value.items : [];
+  });
+
+  return <RentSection section={first.value} variants={variants} />;
 }

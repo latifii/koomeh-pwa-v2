@@ -45,15 +45,14 @@ const rankStyles: Record<
 };
 
 /**
- * Podium order in RTL flow: the first item lands on the physical right, so
- * third place sits right, the champion stays centred and raised, and the
- * runner-up ends up on the left.
+ * Podium order in RTL flow, by *position* in the sorted list rather than by
+ * rank: the first item lands on the physical right, so the third card sits
+ * right, the first stays centred and raised, and the second ends up on the
+ * left. Keyed by rank, two agents tied at first both took the centre slot
+ * and the podium collapsed into a pile; a tie still shows both as «رتبه
+ * اول» — the chip and colour follow the rank — but each has its own slot.
  */
-const podiumOrder: Record<Agent["rank"], string> = {
-  1: "order-2 lg:-translate-y-6",
-  2: "order-3",
-  3: "order-1",
-};
+const podiumSlots = ["order-2 lg:-translate-y-6", "order-3", "order-1"];
 
 export function AgentsSection({
   section,
@@ -94,8 +93,8 @@ export function AgentsSection({
 
         {/* Desktop: podium — champion raised in the middle */}
         <div className="hidden items-end gap-5 lg:flex">
-          {ranked.map((agent) => (
-            <PodiumCard key={agent.id} agent={agent} />
+          {ranked.map((agent, index) => (
+            <PodiumCard key={agent.id} agent={agent} slot={index} />
           ))}
         </div>
 
@@ -112,7 +111,7 @@ export function AgentsSection({
   );
 }
 
-function PodiumCard({ agent }: { agent: Agent }) {
+function PodiumCard({ agent, slot }: { agent: Agent; slot: number }) {
   const style = rankStyles[agent.rank];
   const isChampion = agent.rank === 1;
 
@@ -122,7 +121,7 @@ function PodiumCard({ agent }: { agent: Agent }) {
       className={cn(
         "group relative flex flex-1 flex-col items-center gap-3 rounded-3xl border border-white/12 bg-white/5 px-5 pb-5 pt-12 text-center backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-secondary/40",
         isChampion && "bg-white/10 pt-14",
-        podiumOrder[agent.rank],
+        podiumSlots[slot] ?? "",
         style.glow
       )}
     >

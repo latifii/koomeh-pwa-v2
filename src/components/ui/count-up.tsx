@@ -27,7 +27,9 @@ export function CountUp({ value }: { value: number }) {
 
     let frame = 0;
     let startTime = 0;
-    const DURATION = 900;
+    // Two seconds and a bit: long enough to be seen counting, short enough
+    // not to be waited for.
+    const DURATION = 2200;
 
     const observer = new IntersectionObserver(
       ([entry]) => {

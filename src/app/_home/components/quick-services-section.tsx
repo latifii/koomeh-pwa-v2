@@ -4,9 +4,7 @@ import Link from "next/link";
 import icon360 from "@/assets/images/card/quick/360.webp";
 import iconBlog from "@/assets/images/card/quick/blog.webp";
 import iconBranch from "@/assets/images/card/quick/branch.webp";
-import iconGoftino from "@/assets/images/card/quick/goftino.webp";
 import iconKomision from "@/assets/images/card/quick/komision.webp";
-import iconMaps from "@/assets/images/card/quick/maps.webp";
 import iconMohalat from "@/assets/images/card/quick/mohalat.webp";
 import iconSocial from "@/assets/images/card/quick/social.webp";
 import { Section } from "@/components/layout/section";
@@ -15,16 +13,13 @@ import { routes } from "@/lib/routes";
 const services: { href: string; icon: StaticImageData; label: string }[] = [
   { href: routes.properties({ type: 1 }), icon: iconKomision, label: "املاک فروشی" },
   { href: routes.properties({ type: 2 }), icon: iconKomision, label: "املاک اجاره" },
-  { href: routes.properties(), icon: iconKomision, label: "جستجو ملک" },
   { href: routes.tools.commission, icon: iconKomision, label: "محاسبه کمیسیون" },
   { href: routes.tools.propertyAppraisal, icon: iconKomision, label: "کارشناسی ملک" },
   { href: routes.neighborhoods, icon: iconMohalat, label: "محلات" },
   { href: routes.articles, icon: iconBlog, label: "مجله کومه" },
   { href: "/#branches", icon: iconBranch, label: "معرفی شعب" },
-  { href: routes.properties(), icon: iconMaps, label: "جستجو نقشه" },
   { href: "/#virtual-tour-title", icon: icon360, label: "تور مجازی" },
   { href: "https://instagram.com", icon: iconSocial, label: "شبکه اجتماعی" },
-  { href: routes.contact, icon: iconGoftino, label: "پشتیبانی" },
 ];
 
 export function QuickServicesSection() {
@@ -38,23 +33,17 @@ export function QuickServicesSection() {
     >
       <div className="rounded-3xl border bg-card p-4 shadow-xl shadow-black/5 sm:p-6">
         {/*
-          Mobile: a 12-column grid so row 1 holds 3 wide tiles (span 4) and
-          every row after holds 4 narrower tiles (span 3) — both add up to 12,
-          so each group fills its own row exactly. `sm`: a plain 4-col grid.
-          `lg`: flex-wrap with a fixed tile width matching a 6-column grid
-          (accounting for the gap), so 6 fit per row and the leftover 5 wrap
-          onto row 2 and sit centered via `justify-center` instead of stuck
-          to one side.
+          Nine tiles: three to a row on a phone and at `sm`, so the grid is
+          three full rows. `lg`: flex-wrap with a fixed tile width matching a
+          5-column grid (accounting for the gap), so 5 fit on row 1 and the
+          remaining 4 sit centered on row 2 via `justify-center`.
         */}
-        <div className="grid grid-cols-12 gap-2 sm:grid-cols-4 sm:gap-4 lg:flex lg:flex-wrap lg:justify-center">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:flex lg:flex-wrap lg:justify-center">
           {services.map((item, index) => (
             <Link
               key={`${item.href}-${index}`}
               href={item.href}
-              className={
-                "group flex flex-col items-center gap-2 rounded-2xl p-1.5 text-center transition-colors hover:bg-muted/60 sm:col-span-1 lg:w-[calc((100%-5rem)/6)] lg:gap-3 lg:p-2 " +
-                (index < 3 ? "col-span-4" : "col-span-3")
-              }
+              className="group flex flex-col items-center gap-2 rounded-2xl p-1.5 text-center transition-colors hover:bg-muted/60 lg:w-[calc((100%-4rem)/5)] lg:gap-3 lg:p-2"
             >
               <span className="flex size-14 items-center justify-center rounded-lg bg-muted p-2.5 transition-colors group-hover:bg-brand/10 sm:size-16 lg:size-20 lg:p-3.5">
                 <Image

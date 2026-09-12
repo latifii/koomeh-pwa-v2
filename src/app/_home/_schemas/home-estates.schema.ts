@@ -63,6 +63,7 @@ export const latestRentEstatesResponseSchema = z.object({
       z.object({
         title: z.string(),
         url: z.string(),
+        params: z.record(z.string(), z.unknown()).optional(),
       }),
     ),
   }),

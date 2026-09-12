@@ -1,6 +1,5 @@
 import type { HomeEstateDto } from "@/app/_home/_schemas/home-estates.schema";
 import type {
-  HomeQuickFilter,
   HomeRentEstateSection,
   HomeSaleEstateSection,
   HomeVirtualTourEstateSection,
@@ -77,26 +76,6 @@ export function mapHomeEstate(dto: HomeEstateDto) {
   };
 }
 
-function propertyTypeFromFilter(label: string): PropertyType | undefined {
-  if (label.includes("آپارتمان")) return "apartment";
-  if (label.includes("ویلا")) return "villa";
-  if (label.includes("تجاری")) return "commercial";
-  return undefined;
-}
-
-function mapQuickFilter(filter: { title: string }): HomeQuickFilter {
-  const propertyType = propertyTypeFromFilter(filter.title);
-  return {
-    label: filter.title,
-    // The old site's query names (`type=2`, `estateTypes=`) — they are what
-    // the indexed `/c/qom?type=…` URLs carry, and the search page reads both.
-    href: routes.properties({
-      type: 2,
-      estateTypes: propertyType,
-    }),
-  };
-}
-
 export function mapLatestSaleEstates(
   response: LatestSaleEstatesResponse,
 ): HomeSaleEstateSection {
@@ -123,7 +102,6 @@ export function mapLatestRentEstates(
     subtitle: section.subtitle,
     viewAllHref: routes.properties({ type: 2 }),
     total: section.total,
-    quickFilters: section.quick_filters.map(mapQuickFilter),
     items: section.items.map(mapHomeEstate),
   };
 }

@@ -31,6 +31,7 @@ export const cacheTags = {
     agents: "home:agents",
     branches: "home:branches",
     neighborhoods: "home:neighborhoods",
+    stats: "home:stats",
   },
   agents: {
     all: "agents",
