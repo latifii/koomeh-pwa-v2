@@ -59,11 +59,12 @@ const PANEL_ROUTE_ACCESS: ReadonlyArray<readonly [string, PanelAudience]> = [
   [routes.panel.posts, "admin"],
   [routes.panel.estateEdits, "admin"],
   [routes.panel.estateReports, "admin"],
-  [routes.panel.relations, "admin"],
+  [routes.panel.relations, "staff"],
   [routes.panel.estateOperations, "admin"],
-  [routes.panel.customerOperations, "admin"],
+  [routes.panel.customerOperations, "staff"],
   [routes.panel.userOperations, "admin"],
   [routes.panel.agentStats, "staff"],
+  [routes.panel.phonebook, "staff"],
   [routes.panel.appointments, "staff"],
   [routes.panel.tasks, "staff"],
   [routes.panel.matches, "staff"],
@@ -72,6 +73,35 @@ const PANEL_ROUTE_ACCESS: ReadonlyArray<readonly [string, PanelAudience]> = [
   [routes.panel.requests, "member"],
   [routes.panel.dashboard, "member"],
 ];
+
+/**
+ * Routes that exist in the code but are not offered to anyone yet.
+ *
+ * Each is a page whose backend service does not exist (the activity feed, the
+ * matching board, free notes, view history, saved searches) or a page that has
+ * been folded into another (account security now lives on the profile page).
+ * The old site had none of them, and the brief is that an agent sees exactly
+ * what the old site showed — no more, no less. They are kept rather than
+ * deleted because they are wanted later: the proxy sends a visitor on, and
+ * the navigation never lists them.
+ */
+export const PARKED_PANEL_ROUTES: ReadonlyArray<readonly [string, string]> = [
+  [routes.panel.activities, routes.panel.dashboard],
+  [routes.panel.matches, routes.panel.dashboard],
+  [routes.panel.notes, routes.panel.dashboard],
+  [routes.panel.history, routes.panel.dashboard],
+  [routes.panel.savedSearches, routes.panel.dashboard],
+  [routes.panel.security, routes.panel.profile],
+];
+
+/** Where a parked route sends its visitor, or `undefined` for a live one. */
+export function parkedPanelRedirect(pathname: string): string | undefined {
+  const match = PARKED_PANEL_ROUTES.find(
+    ([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+  return match?.[1];
+}
 
 export function panelAudienceFor(pathname: string): PanelAudience {
   const match = PANEL_ROUTE_ACCESS.find(

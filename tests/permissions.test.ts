@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 
-import { canAccess, panelAudienceFor } from "@/lib/auth/panel-access";
+import {
+  canAccess,
+  PARKED_PANEL_ROUTES,
+  panelAudienceFor,
+  parkedPanelRedirect,
+} from "@/lib/auth/panel-access";
+import { routes } from "@/lib/routes";
 import {
   isAdminReal,
   isExpertOnly,
@@ -57,7 +63,49 @@ test("a plain agent is staff but not an admin", () => {
   assert.equal(roleLabel(expert), "مشاور");
 
   assert.equal(canAccess("staff", viewer), true);
-  assert.equal(canAccess("admin", viewer), false, "the phone book is admin only");
+  assert.equal(canAccess("admin", viewer), false, "the SMS module is admin only");
+});
+
+/**
+ * The brief for an agent is the old site's menu, no more and no less. These
+ * are the rows that were wrong on one side or the other: three the old site
+ * showed an agent that were admin-only here, and the pages the old site never
+ * had, which stay in the code but are not offered.
+ */
+test("an agent sees exactly what the old site showed them", () => {
+  const viewer = panelViewer(user(["expert"], { isExpert: true }));
+
+  // On the old menu for an agent, under «مدیریت مشتریان» and «عملکرد مشاور».
+  for (const href of [
+    routes.panel.customerOperations,
+    routes.panel.relations,
+    routes.panel.phonebook,
+  ]) {
+    assert.equal(canAccess(panelAudienceFor(href), viewer), true, href);
+  }
+
+  // Kept for the administrator, as on the old menu.
+  for (const href of [
+    routes.panel.estateOperations,
+    routes.panel.userOperations,
+    routes.panel.contacts,
+  ]) {
+    assert.equal(canAccess(panelAudienceFor(href), viewer), false, href);
+  }
+});
+
+test("parked pages are never in the menu and always redirect somewhere live", () => {
+  const offered = new Set(PANEL_NAV_ITEMS.map((item) => item.href));
+
+  for (const [href, target] of PARKED_PANEL_ROUTES) {
+    assert.equal(offered.has(href), false, `${href} is parked but listed`);
+    assert.equal(parkedPanelRedirect(href), target);
+    assert.equal(parkedPanelRedirect(`${href}/12`), target, "detail paths park too");
+    assert.equal(parkedPanelRedirect(target), undefined, `${target} must itself be live`);
+  }
+
+  assert.equal(parkedPanelRedirect(routes.panel.dashboard), undefined);
+  assert.equal(parkedPanelRedirect(routes.panel.profile), undefined);
 });
 
 test("a manager who also advises is not an expert-only", () => {

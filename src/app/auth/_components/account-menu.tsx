@@ -7,7 +7,6 @@ import {
   Heart,
   LayoutDashboard,
   LogOut,
-  Settings,
   User,
   UserRound,
 } from "lucide-react";
@@ -126,10 +125,6 @@ export function AccountMenu({ transparent }: { transparent?: boolean }) {
         <DropdownMenuItem render={<Link href={routes.panel.profile} />}>
           <UserRound className="size-4" />
           تنظیمات حساب
-        </DropdownMenuItem>
-        <DropdownMenuItem render={<Link href={routes.panel.security} />}>
-          <Settings className="size-4" />
-          امنیت حساب
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

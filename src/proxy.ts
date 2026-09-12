@@ -8,7 +8,11 @@ import {
   isAuthPath,
   isProtectedPath,
 } from "@/lib/auth/routes";
-import { canAccess, panelAudienceFor } from "@/lib/auth/panel-access";
+import {
+  canAccess,
+  panelAudienceFor,
+  parkedPanelRedirect,
+} from "@/lib/auth/panel-access";
 import { panelViewer } from "@/lib/auth/permissions";
 import {
   SESSION_COOKIE,
@@ -63,6 +67,11 @@ export async function proxy(request: NextRequest) {
 
   // Nothing here cares about the session, so skip the crypto entirely.
   if (!protectedPath && !authPath) return NextResponse.next();
+
+  // A page that exists but is not offered yet: on to where it folded into,
+  // before any session work. See PARKED_PANEL_ROUTES.
+  const parked = parkedPanelRedirect(pathname);
+  if (parked) return redirect(request, parked);
 
   const session = await decryptSession(
     request.cookies.get(SESSION_COOKIE)?.value,

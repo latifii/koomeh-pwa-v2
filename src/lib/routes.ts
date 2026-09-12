@@ -148,6 +148,7 @@ export const routes = {
     estateOperations: "/panel/estate-operations",
     customerOperations: "/panel/customer-operations",
     userOperations: "/panel/user-operations",
+    phonebook: "/panel/phonebook",
     locations: "/panel/locations",
     contracts: "/panel/contracts",
     newContract: "/panel/contracts/new",

@@ -53,7 +53,9 @@ import { cn } from "@/lib/utils";
  * on the backend they are one table.
  */
 export function OperationsView({ kind }: { kind: OperationKind }) {
-  const access = usePanelAccess("admin");
+  // The old menu showed «عملکرد مشتریان» to agents (own records only) but
+  // kept «عملکرد املاک» for administrators; the API enforces both.
+  const access = usePanelAccess(kind === "customer" ? "staff" : "admin");
 
   const [filters, setFilters] = useState<OperationFilters>(
     defaultOperationFilters,
@@ -105,8 +107,12 @@ export function OperationsView({ kind }: { kind: OperationKind }) {
     return (
       <EmptyState
         icon={ShieldAlert}
-        title="این فهرست فقط برای مدیران است"
-        description="عملکرد ثبت‌شده‌ی همه‌ی کارشناسان به دسترسی مدیر نیاز دارد."
+        title="این فهرست برای شما باز نیست"
+        description={
+          kind === "customer"
+            ? "عملکرد مشتریان برای کارشناسان و مدیران است."
+            : "عملکرد ثبت‌شده‌ی همه‌ی کارشناسان به دسترسی مدیر نیاز دارد."
+        }
       />
     );
   }

@@ -1,5 +1,6 @@
 import {
   Bell,
+  BookUser,
   Building2,
   CalendarDays,
   ClipboardCheck,
@@ -11,7 +12,6 @@ import {
   Flag,
   Gauge,
   Heart,
-  KeyRound,
   LayoutDashboard,
   ListTodo,
   Map,
@@ -193,13 +193,17 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         href: routes.panel.relations,
         label: "مشتریان و املاک متناسب",
         icon: Network,
-        audience: "admin",
+        // An agent sees their own suggested files here, as on the old site;
+        // the API scopes the list and keeps delete to the administrator.
+        audience: "staff",
       },
       {
         href: routes.panel.customerOperations,
         label: "عملکرد مشتریان",
         icon: ClipboardCheck,
-        audience: "admin",
+        // Unlike «عملکرد املاک», the old menu showed this to agents too — each
+        // sees only their own records (the API answers `scope: "own"`).
+        audience: "staff",
       },
     ],
   },
@@ -217,6 +221,13 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         href: routes.panel.tasks,
         label: "وظایف",
         icon: ListTodo,
+        audience: "staff",
+      },
+      // The agent's own book — not the SMS module under «مدیریت سیستم».
+      {
+        href: routes.panel.phonebook,
+        label: "دفترچه تلفن",
+        icon: BookUser,
         audience: "staff",
       },
       {
@@ -297,12 +308,6 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         href: routes.panel.profile,
         label: "ویرایش مشخصات",
         icon: UserRound,
-        audience: "everyone",
-      },
-      {
-        href: routes.panel.security,
-        label: "امنیت حساب",
-        icon: KeyRound,
         audience: "everyone",
       },
     ],
