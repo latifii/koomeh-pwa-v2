@@ -9,7 +9,7 @@ import { routes } from "@/lib/routes";
 
 import { CustomerProfileView } from "../_components/customer-profile-view";
 
-export const metadata: Metadata = { title: "تقاضای ملکی | پنل کومه" };
+export const metadata: Metadata = { title: "جزئیات مشتری | پنل کومه" };
 
 export default async function RequestPage({
   params,
@@ -22,7 +22,7 @@ export default async function RequestPage({
   return (
     <div>
       <PanelPageHeader
-        title="جزئیات تقاضا"
+        title="جزئیات مشتری"
         description="خواسته‌های متقاضی، فایل‌های پیشنهادی و سابقه‌ی پیگیری."
         action={
           <Button

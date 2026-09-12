@@ -8,18 +8,18 @@ import { routes } from "@/lib/routes";
 
 import { CustomersView } from "./_components/customers-view";
 
-export const metadata: Metadata = { title: "تقاضاهای ملکی | پنل کومه" };
+export const metadata: Metadata = { title: "لیست مشتریان | پنل کومه" };
 
 export default function RequestsPage() {
   return (
     <div>
       <PanelPageHeader
-        title="تقاضاهای ملکی"
-        description="تقاضاهای ثبت‌شده و فایل‌های متناسب با هر متقاضی را مدیریت کنید."
+        title="لیست مشتریان"
+        description="مشتریان ثبت‌شده و فایل‌های متناسب با هر کدام را مدیریت کنید."
         action={
           <Button nativeButton={false} render={<Link href={routes.panel.newRequest} />}>
             <Plus />
-            ثبت تقاضا
+            ثبت مشتری
           </Button>
         }
       />

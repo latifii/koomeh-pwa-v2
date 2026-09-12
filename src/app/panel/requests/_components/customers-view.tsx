@@ -160,7 +160,7 @@ export function CustomersView() {
       {list.isError ? (
         <EmptyState
           icon={RotateCcw}
-          title="فهرست تقاضاها بارگذاری نشد"
+          title="فهرست مشتریان بارگذاری نشد"
           description={getApiErrorMessage(list.error)}
         />
       ) : list.isPending ? (
@@ -172,7 +172,7 @@ export function CustomersView() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
-          title="تقاضایی پیدا نشد"
+          title="مشتری‌ای پیدا نشد"
           description="فیلترها را تغییر دهید یا تقاضای تازه‌ای ثبت کنید."
         />
       ) : (

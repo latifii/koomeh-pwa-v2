@@ -94,7 +94,7 @@ export const PANEL_QUICK_ACTIONS: PanelNavItem[] = [
   },
   {
     href: routes.panel.newRequest,
-    label: "ثبت تقاضا",
+    label: "ثبت مشتری",
     icon: Plus,
     audience: "member",
     groupId: "customers",
@@ -175,9 +175,11 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
     id: "customers",
     label: "مدیریت مشتریان",
     items: [
+      // The old menu's three rows, in its words: a «مشتری» is what the API
+      // calls a customer, the person with a request, not the request itself.
       {
         href: routes.panel.requests,
-        label: "تقاضاهای ملکی",
+        label: "لیست مشتریان",
         icon: ClipboardList,
         audience: "member",
       },
@@ -185,17 +187,9 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
       // «ثبت ملک» is listed twice.
       {
         href: routes.panel.newRequest,
-        label: "ثبت تقاضا",
+        label: "ثبت مشتری",
         icon: Plus,
         audience: "member",
-      },
-      {
-        href: routes.panel.relations,
-        label: "مشتریان و املاک متناسب",
-        icon: Network,
-        // An agent sees their own suggested files here, as on the old site;
-        // the API scopes the list and keeps delete to the administrator.
-        audience: "staff",
       },
       {
         href: routes.panel.customerOperations,
@@ -228,6 +222,15 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         href: routes.panel.phonebook,
         label: "دفترچه تلفن",
         icon: BookUser,
+        audience: "staff",
+      },
+      // Under the agent's performance, as on the old menu — it is the files
+      // an agent proposed, not a customer list. The API scopes it to the
+      // caller and keeps delete to the administrator.
+      {
+        href: routes.panel.relations,
+        label: "مشتریان و املاک متناسب",
+        icon: Network,
         audience: "staff",
       },
       {

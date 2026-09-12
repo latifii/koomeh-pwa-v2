@@ -152,7 +152,7 @@ export function CustomerProfileView({ id }: { id: string }) {
     return (
       <EmptyState
         icon={UserRound}
-        title="تقاضا بارگذاری نشد"
+        title="مشتری بارگذاری نشد"
         description={getApiErrorMessage(profile.error)}
       />
     );

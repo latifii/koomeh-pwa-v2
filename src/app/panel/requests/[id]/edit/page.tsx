@@ -5,7 +5,7 @@ import { PanelPageHeader } from "@/components/layout/panel-page-header";
 
 import { CustomerForm } from "../../_components/customer-form";
 
-export const metadata: Metadata = { title: "ویرایش تقاضا | پنل کومه" };
+export const metadata: Metadata = { title: "ویرایش مشتری | پنل کومه" };
 
 export default async function EditRequestPage({
   params,
@@ -18,7 +18,7 @@ export default async function EditRequestPage({
   return (
     <div>
       <PanelPageHeader
-        title="ویرایش تقاضا"
+        title="ویرایش مشتری"
         description="خواسته‌ها و اطلاعات متقاضی را به‌روز کنید."
       />
       <CustomerForm customerId={id} />

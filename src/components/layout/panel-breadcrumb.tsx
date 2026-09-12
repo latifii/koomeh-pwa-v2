@@ -29,8 +29,8 @@ const DETAIL_LABELS: ReadonlyArray<{
   suffix?: string;
   label: string;
 }> = [
-  { prefix: routes.panel.requests, suffix: "/edit", label: "ویرایش تقاضا" },
-  { prefix: routes.panel.requests, suffix: "/new", label: "ثبت تقاضا" },
+  { prefix: routes.panel.requests, suffix: "/edit", label: "ویرایش مشتری" },
+  { prefix: routes.panel.requests, suffix: "/new", label: "ثبت مشتری" },
   { prefix: routes.panel.members, suffix: "/edit", label: "ویرایش عضو" },
   { prefix: routes.panel.members, suffix: "/new", label: "ثبت عضو" },
   { prefix: routes.panel.properties, suffix: "/edit", label: "ویرایش ملک" },
@@ -43,7 +43,7 @@ const DETAIL_LABELS: ReadonlyArray<{
   { prefix: routes.panel.contracts, suffix: "/new", label: "قولنامه تازه" },
   { prefix: routes.panel.posts, suffix: "/edit", label: "ویرایش مطلب" },
   { prefix: routes.panel.posts, suffix: "/new", label: "مطلب تازه" },
-  { prefix: routes.panel.requests, label: "جزئیات تقاضا" },
+  { prefix: routes.panel.requests, label: "جزئیات مشتری" },
   { prefix: routes.panel.conversations, label: "گفت‌وگو" },
   { prefix: routes.panel.properties, label: "مدیریت ملک" },
 ];
