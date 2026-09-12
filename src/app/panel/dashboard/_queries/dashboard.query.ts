@@ -21,7 +21,8 @@ export function dashboardSummaryQueryOptions() {
 export function dashboardTasksQueryOptions() {
   return queryOptions({
     queryKey: dashboardQueryKeys.tasks(),
-    queryFn: async ({ signal }) => (await getDashboardTasks(6, signal)).result.items,
+    queryFn: async ({ signal }) =>
+      (await getDashboardTasks(6, signal)).result.items,
     staleTime: 60 * 1_000,
   });
 }

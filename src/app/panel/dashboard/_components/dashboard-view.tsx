@@ -28,6 +28,7 @@ import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { toAbsoluteMediaUrl } from "@/lib/api/config";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 import { DashboardNotes } from "./dashboard-notes";
 import { DashboardPerformance } from "./dashboard-performance";
@@ -84,18 +85,28 @@ export function DashboardView() {
           the week's featured files and customers, the scoring block, and the
           customers to follow up at the end. */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <CalendarClock className="size-4 text-brand" />
             کارهای پیش رو
           </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-brand"
+            nativeButton={false}
+            render={<Link href={routes.panel.appointments} />}
+          >
+            تقویم
+            <ChevronLeft data-icon="inline-end" />
+          </Button>
         </CardHeader>
         <CardContent>
           {tasks.isPending ? (
             <RowSkeleton />
           ) : tasks.data?.length ? (
             <ul className="grid grid-cols-1 gap-2">
-              {tasks.data.map((task) => (
+              {tasks.data.slice(0, 6).map((task) => (
                 <li
                   key={task.id}
                   className="flex items-start gap-3 rounded-lg border p-3"
@@ -106,7 +117,11 @@ export function DashboardView() {
                     style={{ background: task.color ?? "var(--brand)" }}
                   />
                   <div className="min-w-0 flex-1">
-                    <Typography variant="h4" as="p" className="truncate sm:text-sm">
+                    <Typography
+                      variant="h4"
+                      as="p"
+                      className="truncate sm:text-sm"
+                    >
                       {task.title}
                     </Typography>
                     <Typography variant="small" className="mt-0.5">
@@ -128,38 +143,43 @@ export function DashboardView() {
         </CardContent>
       </Card>
 
-
       <DashboardNotes />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Two to a row on a phone — four single-column tiles were a screen of
+          scrolling for four numbers. The arrow goes when there is no room. */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
         {stats.map((stat) => (
           <Link
             key={stat.label}
             href={stat.href}
-            className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:border-brand/30"
+            className="flex items-center gap-2.5 rounded-xl border bg-card p-3 transition-colors hover:border-brand/30 sm:gap-3 sm:p-4"
           >
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-              <stat.icon className="size-5" />
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand sm:size-11 sm:rounded-xl">
+              <stat.icon className="size-4 sm:size-5" />
             </span>
             <span className="min-w-0 flex-1">
               {summary.isPending ? (
-                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-6 w-12" />
               ) : (
                 <Typography
                   as="span"
                   variant="h4"
-                  className="block text-lg font-bold tabular-nums sm:text-lg"
+                  className="block text-base font-bold tabular-nums sm:text-lg"
                 >
                   {stat.value !== undefined
                     ? stat.value.toLocaleString("fa-IR")
                     : "—"}
                 </Typography>
               )}
-              <Typography as="span" variant="small" className="block truncate">
+              <Typography
+                as="span"
+                variant="small"
+                className="block truncate text-[11px] sm:text-xs"
+              >
                 {stat.label}
               </Typography>
             </span>
-            <ChevronLeft className="size-4 shrink-0 text-muted-foreground" />
+            <ChevronLeft className="hidden size-4 shrink-0 text-muted-foreground sm:block" />
           </Link>
         ))}
       </div>
@@ -178,7 +198,9 @@ export function DashboardView() {
           emptyText="این هفته فایل ویژه‌ای ثبت نشده است."
           codeLabel="کد ملک"
           codeOf={(item) => item.estate_id}
-          hrefFor={(item) => (item.estate_id ? routes.property(item.estate_id) : undefined)}
+          hrefFor={(item) =>
+            item.estate_id ? routes.property(item.estate_id) : undefined
+          }
         />
         <HighlightCard
           title="مشتریان ویژه"
@@ -188,70 +210,19 @@ export function DashboardView() {
           codeLabel="کد مشتری"
           codeOf={(item) => item.customer_id}
           hrefFor={(item) =>
-            item.customer_id ? routes.panel.request(item.customer_id) : undefined
+            item.customer_id
+              ? routes.panel.request(item.customer_id)
+              : undefined
           }
         />
       </div>
 
       <DashboardPerformance />
 
-      <div className="grid grid-cols-1 gap-4">
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="size-4 text-brand" />
-              پیگیری مشتریان
-              {followUps.data?.total ? (
-                <Badge variant="secondary">
-                  {followUps.data.total.toLocaleString("fa-IR")}
-                </Badge>
-              ) : null}
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-brand"
-              nativeButton={false}
-              render={<Link href={routes.panel.requests} />}
-            >
-              همه
-              <ChevronLeft data-icon="inline-end" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {followUps.isPending ? (
-              <RowSkeleton />
-            ) : followUps.data?.items.length ? (
-              <ul className="grid grid-cols-1 gap-2">
-                {followUps.data.items.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border p-3"
-                  >
-                    <div className="min-w-0">
-                      <Typography variant="h4" as="p" className="truncate sm:text-sm">
-                        {item.name?.trim() || `مشتری ${item.id.toLocaleString("fa-IR")}`}
-                      </Typography>
-                      <Typography variant="small" className="mt-0.5 truncate">
-                        {item.updated_at_jalali ?? item.updated_at}
-                      </Typography>
-                    </div>
-                    {item.relations?.total ? (
-                      <Badge variant="secondary" className="shrink-0">
-                        {item.relations.total.toLocaleString("fa-IR")} فایل
-                      </Badge>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Typography variant="small">
-                امروز مشتری‌ای برای پیگیری ندارید.
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <TodayCustomersCard
+        pending={followUps.isPending}
+        items={followUps.data?.items ?? []}
+      />
     </div>
   );
 }
@@ -261,7 +232,11 @@ type Highlight = {
   estate_id?: number | null;
   customer_id?: number | null;
   comment?: string | null;
-  agent?: { id?: number | null; name?: string | null; photo?: string | null } | null;
+  agent?: {
+    id?: number | null;
+    name?: string | null;
+    photo?: string | null;
+  } | null;
   created_at_jalali?: string | null;
 };
 
@@ -302,7 +277,8 @@ function HighlightCard({
           <Typography variant="small">{emptyText}</Typography>
         ) : (
           <ul className="grid grid-cols-1 gap-2">
-            {items.map((item) => {
+            {/* Six is a glance; the rest is what the page behind the code is for. */}
+            {items.slice(0, 6).map((item) => {
               const href = hrefFor(item);
               const code = codeOf(item);
               const body = (
@@ -321,16 +297,29 @@ function HighlightCard({
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                       {code ? (
-                        <Typography as="span" variant="small" className="font-medium tabular-nums text-foreground">
+                        <Typography
+                          as="span"
+                          variant="small"
+                          className="font-medium tabular-nums text-foreground"
+                        >
                           {codeLabel} {code.toLocaleString("fa-IR")}
                         </Typography>
                       ) : null}
-                      <Typography as="span" variant="small" className="truncate">
+                      <Typography
+                        as="span"
+                        variant="small"
+                        className="truncate"
+                      >
                         {item.agent?.name}
-                        {item.created_at_jalali ? ` · ${item.created_at_jalali}` : ""}
+                        {item.created_at_jalali
+                          ? ` · ${item.created_at_jalali}`
+                          : ""}
                       </Typography>
                     </span>
-                    <Typography variant="small" className="line-clamp-2 text-foreground">
+                    <Typography
+                      variant="small"
+                      className="line-clamp-2 text-foreground"
+                    >
                       {item.comment?.trim() || "بدون توضیح"}
                     </Typography>
                   </span>
@@ -347,8 +336,150 @@ function HighlightCard({
                       {body}
                     </Link>
                   ) : (
-                    <div className="flex items-start gap-2.5 rounded-lg border p-2.5">{body}</div>
+                    <div className="flex items-start gap-2.5 rounded-lg border p-2.5">
+                      {body}
+                    </div>
                   )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+type FollowUp = {
+  id: number;
+  name?: string | null;
+  updated_at?: string | null;
+  updated_at_jalali?: string | null;
+  relations?: { total: number; by_status: number[] } | null;
+};
+
+/**
+ * The old dashboard's «عملکرد امروز»: the agent's live customers whose last
+ * change falls on a follow-up day, each with the count of files proposed to
+ * them by status — and, as on the old page, only those with at least one
+ * file, since the table is about what to follow up on. The API's by_status
+ * indexes are the relation statuses: 0 unknown, 1 rejected, 2 approved,
+ * 3 sent; the old columns ran total, approved, rejected, sent, unknown.
+ */
+const RELATION_COLUMNS: ReadonlyArray<{
+  index: number;
+  label: string;
+  tone?: string;
+}> = [
+  { index: 2, label: "تأییدشده", tone: "text-success" },
+  { index: 1, label: "ردشده", tone: "text-destructive" },
+  { index: 3, label: "ارسال‌شده" },
+  { index: 0, label: "نامشخص" },
+];
+
+function TodayCustomersCard({
+  pending,
+  items,
+}: {
+  pending: boolean;
+  items: FollowUp[];
+}) {
+  const rows = items.filter((item) => (item.relations?.total ?? 0) > 0);
+
+  return (
+    <Card>
+      <CardHeader className="flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2">
+          <ClipboardList className="size-4 text-brand" />
+          عملکرد امروز
+          {rows.length > 0 && (
+            <Badge variant="secondary">
+              {rows.length.toLocaleString("fa-IR")}
+            </Badge>
+          )}
+        </CardTitle>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-brand"
+          nativeButton={false}
+          render={<Link href={`${routes.panel.requests}?today=1`} />}
+        >
+          همه
+          <ChevronLeft data-icon="inline-end" />
+        </Button>
+      </CardHeader>
+      <CardContent className={rows.length > 0 ? "p-0" : undefined}>
+        {pending ? (
+          <RowSkeleton />
+        ) : rows.length === 0 ? (
+          <Typography variant="small">
+            امروز مشتری‌ای در نوبت پیگیری با فایل پیشنهادی ندارید.
+          </Typography>
+        ) : (
+          <ul className="divide-y">
+            {rows.map((item) => {
+              const byStatus = item.relations?.by_status ?? [];
+              return (
+                <li
+                  key={item.id}
+                  className="grid gap-2 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
+                >
+                  <Link
+                    href={routes.panel.request(item.id)}
+                    className="min-w-0 hover:text-brand"
+                  >
+                    <Typography
+                      as="span"
+                      variant="small"
+                      className="block truncate font-medium text-foreground"
+                    >
+                      {item.name?.trim() ||
+                        `مشتری ${item.id.toLocaleString("fa-IR")}`}
+                      <Typography
+                        as="span"
+                        variant="small"
+                        className="ms-2 tabular-nums"
+                      >
+                        #{item.id.toLocaleString("fa-IR")}
+                      </Typography>
+                    </Typography>
+                    <Typography
+                      as="span"
+                      variant="small"
+                      className="block truncate"
+                    >
+                      {item.updated_at_jalali ?? item.updated_at}
+                    </Typography>
+                  </Link>
+                  {/* The five old columns as one row of figures, labelled. */}
+                  <dl className="grid grid-cols-5 gap-1 text-center sm:gap-2">
+                    <div>
+                      <dd className="m-0 font-semibold tabular-nums text-brand">
+                        {(item.relations?.total ?? 0).toLocaleString("fa-IR")}
+                      </dd>
+                      <dt className="text-[10px] text-muted-foreground">
+                        متناسب
+                      </dt>
+                    </div>
+                    {RELATION_COLUMNS.map((column) => (
+                      <div key={column.index}>
+                        <dd
+                          className={cn(
+                            "m-0 font-semibold tabular-nums",
+                            (byStatus[column.index] ?? 0) > 0 && column.tone,
+                          )}
+                        >
+                          {(byStatus[column.index] ?? 0).toLocaleString(
+                            "fa-IR",
+                          )}
+                        </dd>
+                        <dt className="text-[10px] text-muted-foreground">
+                          {column.label}
+                        </dt>
+                      </div>
+                    ))}
+                  </dl>
                 </li>
               );
             })}

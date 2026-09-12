@@ -43,13 +43,17 @@ export function getFollowUps(perPage = 8, signal?: AbortSignal) {
 }
 
 export function getHighlights(signal?: AbortSignal) {
-  return getValidated(endpoints.highlights, highlightsResponseSchema, { signal });
+  return getValidated(endpoints.highlights, highlightsResponseSchema, {
+    signal,
+  });
 }
 
 export function getDashboardNotes(
   signal?: AbortSignal,
 ): Promise<DashboardNotesResponse> {
-  return getValidated(endpoints.notes, dashboardNotesResponseSchema, { signal });
+  return getValidated(endpoints.notes, dashboardNotesResponseSchema, {
+    signal,
+  });
 }
 
 /** Administrators only; re-publishes the box even if it had expired. */

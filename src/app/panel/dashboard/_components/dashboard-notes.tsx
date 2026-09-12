@@ -61,7 +61,9 @@ export function DashboardNotes() {
     mutationFn: (values: UpdateNoteValues) =>
       updateDashboardNote(editing!, values.description),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: dashboardQueryKeys.notes() });
+      void queryClient.invalidateQueries({
+        queryKey: dashboardQueryKeys.notes(),
+      });
       setEditing(undefined);
       toast.success("متن ذخیره شد و برای همه نمایش داده می‌شود.");
     },

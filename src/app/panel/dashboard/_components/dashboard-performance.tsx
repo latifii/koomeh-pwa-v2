@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, ClipboardList, Medal, Trophy } from "lucide-react";
+import {
+  BarChart3,
+  ChevronDown,
+  ClipboardList,
+  Medal,
+  Trophy,
+} from "lucide-react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import type { AgentStatsRange } from "@/app/panel/agent-stats/_api/agent-stats.service";
@@ -13,6 +19,7 @@ import {
 import type { AgentStatsLeague } from "@/app/panel/agent-stats/_schemas/agent-stats.schema";
 import { JalaliDateInput } from "@/components/shared/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
@@ -31,13 +38,20 @@ function score(value: number): string {
  */
 const GOLD_THRESHOLD = 1500;
 
+/** Rows a league shows before «نمایش همه». */
+const PREVIEW_ROWS = 5;
+
 /**
  * The agent stats table, row for row as the old dashboard's «جدول آماری
  * مشاور». Keys are the API's counter names (the old `$report…Count`
  * variables with the prefix and suffix dropped); a key the API stops sending
  * simply shows a dash rather than breaking the table.
  */
-const MY_STATS_ROWS: ReadonlyArray<{ key: string; label: string; unit: string }> = [
+const MY_STATS_ROWS: ReadonlyArray<{
+  key: string;
+  label: string;
+  unit: string;
+}> = [
   { key: "viewhouse", label: "مشاهده ملک", unit: "ملک" },
   { key: "updateHousing", label: "ویرایش ملک", unit: "ملک" },
   { key: "housing", label: "ثبت ملک", unit: "ملک" },
@@ -50,13 +64,29 @@ const MY_STATS_ROWS: ReadonlyArray<{ key: string; label: string; unit: string }>
   { key: "masters", label: "کارشناسی ملک", unit: "ملک" },
   { key: "buyContract", label: "تعداد قرارداد خرید و فروش", unit: "ملک" },
   { key: "rentContract", label: "تعداد قرارداد رهن و اجاره", unit: "ملک" },
-  { key: "commonBuyContract", label: "تعداد قرارداد اشتراکی خرید و فروش", unit: "ملک" },
-  { key: "commonRentContract", label: "تعداد قرارداد اشتراکی رهن و اجاره", unit: "ملک" },
+  {
+    key: "commonBuyContract",
+    label: "تعداد قرارداد اشتراکی خرید و فروش",
+    unit: "ملک",
+  },
+  {
+    key: "commonRentContract",
+    label: "تعداد قرارداد اشتراکی رهن و اجاره",
+    unit: "ملک",
+  },
   { key: "unsuccessContract", label: "تعداد قرارداد ناموفق", unit: "" },
   { key: "tahatorContract", label: "تعداد قرارداد تهاتر", unit: "" },
-  { key: "commonTahatorContract", label: "تعداد قرارداد تهاتر مشارکتی", unit: "" },
+  {
+    key: "commonTahatorContract",
+    label: "تعداد قرارداد تهاتر مشارکتی",
+    unit: "",
+  },
   { key: "mosharekatContract", label: "تعداد قرارداد مشارکت", unit: "" },
-  { key: "commonMosharekatContract", label: "تعداد قرارداد مشارکت مشارکتی", unit: "" },
+  {
+    key: "commonMosharekatContract",
+    label: "تعداد قرارداد مشارکت مشارکتی",
+    unit: "",
+  },
   { key: "buyIncome", label: "درآمد خرید و فروش", unit: "" },
   { key: "rentIncome", label: "درآمد رهن و اجاره", unit: "" },
   { key: "delay", label: "تأخیر", unit: "" },
@@ -120,8 +150,8 @@ export function DashboardPerformance() {
   return (
     <div className="grid grid-cols-1 gap-4">
       <Card>
-        <CardContent className="flex flex-wrap items-end gap-3 p-4">
-          <div className="grid min-w-40 flex-1 gap-1.5">
+        <CardContent className="grid grid-cols-2 items-end gap-3 p-3 sm:flex sm:flex-wrap sm:p-4">
+          <div className="grid gap-1.5 sm:min-w-40 sm:flex-1">
             <Typography as="label" variant="small" htmlFor="perf-from">
               تاریخ از
             </Typography>
@@ -132,7 +162,7 @@ export function DashboardPerformance() {
               onChange={(value) => setDates((c) => ({ ...c, datefrom: value }))}
             />
           </div>
-          <div className="grid min-w-40 flex-1 gap-1.5">
+          <div className="grid gap-1.5 sm:min-w-40 sm:flex-1">
             <Typography as="label" variant="small" htmlFor="perf-to">
               تاریخ تا
             </Typography>
@@ -144,7 +174,7 @@ export function DashboardPerformance() {
             />
           </div>
           {league.data?.range && (
-            <Typography variant="small" className="basis-full sm:basis-auto">
+            <Typography variant="small" className="col-span-2 sm:basis-auto">
               بازه‌ی محاسبه: {league.data.range.from} تا {league.data.range.to}
             </Typography>
           )}
@@ -174,14 +204,21 @@ export function DashboardPerformance() {
               در این بازه امتیازی برای شعبه‌ها ثبت نشده است.
             </Typography>
           ) : (
-            <ol className="grid grid-cols-1 gap-2" aria-label="معدل امتیاز موفقیت هر شعبه">
+            <ol
+              className="grid grid-cols-1 gap-2"
+              aria-label="معدل امتیاز موفقیت هر شعبه"
+            >
               {branchAverages.map((branch) => (
                 <li
                   key={branch.name}
-                  className="grid grid-cols-[minmax(6rem,10rem)_1fr_auto] items-center gap-3"
+                  className="grid grid-cols-[minmax(4.5rem,7rem)_1fr_auto] items-center gap-2 sm:grid-cols-[minmax(6rem,10rem)_1fr_auto] sm:gap-3"
                   title={`${branch.name}: ${score(branch.avg)}`}
                 >
-                  <Typography as="span" variant="small" className="truncate text-foreground">
+                  <Typography
+                    as="span"
+                    variant="small"
+                    className="truncate text-foreground"
+                  >
                     {branch.name}
                   </Typography>
                   <span className="h-2.5 overflow-hidden rounded-full bg-muted">
@@ -192,7 +229,11 @@ export function DashboardPerformance() {
                       }}
                     />
                   </span>
-                  <Typography as="span" variant="small" className="tabular-nums text-foreground">
+                  <Typography
+                    as="span"
+                    variant="small"
+                    className="tabular-nums text-foreground"
+                  >
                     {score(branch.avg)}
                   </Typography>
                 </li>
@@ -208,7 +249,15 @@ export function DashboardPerformance() {
         pending={league.isPending}
         items={stars}
         emptyText="در این بازه هنوز کسی امتیاز موفقیت نگرفته است."
-        columns={["رتبه", "کارشناس", "شعبه", "امتیاز موفقیت", "امتیاز تلاش", "امتیاز کل", ""]}
+        columns={[
+          { label: "رتبه" },
+          { label: "کارشناس" },
+          { label: "شعبه", wide: true },
+          { label: "موفقیت" },
+          { label: "تلاش", wide: true },
+          { label: "کل" },
+          { label: "", wide: true },
+        ]}
         rowClassName={(item) =>
           cn(
             item.rank !== null &&
@@ -224,22 +273,28 @@ export function DashboardPerformance() {
           <>
             <td className="p-3">
               <span className="flex items-center gap-1">
-                {item.rank !== null && item.rank !== undefined && item.rank <= 3 && (
-                  <Medal className="size-4 text-medal-gold" />
-                )}
+                {item.rank !== null &&
+                  item.rank !== undefined &&
+                  item.rank <= 3 && (
+                    <Medal className="size-4 text-medal-gold" />
+                  )}
                 {item.rank?.toLocaleString("fa-IR") ?? "—"}
               </span>
             </td>
             <AgentCell item={item} />
-            <td className="p-3">{item.branch?.name ?? "—"}</td>
+            <td className="hidden p-3 sm:table-cell">
+              {item.branch?.name ?? "—"}
+            </td>
             <td className="p-3">{score(item.success)}</td>
-            <td className="p-3">{score(item.effort)}</td>
+            <td className="hidden p-3 sm:table-cell">{score(item.effort)}</td>
             <td className="p-3 font-medium">{score(item.total)}</td>
-            <td className="w-[40%] p-3">
+            <td className="hidden w-[40%] p-3 sm:table-cell">
               <span className="block h-2 overflow-hidden rounded-full bg-muted">
                 <span
                   className="block h-full rounded-e-sm bg-brand"
-                  style={{ width: `${top > 0 ? (item.total / top) * 100 : 0}%` }}
+                  style={{
+                    width: `${top > 0 ? (item.total / top) * 100 : 0}%`,
+                  }}
                 />
               </span>
             </td>
@@ -253,16 +308,27 @@ export function DashboardPerformance() {
         pending={league.isPending}
         items={base}
         emptyText="همه‌ی کارشناسان این بازه در لیگ ستارگان‌اند."
-        columns={["ردیف", "کارشناس", "شعبه", "امتیاز موفقیت", "امتیاز تلاش"]}
+        columns={[
+          { label: "ردیف" },
+          { label: "کارشناس" },
+          { label: "شعبه", wide: true },
+          { label: "موفقیت", wide: true },
+          { label: "تلاش" },
+        ]}
         rowClassName={(item) =>
-          cn("bg-destructive/5", item.id === user?.id && "ring-1 ring-inset ring-brand/40")
+          cn(
+            "bg-destructive/5",
+            item.id === user?.id && "ring-1 ring-inset ring-brand/40",
+          )
         }
         renderRow={(item, index) => (
           <>
             <td className="p-3">{(index + 1).toLocaleString("fa-IR")}</td>
             <AgentCell item={item} />
-            <td className="p-3">{item.branch?.name ?? "—"}</td>
-            <td className="p-3">{score(item.success)}</td>
+            <td className="hidden p-3 sm:table-cell">
+              {item.branch?.name ?? "—"}
+            </td>
+            <td className="hidden p-3 sm:table-cell">{score(item.success)}</td>
             <td className="p-3">{score(item.effort)}</td>
           </>
         )}
@@ -275,7 +341,7 @@ export function DashboardPerformance() {
             جدول آماری مشاور
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="overflow-hidden p-0">
           {mine.isPending ? (
             <Skeleton className="m-4 h-64 rounded-lg" />
           ) : mine.isError ? (
@@ -283,25 +349,40 @@ export function DashboardPerformance() {
               {getApiErrorMessage(mine.error)}
             </Typography>
           ) : (
-            <dl className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+            <dl className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3 xl:grid-cols-4">
               {MY_STATS_ROWS.map((row) => {
                 const value = counters[row.key];
+                const has = typeof value === "number" && value !== 0;
                 return (
                   <div
                     key={row.key}
-                    className="flex items-center justify-between gap-3 border-b px-4 py-2.5 sm:[&:nth-child(2n)]:border-s xl:[&:nth-child(2n)]:border-s-0 xl:[&:nth-child(3n+2)]:border-s xl:[&:nth-child(3n)]:border-s"
+                    className={cn(
+                      "flex flex-col gap-0.5 bg-card px-3 py-2.5",
+                      !has && "text-muted-foreground",
+                    )}
                   >
                     <dt>
-                      <Typography as="span" variant="small" className="text-foreground">
+                      <Typography
+                        as="span"
+                        variant="small"
+                        className="block truncate text-[11px] sm:text-xs"
+                      >
                         {row.label}
                       </Typography>
                     </dt>
-                    <dd className="shrink-0">
-                      <Typography as="span" variant="small" className="font-semibold tabular-nums text-foreground">
+                    <dd className="m-0">
+                      <Typography
+                        as="span"
+                        variant="small"
+                        className={cn(
+                          "font-semibold tabular-nums",
+                          has ? "text-foreground" : "",
+                        )}
+                      >
                         {typeof value === "number"
                           ? Math.trunc(value).toLocaleString("fa-IR")
                           : "—"}
-                        {row.unit ? ` ${row.unit}` : ""}
+                        {row.unit && has ? ` ${row.unit}` : ""}
                       </Typography>
                     </dd>
                   </div>
@@ -346,10 +427,15 @@ function LeagueTable({
   pending: boolean;
   items: LeagueItem[];
   emptyText: string;
-  columns: string[];
+  /** `wide` columns leave the phone layout; the table keeps rank, name, score. */
+  columns: { label: string; wide?: boolean }[];
   rowClassName: (item: LeagueItem) => string;
   renderRow: (item: LeagueItem, index: number) => React.ReactNode;
 }) {
+  // Five rows to start — the podium and a little context — the rest on request.
+  const [expanded, setExpanded] = useState(false);
+  const shown = expanded ? items : items.slice(0, PREVIEW_ROWS);
+
   return (
     <Card>
       <CardHeader>
@@ -366,26 +452,62 @@ function LeagueTable({
             {emptyText}
           </Typography>
         ) : (
-          <div className="overflow-x-auto overflow-y-hidden">
-            <table className="w-full min-w-[40rem] text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground">
-                  {columns.map((column, index) => (
-                    <th key={index} className="p-3 text-start font-medium">
-                      {column}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="[font-variant-numeric:tabular-nums]">
-                {items.map((item, index) => (
-                  <tr key={item.id} className={cn("border-b last:border-b-0", rowClassName(item))}>
-                    {renderRow(item, index)}
+          <>
+            <div className="overflow-x-auto overflow-y-hidden">
+              <table className="w-full text-sm sm:min-w-[40rem]">
+                <thead>
+                  <tr className="border-b text-muted-foreground">
+                    {columns.map((column, index) => (
+                      <th
+                        key={index}
+                        className={cn(
+                          "p-3 text-start font-medium",
+                          column.wide && "hidden sm:table-cell",
+                        )}
+                      >
+                        {column.label}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="[font-variant-numeric:tabular-nums]">
+                  {shown.map((item, index) => (
+                    <tr
+                      key={item.id}
+                      className={cn(
+                        "border-b last:border-b-0",
+                        rowClassName(item),
+                      )}
+                    >
+                      {renderRow(item, index)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {items.length > PREVIEW_ROWS && (
+              <div className="border-t p-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setExpanded((current) => !current)}
+                  aria-expanded={expanded}
+                >
+                  <ChevronDown
+                    className={cn(
+                      "size-4 transition-transform",
+                      expanded && "rotate-180",
+                    )}
+                  />
+                  {expanded
+                    ? "نمایش کمتر"
+                    : `نمایش همه (${items.length.toLocaleString("fa-IR")} نفر)`}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

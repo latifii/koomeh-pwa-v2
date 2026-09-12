@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   ClipboardList,
@@ -68,9 +69,13 @@ export function CustomersView() {
     [user?.id, access.viewer.isAdmin],
   );
 
-  const [filters, setFilters] = useState<CustomerFilters>(
-    defaultCustomerFilters,
-  );
+  // The dashboard's «عملکرد امروز» opens this page already on today's
+  // follow-ups, as the old card did.
+  const search = useSearchParams();
+  const [filters, setFilters] = useState<CustomerFilters>(() => ({
+    ...defaultCustomerFilters,
+    today: search.get("today") === "1" ? "1" : "",
+  }));
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
 

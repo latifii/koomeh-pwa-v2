@@ -7,7 +7,12 @@ export const dashboardSummaryResponseSchema = z.object({
     estates: z.number().int().nonnegative().default(0),
     customers: z.number().int().nonnegative().default(0),
     estates_today: z.number().int().nonnegative().default(0),
-    estates_needing_update: z.number().int().nonnegative().nullable().optional(),
+    estates_needing_update: z
+      .number()
+      .int()
+      .nonnegative()
+      .nullable()
+      .optional(),
     scope: z.string().default("own"),
   }),
 });
