@@ -403,7 +403,7 @@ function TodayCustomersCard({
           size="sm"
           className="text-brand"
           nativeButton={false}
-          render={<Link href={`${routes.panel.requests}?today=1`} />}
+          render={<Link href={`${routes.panel.requests}?today=1&agent=me`} />}
         >
           همه
           <ChevronLeft data-icon="inline-end" />

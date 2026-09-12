@@ -58,16 +58,10 @@ export type CustomerListParams = {
  * All strings, so one object feeds the form, the chips and the URL; a tick is
  * `"1"` or `""`, a multi-select is comma-separated ids.
  *
- * `agent` has one extra value: `AGENT_DEFAULT`, meaning «whatever this role
- * saw on the old page» — an agent's own customers, everyone's for an
- * administrator. It is resolved against the session when the request is
- * built, never stored as an id, so a page opened before the session has
- * loaded still lands on the right default.
+ * `agent` is empty for everyone — the list is not scoped until somebody
+ * narrows it — an id for one agent's customers, and `AGENT_NONE` for the
+ * unassigned.
  */
-export const AGENT_DEFAULT = "auto";
-/** Everyone — the old dropdown's «همه مشتری‌ها». */
-export const AGENT_ALL = "all";
-/** The API's «بدون مشاور». */
 export const AGENT_NONE = "-1";
 
 export type CustomerFilters = {
@@ -131,7 +125,7 @@ export const defaultCustomerFilters: CustomerFilters = {
   requestType: "1",
   status: "",
   estateType: "",
-  agent: AGENT_DEFAULT,
+  agent: "",
   code: "",
   name: "",
   mobile: "",

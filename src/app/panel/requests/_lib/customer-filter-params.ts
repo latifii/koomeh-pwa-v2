@@ -1,8 +1,6 @@
-import {
-  AGENT_ALL,
-  AGENT_DEFAULT,
-  type CustomerFilters,
-  type CustomerListParams,
+import type {
+  CustomerFilters,
+  CustomerListParams,
 } from "@/app/panel/requests/_types/customers.types";
 import { toEnglishDigits } from "@/lib/persian-number";
 
@@ -43,22 +41,13 @@ const on = (value: string): true | undefined =>
 const text = (value: string): string | undefined => value.trim() || undefined;
 
 /**
- * Who the list is about, once the session is known.
- *
- * The old page's «مشاور» dropdown opened on «مشتری‌های خودم» for an agent and
- * on «همه مشتری‌ها» for an administrator, and that first option is why the
- * two roles saw different lists from the same URL. The same rule, in one
- * place: `AGENT_DEFAULT` is the agent's own id unless the viewer is an
- * administrator, an empty string is everyone, `-1` is the unassigned.
+ * Who the list is about: nobody in particular until the «مشاور» filter is
+ * set, one agent's id when it is, `-1` for the unassigned. The old page
+ * opened an agent on their own customers; this one opens everybody on the
+ * whole list and leaves the narrowing to the filter, so what an agent and an
+ * administrator see from the same URL is the same.
  */
-export function resolveAgent(
-  agent: string,
-  viewer: { id?: number; isAdmin: boolean },
-): number | undefined {
-  if (agent === AGENT_DEFAULT) {
-    return viewer.isAdmin ? undefined : viewer.id;
-  }
-  if (agent === AGENT_ALL) return undefined;
+export function resolveAgent(agent: string): number | undefined {
   return num(agent);
 }
 
@@ -70,7 +59,6 @@ export function resolveAgent(
 export function customerFilterParams(
   filters: CustomerFilters,
   query: string,
-  viewer: { id?: number; isAdmin: boolean },
 ): Omit<CustomerListParams, "page"> {
   const cleanQuery = digits(query);
   const asMobile = /^0?9\d{9}$/.test(cleanQuery) ? cleanQuery : undefined;
@@ -84,7 +72,7 @@ export function customerFilterParams(
     estate_type: filters.estateType || undefined,
     mobile: asMobile ?? text(digits(filters.mobile)),
     name: asMobile ? text(filters.name) : (text(query) ?? text(filters.name)),
-    user_id: resolveAgent(filters.agent, viewer),
+    user_id: resolveAgent(filters.agent),
     status: num(filters.status),
     label: num(filters.label),
     district_id: filters.districtIds || undefined,

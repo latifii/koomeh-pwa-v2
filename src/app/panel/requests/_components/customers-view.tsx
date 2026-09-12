@@ -30,8 +30,6 @@ import {
 } from "@/app/panel/requests/_lib/customer-filter-params";
 import type { CustomerRow } from "@/app/panel/requests/_mappers/customers.mapper";
 import {
-  AGENT_ALL,
-  AGENT_DEFAULT,
   AGENT_NONE,
   defaultCustomerFilters,
   type CustomerFilters,
@@ -54,12 +52,10 @@ import { CustomerFiltersDrawer } from "./customer-filters-drawer";
  * The customer list — the old /customer, filter for filter.
  *
  * The API does not scope this list by role: the same request answers an
- * agent and an administrator with the same rows. What made the two roles see
- * different lists on the old page was its «مشاور» dropdown, which opened on
- * «مشتری‌های خودم» for an agent and on «همه مشتری‌ها» for an administrator.
- * That rule lives in `resolveAgent`: the default filter is the viewer's own
- * customers unless they administer, and either can widen it from the same
- * dropdown the old page had — own, unassigned, everyone, or a colleague.
+ * agent and an administrator with the same rows, and the page opens both on
+ * all of them. What differs is the «مشاور» filter: an agent has one entry,
+ * «مشتری‌های خودم», and nothing else to pick; an administrator has the old
+ * page's whole dropdown — own, the unassigned, and every agent by name.
  */
 export function CustomersView() {
   const user = useSessionStore((state) => state.session?.user);
@@ -70,12 +66,17 @@ export function CustomersView() {
   );
 
   // The dashboard's «عملکرد امروز» opens this page already on today's
-  // follow-ups, as the old card did.
+  // follow-ups, as the old card did — and on the viewer's own, since that
+  // card is; `agent=me` is resolved here because the link cannot know the id.
   const search = useSearchParams();
-  const [filters, setFilters] = useState<CustomerFilters>(() => ({
-    ...defaultCustomerFilters,
-    today: search.get("today") === "1" ? "1" : "",
-  }));
+  const [filters, setFilters] = useState<CustomerFilters>(() => {
+    const agent = search.get("agent") ?? "";
+    return {
+      ...defaultCustomerFilters,
+      today: search.get("today") === "1" ? "1" : "",
+      agent: agent === "me" ? String(user?.id ?? "") : agent,
+    };
+  });
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -90,8 +91,8 @@ export function CustomersView() {
   const options = useQuery(customerFiltersQueryOptions());
 
   const params = useMemo(
-    () => customerFilterParams(filters, debouncedQuery, viewer),
-    [debouncedQuery, filters, viewer],
+    () => customerFilterParams(filters, debouncedQuery),
+    [debouncedQuery, filters],
   );
 
   // Not until the session is read: the default scope depends on who asks.
@@ -113,36 +114,21 @@ export function CustomersView() {
   );
 
   /**
-   * The old dropdown, entry for entry: own customers first, then «بدون
-   * مشاور», then every colleague. «همه مشتری‌ها» is the cleared state. The
-   * default entry is labelled for what it resolves to, so an administrator
-   * is not told they are looking at «مشتری‌های خودم» when they are not.
+   * An agent gets one entry — their own customers — and no list of
+   * colleagues to browse. An administrator gets the old dropdown, entry for
+   * entry: own first, then «بدون مشاور», then every agent by name. Empty is
+   * everyone for both.
    */
   const agentOptions = useMemo(() => {
     const own = viewer.id
       ? [{ value: String(viewer.id), title: "مشتری‌های خودم" }]
       : [];
+    if (!viewer.isAdmin) return own;
     const colleagues = (options.data?.agents ?? []).filter(
       (agent) => agent.value !== String(viewer.id),
     );
-    return [
-      ...own,
-      { value: AGENT_NONE, title: "بدون مشاور" },
-      { value: AGENT_ALL, title: "همه مشتری‌ها" },
-      ...colleagues,
-    ];
-  }, [options.data, viewer.id]);
-
-  const agentChipOptions = useMemo(
-    () => [
-      ...agentOptions,
-      {
-        value: AGENT_DEFAULT,
-        title: viewer.isAdmin ? "همه مشتری‌ها" : "مشتری‌های خودم",
-      },
-    ],
-    [agentOptions, viewer.isAdmin],
-  );
+    return [...own, { value: AGENT_NONE, title: "بدون مشاور" }, ...colleagues];
+  }, [options.data, viewer.id, viewer.isAdmin]);
 
   const advancedCount = countAdvancedCustomerFilters(
     filters,
@@ -161,13 +147,7 @@ export function CustomersView() {
 
   const chips = filterChips(
     filters,
-    // The scope chip is shown even at its default for an agent: «مشتری‌های
-    // خودم» is a real narrowing of the list, and removing it is how the old
-    // page's «همه مشتری‌ها» is reached.
-    {
-      ...defaultCustomerFilters,
-      agent: viewer.isAdmin ? AGENT_DEFAULT : AGENT_ALL,
-    },
+    defaultCustomerFilters,
     {
       requestType: {
         label: "نوع تقاضا",
@@ -178,7 +158,7 @@ export function CustomersView() {
         label: "نوع ملک",
         options: options.data?.estate_types ?? [],
       },
-      agent: { label: "مشاور", options: agentChipOptions },
+      agent: { label: "مشاور", options: agentOptions },
       code: { label: "کد" },
       name: { label: "نام" },
       mobile: { label: "همراه" },
@@ -282,15 +262,24 @@ export function CustomersView() {
           onChange={(value) => set({ estateType: value })}
           options={options.data?.estate_types ?? []}
         />
-        {/* The old dropdown. An agent opens on their own customers, an
-            administrator on everyone's; both can pick anything below. */}
-        <FilterCombobox
-          label={viewer.isAdmin ? "همه مشتری‌ها" : "مشتری‌های خودم"}
-          value={filters.agent === AGENT_DEFAULT ? "" : filters.agent}
-          onChange={(value) => set({ agent: value || AGENT_DEFAULT })}
-          options={agentOptions}
-          emptyText="مشاوری با این نام نیست"
-        />
+        {/* One entry for an agent, so a plain select; the whole roster for
+            an administrator, so one they can type a name into. */}
+        {viewer.isAdmin ? (
+          <FilterCombobox
+            label="همه مشتری‌ها"
+            value={filters.agent}
+            onChange={(value) => set({ agent: value })}
+            options={agentOptions}
+            emptyText="مشاوری با این نام نیست"
+          />
+        ) : (
+          <FilterSelect
+            label="همه مشتری‌ها"
+            value={filters.agent}
+            onChange={(value) => set({ agent: value })}
+            options={agentOptions}
+          />
+        )}
         <FilterSelect
           label="مرتب‌سازی: برچسب"
           value={filters.order}
@@ -349,8 +338,8 @@ export function CustomersView() {
           icon={ClipboardList}
           title="مشتری‌ای پیدا نشد"
           description={
-            filters.agent === AGENT_DEFAULT && !viewer.isAdmin
-              ? "این فهرست فقط مشتریان خودتان است؛ برای دیدن همه، فیلتر «مشاور» را بردارید."
+            filters.agent && filters.agent === String(viewer.id)
+              ? "این فهرست فقط مشتریان خودتان است؛ برای دیدن همه، فیلتر «مشتری‌های خودم» را بردارید."
               : "فیلترها را تغییر دهید یا مشتری تازه‌ای ثبت کنید."
           }
         />

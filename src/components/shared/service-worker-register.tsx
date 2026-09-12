@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import {
   fetchLiveVersion,
   SW_MESSAGES,
-  SW_URL,
   SW_VERSION,
   swUrlFor,
 } from "@/lib/service-worker";
@@ -46,6 +45,14 @@ const TOAST_ID = "sw-update";
  * of the reload they had just asked for, and accepting it reloaded a second
  * time. Now the check runs on a timer and when a tab comes back into view, so
  * the offer arrives while reading rather than in the middle of something.
+ *
+ * The URL registered is always the *live* build's, never this page's own
+ * stamp. The two differ whenever a page outlives a deploy — and a page that
+ * registers its own, older URL over a newer active worker installs the old
+ * worker as if it were an update, prompts for it, reloads, and does the same
+ * again: the «نسخه جدید» toast on a loop, which is what this looked like.
+ * With the live URL the page and the server agree after every reload, and a
+ * new worker only ever installs when there is genuinely a new build.
  *
  * Registration is skipped in development: a worker that survives HMR serves
  * stale bundles and makes every subsequent change look like it did not apply.
@@ -88,19 +95,30 @@ export function ServiceWorkerRegister() {
       });
     };
 
+    /** The build stamp a worker was registered under, from its script URL. */
+    const versionOf = (worker: ServiceWorker | null | undefined) => {
+      if (!worker) return null;
+      try {
+        return new URL(worker.scriptURL).searchParams.get("v");
+      } catch {
+        return null;
+      }
+    };
+
     const watch = (registration: ServiceWorkerRegistration) => {
       /*
        * Ask the server which build is live, and register that one.
        *
        * `registration.update()` alone cannot find a deploy here: it re-fetches
-       * the script URL this page registered, and that URL carries this page's
-       * own build stamp — so an open tab was asking about its own version and
-       * always hearing no. Registering the *live* version's URL is what makes
-       * the browser install the new worker, and a different script URL is
-       * exactly the signal it acts on.
+       * the script URL already registered, and a deploy changes the URL, not
+       * the bytes behind the old one — so an open tab was asking about its own
+       * version and always hearing no. Registering the *live* version's URL
+       * is what makes the browser install the new worker.
        *
-       * The plain `update()` still runs when the versions agree, so a change
-       * to `sw.js` itself is not missed either.
+       * Compared against the worker that is actually installed, not against
+       * this page's stamp: once the new worker is in place the page is still
+       * the old build, and re-registering on that difference would install
+       * nothing new and prompt again.
        */
       const check = async () => {
         const now = Date.now();
@@ -108,9 +126,14 @@ export function ServiceWorkerRegister() {
         lastCheck = now;
 
         const live = await fetchLiveVersion();
+        const installed = versionOf(
+          registration.waiting ??
+            registration.installing ??
+            registration.active,
+        );
 
         // A failed check is a network problem, not something to report.
-        if (live && live !== SW_VERSION) {
+        if (live && live !== installed) {
           await navigator.serviceWorker
             .register(swUrlFor(live), { scope: "/" })
             .catch(() => undefined);
@@ -159,10 +182,16 @@ export function ServiceWorkerRegister() {
     };
 
     // Registration competes with everything the page needs to become
-    // interactive, and nothing here is needed for the first paint.
+    // interactive, and nothing here is needed for the first paint. The live
+    // build's URL, falling back to this page's own only when the server
+    // could not be asked.
     const start = () => {
-      navigator.serviceWorker
-        .register(SW_URL, { scope: "/" })
+      fetchLiveVersion()
+        .then((live) =>
+          navigator.serviceWorker.register(swUrlFor(live ?? SW_VERSION), {
+            scope: "/",
+          }),
+        )
         .then((registration) => {
           if (!cancelled) watch(registration);
         })

@@ -1,10 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Home, Pin, PinOff, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
-import { clearFavoriteEstates, pinFavoriteEstate } from "@/app/_favorites/_api/favorites.service";
+import {
+  clearFavoriteEstates,
+  pinFavoriteEstate,
+} from "@/app/_favorites/_api/favorites.service";
 import { favoritesQueryKeys } from "@/app/_favorites/_constants/favorites-query-keys";
 import {
   favoriteAgentsQueryOptions,
@@ -101,7 +105,10 @@ export function FavoritesView() {
             title="هنوز ملکی نشان نکرده‌اید"
             description="با دکمه‌ی «نشان کردن» در صفحه‌ی هر ملک، آن را برای مراجعه بعدی ذخیره کنید."
             action={
-              <Button nativeButton={false} render={<a href={routes.properties()} />}>
+              <Button
+                nativeButton={false}
+                render={<Link href={routes.properties()} />}
+              >
                 جستجوی ملک
               </Button>
             }
@@ -139,14 +146,21 @@ export function FavoritesView() {
                   actions={
                     <button
                       type="button"
-                      aria-label={estate.pinned ? "برداشتن سنجاق" : "سنجاق کردن"}
+                      aria-label={
+                        estate.pinned ? "برداشتن سنجاق" : "سنجاق کردن"
+                      }
                       aria-pressed={estate.pinned}
-                      title={estate.pinned ? "برداشتن سنجاق" : "سنجاق کردن بالای فهرست"}
+                      title={
+                        estate.pinned
+                          ? "برداشتن سنجاق"
+                          : "سنجاق کردن بالای فهرست"
+                      }
                       onClick={() => pin.mutate(estate.id)}
                       disabled={pin.isPending}
                       className={cn(
                         cardOverlayButton,
-                        estate.pinned && "border-white/60 bg-white/85 text-brand hover:bg-white",
+                        estate.pinned &&
+                          "border-white/60 bg-white/85 text-brand hover:bg-white",
                       )}
                     >
                       {estate.pinned ? (
@@ -178,7 +192,10 @@ export function FavoritesView() {
             title="هنوز کارشناسی نشان نکرده‌اید"
             description="با دکمه‌ی قلب روی کارت هر کارشناس، او را نشان کنید تا سریع‌تر پیدایش کنید."
             action={
-              <Button nativeButton={false} render={<a href={routes.agents} />}>
+              <Button
+                nativeButton={false}
+                render={<Link href={routes.agents} />}
+              >
                 فهرست کارشناسان
               </Button>
             }
