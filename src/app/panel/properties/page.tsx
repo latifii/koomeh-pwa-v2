@@ -8,14 +8,14 @@ import { routes } from "@/lib/routes";
 
 import { PanelPropertiesView } from "./_components/panel-properties-view";
 
-export const metadata: Metadata = { title: "املاک من | پنل کومه" };
+export const metadata: Metadata = { title: "لیست املاک | پنل کومه" };
 
 export default function PanelPropertiesPage() {
   return (
     <div>
       <PanelPageHeader
-        title="املاک من"
-        description="وضعیت انتشار و عملکرد فایل‌های ثبت‌شده را مدیریت کنید."
+        title="لیست املاک"
+        description="فایل‌ها را با همه‌ی فیلترهای لیست املاک پیدا کنید و وضعیت انتشارشان را مدیریت کنید."
         action={
           <Button nativeButton={false} render={<Link href={routes.panel.newProperty} />}>
             <Plus />

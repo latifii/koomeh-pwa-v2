@@ -3,7 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
-import { Building2, LoaderCircle, Map, Rows3, RotateCcw } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import {
+  Building2,
+  LoaderCircle,
+  Map,
+  Rows3,
+  RotateCcw,
+  SlidersHorizontal,
+} from "lucide-react";
 
 import {
   actionCopy,
@@ -15,12 +23,19 @@ import {
   panelEstatesInfiniteQueryOptions,
 } from "@/app/panel/properties/_queries/panel-estates.query";
 import {
+  countAdvancedFilters,
+  estateFilterParams,
+  PANEL_ESTATE_PAGE_SIZES,
+  PANEL_ESTATE_SORT_OPTIONS,
+} from "@/app/panel/properties/_lib/estate-filter-params";
+import {
   defaultPanelEstateFilters,
   type PanelEstateFilters,
 } from "@/app/panel/properties/_types/panel-estates.types";
 import { EmptyState } from "@/components/shared/empty-state";
 import { filterChips, PanelFilterBar } from "@/components/shared/filter-bar";
 import { FilterCombobox, FilterSelect } from "@/components/shared/form";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,7 +49,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
+import { toJalaliDisplay } from "@/lib/jalali-date";
 
+import { EstateFiltersDrawer } from "./estate-filters-drawer";
 import { PanelPropertyRow } from "./panel-property-row";
 
 /**
@@ -50,11 +67,26 @@ const PanelEstatesMap = dynamic(
   },
 );
 
+/**
+ * A link may arrive with a filter already chosen — the dashboard's «املاک
+ * منقضی» card opens this page with `?isexpire=1`, as the old one did.
+ */
+function initialFilters(search: URLSearchParams): PanelEstateFilters {
+  return {
+    ...defaultPanelEstateFilters,
+    isExpire: search.get("isexpire") === "1" ? "1" : "",
+    confirmation: search.get("confirmation") ?? "",
+    expert: search.get("user_id") ?? "",
+  };
+}
+
 export function PanelPropertiesView() {
-  const [filters, setFilters] = useState<PanelEstateFilters>(
-    defaultPanelEstateFilters,
+  const search = useSearchParams();
+  const [filters, setFilters] = useState<PanelEstateFilters>(() =>
+    initialFilters(search),
   );
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const timeout = window.setTimeout(
@@ -66,25 +98,10 @@ export function PanelPropertiesView() {
 
   const options = useQuery(panelEstateFiltersQueryOptions());
 
-  const params = useMemo(() => {
-    // A numeric search is almost always a listing code, not a title.
-    const asCode = /^\d{3,}$/.test(debouncedQuery)
-      ? Number(debouncedQuery)
-      : undefined;
-
-    return {
-      id: asCode,
-      title: asCode ? undefined : debouncedQuery || undefined,
-      confirmation: filters.confirmation || undefined,
-      type: filters.dealType ? (Number(filters.dealType) as 1 | 2) : undefined,
-      estateTypes: filters.estateType ? Number(filters.estateType) : undefined,
-      visibility: filters.visibility
-        ? (Number(filters.visibility) as 0 | 1)
-        : undefined,
-      user_id: filters.expert ? Number(filters.expert) : undefined,
-      per_page: 12,
-    };
-  }, [debouncedQuery, filters]);
+  const params = useMemo(
+    () => estateFilterParams(filters, debouncedQuery),
+    [debouncedQuery, filters],
+  );
 
   const [view, setView] = useState<"list" | "map">("list");
   const list = useInfiniteQuery(panelEstatesInfiniteQueryOptions(params));
@@ -93,7 +110,9 @@ export function PanelPropertiesView() {
 
   const rows = list.data?.pages.flatMap((page) => page.items) ?? [];
   const total = list.data?.pages[0]?.total ?? 0;
-  const scope = list.data?.pages[0]?.scope;
+  const scope = list.data?.pages[0]?.scope ?? options.data?.scope;
+  const isStaff = scope ? scope.role !== "user" : false;
+  const advancedCount = countAdvancedFilters(filters, defaultPanelEstateFilters);
   const dialog = status.pending ? actionCopy[status.pending.action] : undefined;
 
   const set = (patch: Partial<PanelEstateFilters>) =>
@@ -104,17 +123,77 @@ export function PanelPropertiesView() {
       value !== defaultPanelEstateFilters[key as keyof PanelEstateFilters],
   );
 
+  const money = (value: string) =>
+    Number(value) ? `${Number(value).toLocaleString("fa-IR")} تومان` : value;
+  const yes = () => "بله";
+  const count = (unit: string) => (value: string) =>
+    `${value.split(",").length.toLocaleString("fa-IR")} ${unit}`;
+
   const chips = filterChips(
     filters,
     defaultPanelEstateFilters,
     {
-      confirmation: {
-        label: "وضعیت",
-        options: options.data?.confirmation_statuses ?? [],
-      },
+      confirmation: { label: "وضعیت", options: options.data?.confirmation_statuses ?? [] },
       dealType: { label: "معامله", options: options.data?.deal_types ?? [] },
       estateType: { label: "نوع", options: options.data?.estate_types ?? [] },
       expert: { label: "مشاور", options: options.data?.experts ?? [] },
+      expertType: { label: "نوع مشاور", options: options.data?.expert_types ?? [] },
+      visibility: { label: "نمایش", options: [{ value: "1", title: "قابل نمایش" }, { value: "0", title: "مخفی" }] },
+      divar: { label: "منبع", options: [{ value: "1", title: "دیوار" }, { value: "2", title: "غیر دیوار" }] },
+      ownerName: { label: "مالک" },
+      ownerPhone: { label: "موبایل مالک" },
+      buildingName: { label: "مجتمع" },
+      cityId: { label: "شهر" },
+      areaId: { label: "منطقه" },
+      districtIds: { label: "محله", format: count("محله") },
+      priceMin: { label: "مبلغ از", format: money },
+      priceMax: { label: "مبلغ تا", format: money },
+      pricePerMeterMin: { label: "متری از", format: money },
+      pricePerMeterMax: { label: "متری تا", format: money },
+      mortgageMin: { label: "رهن از", format: money },
+      mortgageMax: { label: "رهن تا", format: money },
+      rentMin: { label: "اجاره از", format: money },
+      rentMax: { label: "اجاره تا", format: money },
+      areaMin: { label: "مساحت از" },
+      areaMax: { label: "مساحت تا" },
+      builtAreaMin: { label: "زیربنا از" },
+      builtAreaMax: { label: "زیربنا تا" },
+      streetWidth: { label: "عرض گذر" },
+      buildDensity: { label: "تراکم" },
+      builtYearMin: { label: "سن بنا از" },
+      builtYearMax: { label: "سن بنا تا" },
+      roomCount: { label: "اتاق" },
+      floorCount: { label: "طبقات بیش از" },
+      floorMin: { label: "طبقه از" },
+      floorMax: { label: "طبقه تا" },
+      unitInFloor: { label: "واحد در طبقه" },
+      unitInComplex: { label: "واحد در مجتمع" },
+      floorStart: { label: "شروع طبقات" },
+      usageType: { label: "کاربری" },
+      documentType: { label: "سند" },
+      buildLicense: { label: "پروانه" },
+      positionType: { label: "موقعیت" },
+      geography: { label: "جهت" },
+      facilities: { label: "امکانات", format: count("مورد") },
+      conditions: { label: "شرایط", format: count("مورد") },
+      createFrom: { label: "ثبت از", format: toJalaliDisplay },
+      createTo: { label: "ثبت تا", format: toJalaliDisplay },
+      showFrom: { label: "انتشار از", format: toJalaliDisplay },
+      showTo: { label: "انتشار تا", format: toJalaliDisplay },
+      deliveryFrom: { label: "تحویل از", format: toJalaliDisplay },
+      deliveryTo: { label: "تحویل تا", format: toJalaliDisplay },
+      photo: { label: "عکس‌دار", format: yes },
+      video: { label: "فیلم‌دار", format: yes },
+      vr: { label: "تور مجازی", format: yes },
+      urgent: { label: "ویژه", format: yes },
+      keynot: { label: "کلید نخورده", format: yes },
+      oneBuilding: { label: "فروش یک‌جا", format: yes },
+      separateVilla: { label: "ویلای مجزا", format: yes },
+      exchange: { label: "معاوضه", format: yes },
+      existingDocument: { label: "سند موجود", format: yes },
+      favorite: { label: "نشان‌شده‌ها", format: yes },
+      myExpert: { label: "حوزه‌ی کاری من", format: yes },
+      isExpire: { label: "منقضی", format: yes },
     },
     (key, value) => set({ [key]: value }),
   );
@@ -137,18 +216,29 @@ export function PanelPropertiesView() {
         isFiltered={isFiltered}
         onClear={() => setFilters(defaultPanelEstateFilters)}
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setView(view === "list" ? "map" : "list")}
-          >
-            {view === "list" ? (
-              <Map data-icon="inline-start" />
-            ) : (
-              <Rows3 data-icon="inline-start" />
-            )}
-            {view === "list" ? "نقشه" : "فهرست"}
-          </Button>
+          <span className="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" size="sm" onClick={() => setDrawerOpen(true)}>
+              <SlidersHorizontal data-icon="inline-start" />
+              فیلترهای بیشتر
+              {advancedCount > 0 && (
+                <Badge variant="outline" className="bg-background tabular-nums">
+                  {advancedCount.toLocaleString("fa-IR")}
+                </Badge>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setView(view === "list" ? "map" : "list")}
+            >
+              {view === "list" ? (
+                <Map data-icon="inline-start" />
+              ) : (
+                <Rows3 data-icon="inline-start" />
+              )}
+              {view === "list" ? "نقشه" : "فهرست"}
+            </Button>
+          </span>
         }
       >
         <FilterSelect
@@ -179,7 +269,48 @@ export function PanelPropertiesView() {
             emptyText="مشاوری با این نام نیست"
           />
         )}
+        {/* Sorting is the API's to allow — only staff had it on the old page. */}
+        {scope?.can_sort && (
+          <FilterSelect
+            label="مرتب‌سازی: تاریخ انتشار"
+            value={filters.order}
+            onChange={(value) =>
+              set({ order: value, orderBy: value ? filters.orderBy || "desc" : "" })
+            }
+            options={[...PANEL_ESTATE_SORT_OPTIONS]}
+          />
+        )}
+        {scope?.can_sort && filters.order && (
+          <FilterSelect
+            label="نزولی"
+            value={filters.orderBy}
+            onChange={(value) => set({ orderBy: value })}
+            options={[
+              { value: "desc", title: "نزولی" },
+              { value: "asc", title: "صعودی" },
+            ]}
+          />
+        )}
+        <FilterSelect
+          label="تعداد نمایش: ۱۲"
+          value={filters.perPage}
+          onChange={(value) => set({ perPage: value })}
+          options={PANEL_ESTATE_PAGE_SIZES.map((size) => ({
+            value: size,
+            title: `${Number(size).toLocaleString("fa-IR")} در صفحه`,
+          }))}
+        />
       </PanelFilterBar>
+
+      <EstateFiltersDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        filters={filters}
+        options={options.data}
+        canFilterDates={scope?.can_filter_dates ?? false}
+        isStaff={isStaff}
+        onApply={setFilters}
+      />
 
       {view === "map" ? (
         <div className="space-y-2">

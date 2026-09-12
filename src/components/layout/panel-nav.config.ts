@@ -126,7 +126,7 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
     items: [
       {
         href: routes.panel.properties,
-        label: "ملک‌های من",
+        label: "لیست املاک",
         icon: Building2,
         audience: "member",
       },

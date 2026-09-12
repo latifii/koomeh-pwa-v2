@@ -73,7 +73,8 @@ export function DashboardView() {
       label: "املاک منقضی",
       value: summary.data?.estates_needing_update ?? undefined,
       icon: RefreshCw,
-      href: routes.panel.properties,
+      // Opens the list already filtered, as the old card did.
+      href: `${routes.panel.properties}?isexpire=1`,
     },
   ];
 

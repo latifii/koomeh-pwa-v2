@@ -143,6 +143,8 @@ export const panelEstateFiltersResponseSchema = z.object({
       .object({
         role: z.string(),
         own_only: z.boolean().default(true),
+        can_sort: z.boolean().default(false),
+        can_filter_dates: z.boolean().default(false),
       })
       .nullable()
       .optional(),
