@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   ClipboardList,
+  ClipboardPen,
   ContactRound,
   FileClock,
   FileSignature,
@@ -223,6 +224,14 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         label: "آمار مشاوران",
         icon: Trophy,
         audience: "staff",
+      },
+      // The disciplinary log behind those stats: delays, dress code, the
+      // manager's own points. Administration, not the agent's own work.
+      {
+        href: routes.panel.userOperations,
+        label: "عملکرد کارشناسان",
+        icon: ClipboardPen,
+        audience: "admin",
       },
     ],
   },

@@ -70,6 +70,9 @@ export const operationFiltersResponseSchema = z.object({
     branches: z.array(optionSchema).default([]),
     estate_operation_types: z.array(optionSchema).default([]),
     customer_operation_types: z.array(optionSchema).default([]),
+    /** For the agents' own log (`/panel/user-operations`) — a third table,
+        same agent and branch dropdowns. Older backends do not send it. */
+    user_operation_types: z.array(optionSchema).default([]),
   }),
 });
 

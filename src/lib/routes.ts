@@ -147,6 +147,7 @@ export const routes = {
     relations: "/panel/relations",
     estateOperations: "/panel/estate-operations",
     customerOperations: "/panel/customer-operations",
+    userOperations: "/panel/user-operations",
     locations: "/panel/locations",
     contracts: "/panel/contracts",
     newContract: "/panel/contracts/new",
