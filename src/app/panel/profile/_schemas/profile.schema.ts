@@ -23,6 +23,11 @@ export const profileResponseSchema = z.object({
     email: z.string().nullable().optional(),
     phone: z.string().nullable().optional(),
     photo: z.string().nullable().optional(),
+    /** The four the old form had. Handles or links — stored as typed. */
+    telegram: z.string().nullable().optional(),
+    whatsapp: z.string().nullable().optional(),
+    instagram: z.string().nullable().optional(),
+    eitaa: z.string().nullable().optional(),
     birthday: z.string().nullable().optional(),
     birthday_jalali: z.string().nullable().optional(),
     /** Held back until an administrator approves it. */
@@ -67,6 +72,15 @@ export const preferencesResponseSchema = z.object({
   }),
 });
 
+export const profilePhotoResponseSchema = z.object({
+  status: z.literal("success"),
+  result: z.object({
+    photo: z.string(),
+    pending: z.boolean().optional(),
+    message: z.string().nullable().optional(),
+  }),
+});
+
 export const changePasswordResponseSchema = z.object({
   status: z.literal("success"),
   result: z.record(z.string(), z.unknown()).nullable().optional(),
@@ -88,13 +102,26 @@ const optionalMobile = z
     message: "شماره همراه باید ۱۱ رقم و با ۰۹ شروع شود",
   });
 
+/** A handle with or without the @, or a full link — either is fine to store. */
+const socialHandle = z
+  .string()
+  .trim()
+  .max(120, "بیش از حد طولانی است")
+  .transform((value) => value.replace(/^@/, ""));
+
 export const profileFormSchema = z.object({
   name: z.string().trim().max(60, "نام طولانی است"),
   last_name: z.string().trim().max(60, "نام خانوادگی طولانی است"),
   email: optionalEmail,
   phone: optionalMobile,
+  /** Jalali `Y/m/d`, or empty. */
+  birthday: z.string().trim(),
   alias: z.string().trim().max(60, "نام مستعار طولانی است"),
   bio: z.string().trim().max(1000, "معرفی نباید بیش از ۱۰۰۰ کاراکتر باشد"),
+  telegram: socialHandle,
+  whatsapp: socialHandle,
+  instagram: socialHandle,
+  eitaa: socialHandle,
 });
 
 /** The API asks for at least six characters and a matching confirmation. */
