@@ -60,11 +60,13 @@ export const customerDuplicateResponseSchema = z.object({
       total: z.number().int().nonnegative().default(0),
       items: z
         .array(
-          z.object({
-            id: z.number().int(),
-            name: z.string().nullable().optional(),
-            request_type_label: z.string().nullable().optional(),
-          }).loose(),
+          z
+            .object({
+              id: z.number().int(),
+              name: z.string().nullable().optional(),
+              request_type_label: z.string().nullable().optional(),
+            })
+            .loose(),
         )
         .default([]),
     })

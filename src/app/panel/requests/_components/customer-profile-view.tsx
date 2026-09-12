@@ -166,7 +166,9 @@ export function CustomerProfileView({ id }: { id: string }) {
     isRent
       ? range(budget?.mortgage_min, budget?.mortgage_max, "تومان ودیعه")
       : range(budget?.price_min, budget?.price_max, "تومان"),
-    isRent ? range(budget?.rent_min, budget?.rent_max, "تومان اجاره") : undefined,
+    isRent
+      ? range(budget?.rent_min, budget?.rent_max, "تومان اجاره")
+      : undefined,
     range(budget?.area_min, budget?.area_max, "متر"),
   ].filter(Boolean) as string[];
 
@@ -186,12 +188,20 @@ export function CustomerProfileView({ id }: { id: string }) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <Typography variant="h3" as="h2" className="text-lg sm:text-xl">
-                {customer.name?.trim() || `تقاضای ${customer.id.toLocaleString("fa-IR")}`}
+                {customer.name?.trim() ||
+                  `تقاضای ${customer.id.toLocaleString("fa-IR")}`}
               </Typography>
-              <Typography variant="small" className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <Typography
+                variant="small"
+                className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1"
+              >
                 <span>کد {customer.id.toLocaleString("fa-IR")}</span>
-                {customer.request_type_label && <span>{customer.request_type_label}</span>}
-                {customer.estate_type_label && <span>{customer.estate_type_label}</span>}
+                {customer.request_type_label && (
+                  <span>{customer.request_type_label}</span>
+                )}
+                {customer.estate_type_label && (
+                  <span>{customer.estate_type_label}</span>
+                )}
                 {customer.dates?.created_at_jalali && (
                   <span>ثبت: {customer.dates.created_at_jalali}</span>
                 )}
@@ -214,21 +224,33 @@ export function CustomerProfileView({ id }: { id: string }) {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {can?.can_view_mobile && customer.mobile && (
-              <InfoTile icon={Phone} label="موبایل" value={customer.mobile} href={`tel:${customer.mobile}`} />
+              <InfoTile
+                icon={Phone}
+                label="موبایل"
+                value={customer.mobile}
+                href={`tel:${customer.mobile}`}
+              />
             )}
             {wants.length > 0 && (
               <InfoTile icon={Banknote} label="بودجه" value={wants[0]} />
             )}
-            {wants[1] && <InfoTile icon={Ruler} label="خواسته" value={wants[1]} />}
+            {wants[1] && (
+              <InfoTile icon={Ruler} label="خواسته" value={wants[1]} />
+            )}
             {customer.agent?.name && (
-              <InfoTile icon={UserRound} label="مشاور پرونده" value={customer.agent.name} />
+              <InfoTile
+                icon={UserRound}
+                label="مشاور پرونده"
+                value={customer.agent.name}
+              />
             )}
           </div>
 
           {customer.districts.length > 0 && (
             <Typography variant="small" className="flex items-start gap-1.5">
               <MapPin className="mt-0.5 size-3.5 shrink-0 text-brand/70" />
-              محله‌های موردنظر: {customer.districts.map((d) => d.name).join("، ")}
+              محله‌های موردنظر:{" "}
+              {customer.districts.map((d) => d.name).join("، ")}
             </Typography>
           )}
 
@@ -332,11 +354,16 @@ export function CustomerProfileView({ id }: { id: string }) {
                     {can?.can_edit && (
                       <div className="flex items-center gap-1.5">
                         <Button
-                          variant={row.relation_status === 2 ? "secondary" : "outline"}
+                          variant={
+                            row.relation_status === 2 ? "secondary" : "outline"
+                          }
                           size="sm"
                           className="flex-1"
                           onClick={() =>
-                            relation.mutate({ id: row.relation_id, kind: "confirm" })
+                            relation.mutate({
+                              id: row.relation_id,
+                              kind: "confirm",
+                            })
                           }
                           disabled={relation.isPending}
                         >
@@ -344,11 +371,16 @@ export function CustomerProfileView({ id }: { id: string }) {
                           تأیید
                         </Button>
                         <Button
-                          variant={row.relation_status === 1 ? "secondary" : "outline"}
+                          variant={
+                            row.relation_status === 1 ? "secondary" : "outline"
+                          }
                           size="sm"
                           className="flex-1"
                           onClick={() =>
-                            relation.mutate({ id: row.relation_id, kind: "reject" })
+                            relation.mutate({
+                              id: row.relation_id,
+                              kind: "reject",
+                            })
                           }
                           disabled={relation.isPending}
                         >
@@ -361,7 +393,10 @@ export function CustomerProfileView({ id }: { id: string }) {
                           aria-label="حذف از پیشنهادها"
                           className="text-destructive"
                           onClick={() =>
-                            relation.mutate({ id: row.relation_id, kind: "remove" })
+                            relation.mutate({
+                              id: row.relation_id,
+                              kind: "remove",
+                            })
                           }
                           disabled={relation.isPending}
                         >
@@ -381,7 +416,10 @@ export function CustomerProfileView({ id }: { id: string }) {
                     disabled={estates.isFetchingNextPage}
                   >
                     {estates.isFetchingNextPage && (
-                      <LoaderCircle data-icon="inline-start" className="animate-spin" />
+                      <LoaderCircle
+                        data-icon="inline-start"
+                        className="animate-spin"
+                      />
                     )}
                     فایل‌های بیشتر
                   </Button>
@@ -413,7 +451,12 @@ export function CustomerProfileView({ id }: { id: string }) {
                   rows={2}
                   placeholder="نتیجه‌ی تماس یا نکته‌ای درباره‌ی این مشتری"
                 />
-                <Button type="submit" size="sm" className="w-fit" disabled={addNote.isPending}>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="w-fit"
+                  disabled={addNote.isPending}
+                >
                   {addNote.isPending && <Spinner data-icon="inline-start" />}
                   ثبت یادداشت
                 </Button>
@@ -431,7 +474,9 @@ export function CustomerProfileView({ id }: { id: string }) {
                     </Typography>
                     <Typography variant="small" className="mt-1 text-[11px]">
                       {note.author?.name}
-                      {note.created_at_jalali ? ` · ${note.created_at_jalali}` : ""}
+                      {note.created_at_jalali
+                        ? ` · ${note.created_at_jalali}`
+                        : ""}
                     </Typography>
                   </li>
                 ))}
@@ -462,13 +507,21 @@ export function CustomerProfileView({ id }: { id: string }) {
                           {item.type_label ?? "عملکرد"}
                         </Typography>
                         {item.comment && (
-                          <Typography variant="small" className="mt-1 leading-6">
+                          <Typography
+                            variant="small"
+                            className="mt-1 leading-6"
+                          >
                             {item.comment}
                           </Typography>
                         )}
-                        <Typography variant="small" className="mt-1 text-[11px]">
+                        <Typography
+                          variant="small"
+                          className="mt-1 text-[11px]"
+                        >
                           {item.agent?.name}
-                          {item.created_at_jalali ? ` · ${item.created_at_jalali}` : ""}
+                          {item.created_at_jalali
+                            ? ` · ${item.created_at_jalali}`
+                            : ""}
                         </Typography>
                       </li>
                     ))}
@@ -535,17 +588,25 @@ function InfoTile({
         <Typography as="span" variant="small" className="block text-[11px]">
           {label}
         </Typography>
-        <Typography as="span" variant="h4" className="block truncate sm:text-sm">
+        <Typography
+          as="span"
+          variant="h4"
+          className="block truncate sm:text-sm"
+        >
           {value}
         </Typography>
       </span>
     </>
   );
 
-  const className = "flex items-center gap-2.5 rounded-lg border bg-card/60 p-2.5";
+  const className =
+    "flex items-center gap-2.5 rounded-lg border bg-card/60 p-2.5";
 
   return href ? (
-    <Link href={href} className={`${className} transition-colors hover:border-brand/30`}>
+    <Link
+      href={href}
+      className={`${className} transition-colors hover:border-brand/30`}
+    >
       {body}
     </Link>
   ) : (

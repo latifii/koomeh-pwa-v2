@@ -15,7 +15,9 @@ export function customersInfiniteQueryOptions(
     queryKey: customersQueryKeys.list(params),
     initialPageParam: 1,
     queryFn: async ({ pageParam, signal }) =>
-      mapCustomersPage(await getCustomers({ ...params, page: pageParam }, signal)),
+      mapCustomersPage(
+        await getCustomers({ ...params, page: pageParam }, signal),
+      ),
     getNextPageParam: (lastPage) =>
       lastPage.has_more ? lastPage.page + 1 : undefined,
   });

@@ -59,25 +59,48 @@ export function CustomerActionsMenu({
   hasAgent: boolean;
   actions: ReturnType<typeof useCustomerActions>;
 }) {
-  const items: { action: CustomerAction; icon: typeof Archive; allowed: boolean }[] =
-    [
-      { action: "assign-to-me", icon: UserPlus, allowed: !hasAgent },
-      { action: "remove-agent", icon: UserMinus, allowed: hasAgent && permissions.can_edit },
-      { action: "ladder", icon: ArrowUpFromLine, allowed: permissions.can_edit },
-      { action: "archive", icon: Archive, allowed: permissions.can_archive },
-      { action: "restore", icon: ArchiveRestore, allowed: permissions.can_restore },
-      { action: "absence", icon: MessageSquareWarning, allowed: permissions.can_edit },
-    ];
+  const items: {
+    action: CustomerAction;
+    icon: typeof Archive;
+    allowed: boolean;
+  }[] = [
+    { action: "assign-to-me", icon: UserPlus, allowed: !hasAgent },
+    {
+      action: "remove-agent",
+      icon: UserMinus,
+      allowed: hasAgent && permissions.can_edit,
+    },
+    { action: "ladder", icon: ArrowUpFromLine, allowed: permissions.can_edit },
+    { action: "archive", icon: Archive, allowed: permissions.can_archive },
+    {
+      action: "restore",
+      icon: ArchiveRestore,
+      allowed: permissions.can_restore,
+    },
+    {
+      action: "absence",
+      icon: MessageSquareWarning,
+      allowed: permissions.can_edit,
+    },
+  ];
 
   const visible = items.filter((item) => item.allowed);
-  const dialog = actions.pending ? customerActionCopy[actions.pending] : undefined;
+  const dialog = actions.pending
+    ? customerActionCopy[actions.pending]
+    : undefined;
 
   return (
     <>
       {(visible.length > 0 || permissions.can_edit) && (
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="outline" size="icon-lg" aria-label="عملیات تقاضا" />}
+            render={
+              <Button
+                variant="outline"
+                size="icon-lg"
+                aria-label="عملیات تقاضا"
+              />
+            }
           >
             <MoreVertical className="size-4" />
           </DropdownMenuTrigger>

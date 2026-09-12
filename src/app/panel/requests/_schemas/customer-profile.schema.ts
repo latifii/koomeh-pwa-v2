@@ -54,7 +54,10 @@ export const customerProfileResponseSchema = z.object({
         z.object({
           key: z.string().optional(),
           label: z.string(),
-          value: z.union([z.string(), z.number(), z.array(z.string())]).nullable().optional(),
+          value: z
+            .union([z.string(), z.number(), z.array(z.string())])
+            .nullable()
+            .optional(),
         }),
       )
       .default([]),
@@ -131,13 +134,15 @@ export const customerOperationsResponseSchema = z.object({
     last_page: z.number().int().nonnegative(),
     items: z
       .array(
-        z.object({
-          id: z.number().int(),
-          type_label: z.string().nullable().optional(),
-          comment: z.string().nullable().optional(),
-          agent: personSchema,
-          created_at_jalali: z.string().nullable().optional(),
-        }).loose(),
+        z
+          .object({
+            id: z.number().int(),
+            type_label: z.string().nullable().optional(),
+            comment: z.string().nullable().optional(),
+            agent: personSchema,
+            created_at_jalali: z.string().nullable().optional(),
+          })
+          .loose(),
       )
       .default([]),
   }),
@@ -150,13 +155,15 @@ export const customerAppointmentsResponseSchema = z.object({
     total: z.number().int().nonnegative(),
     items: z
       .array(
-        z.object({
-          id: z.number().int(),
-          title: z.string().nullable().optional(),
-          at_jalali: z.string().nullable().optional(),
-          location: z.string().nullable().optional(),
-          done: z.boolean().default(false),
-        }).loose(),
+        z
+          .object({
+            id: z.number().int(),
+            title: z.string().nullable().optional(),
+            at_jalali: z.string().nullable().optional(),
+            location: z.string().nullable().optional(),
+            done: z.boolean().default(false),
+          })
+          .loose(),
       )
       .default([]),
   }),

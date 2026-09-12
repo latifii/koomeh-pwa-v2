@@ -14,7 +14,8 @@ const key = (id: string, part: string) =>
 export function customerProfileQueryOptions(id: string) {
   return queryOptions({
     queryKey: key(id, "detail"),
-    queryFn: async ({ signal }) => (await getCustomerProfile(id, signal)).result,
+    queryFn: async ({ signal }) =>
+      (await getCustomerProfile(id, signal)).result,
     staleTime: 60 * 1_000,
   });
 }

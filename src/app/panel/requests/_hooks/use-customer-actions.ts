@@ -30,7 +30,13 @@ export type CustomerAction =
  */
 export const customerActionCopy: Record<
   CustomerAction,
-  { label: string; title: string; body: string; confirm: string; danger?: boolean }
+  {
+    label: string;
+    title: string;
+    body: string;
+    confirm: string;
+    danger?: boolean;
+  }
 > = {
   "assign-to-me": {
     label: "انتقال پرونده به خودم",

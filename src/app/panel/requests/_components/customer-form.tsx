@@ -37,7 +37,6 @@ import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 
-
 const numericLabels: Record<string, string> = {
   max_unit_in_floor: "حداکثر واحد در طبقه",
   max_building_age: "حداکثر سن بنا",
@@ -65,7 +64,8 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
 
   const options = useQuery({
     queryKey: ["customers", "form-options"] as const,
-    queryFn: async ({ signal }) => (await getCustomerFormOptions(signal)).result,
+    queryFn: async ({ signal }) =>
+      (await getCustomerFormOptions(signal)).result,
     staleTime: 30 * 60 * 1_000,
   });
 
@@ -182,10 +182,14 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
         city_id: options.data?.city?.id,
         request_type: Number(values.request_type),
         estate_type: values.estate_type ? Number(values.estate_type) : null,
-        price_min: !isRent && values.price_min ? Number(values.price_min) : null,
-        price_max: !isRent && values.price_max ? Number(values.price_max) : null,
-        mortgage_min: isRent && values.mortgage_min ? Number(values.mortgage_min) : null,
-        mortgage_max: isRent && values.mortgage_max ? Number(values.mortgage_max) : null,
+        price_min:
+          !isRent && values.price_min ? Number(values.price_min) : null,
+        price_max:
+          !isRent && values.price_max ? Number(values.price_max) : null,
+        mortgage_min:
+          isRent && values.mortgage_min ? Number(values.mortgage_min) : null,
+        mortgage_max:
+          isRent && values.mortgage_max ? Number(values.mortgage_max) : null,
         rent_min: isRent && values.rent_min ? Number(values.rent_min) : null,
         rent_max: isRent && values.rent_max ? Number(values.rent_max) : null,
         area_min: values.area_min ? Number(values.area_min) : null,
@@ -195,7 +199,9 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
         ...extras,
       };
 
-      return customerId ? updateCustomer(customerId, body) : createCustomer(body);
+      return customerId
+        ? updateCustomer(customerId, body)
+        : createCustomer(body);
     },
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: customersQueryKeys.all });
@@ -236,7 +242,9 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
   const result = options.data;
   const canAssignAgent = result.permissions?.can_assign_agent ?? false;
   // Several groups have no options on this installation; skip them entirely.
-  const optionFields = result.fields.filter((field) => field.options.length > 0);
+  const optionFields = result.fields.filter(
+    (field) => field.options.length > 0,
+  );
 
   return (
     <form
@@ -252,7 +260,12 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-5">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <FormTextField {...context} name="name" label="نام متقاضی" required />
+            <FormTextField
+              {...context}
+              name="name"
+              label="نام متقاضی"
+              required
+            />
             <FormTextField
               {...context}
               name="mobile"
@@ -329,19 +342,53 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {isRent ? (
               <>
-                <FormMoneyField control={form.control} name="mortgage_min" label="ودیعه از" />
-                <FormMoneyField control={form.control} name="mortgage_max" label="ودیعه تا" />
-                <FormMoneyField control={form.control} name="rent_min" label="اجاره از" />
-                <FormMoneyField control={form.control} name="rent_max" label="اجاره تا" />
+                <FormMoneyField
+                  control={form.control}
+                  name="mortgage_min"
+                  label="ودیعه از"
+                />
+                <FormMoneyField
+                  control={form.control}
+                  name="mortgage_max"
+                  label="ودیعه تا"
+                />
+                <FormMoneyField
+                  control={form.control}
+                  name="rent_min"
+                  label="اجاره از"
+                />
+                <FormMoneyField
+                  control={form.control}
+                  name="rent_max"
+                  label="اجاره تا"
+                />
               </>
             ) : (
               <>
-                <FormMoneyField control={form.control} name="price_min" label="قیمت از" />
-                <FormMoneyField control={form.control} name="price_max" label="قیمت تا" />
+                <FormMoneyField
+                  control={form.control}
+                  name="price_min"
+                  label="قیمت از"
+                />
+                <FormMoneyField
+                  control={form.control}
+                  name="price_max"
+                  label="قیمت تا"
+                />
               </>
             )}
-            <FormTextField {...context} name="area_min" label="متراژ از" inputMode="numeric" />
-            <FormTextField {...context} name="area_max" label="متراژ تا" inputMode="numeric" />
+            <FormTextField
+              {...context}
+              name="area_min"
+              label="متراژ از"
+              inputMode="numeric"
+            />
+            <FormTextField
+              {...context}
+              name="area_max"
+              label="متراژ تا"
+              inputMode="numeric"
+            />
           </div>
 
           <MultiSelectField
@@ -401,7 +448,12 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
               />
             ))}
 
-          <FormTextareaField {...context} name="description" label="توضیحات" rows={3} />
+          <FormTextareaField
+            {...context}
+            name="description"
+            label="توضیحات"
+            rows={3}
+          />
           {!isEdit && (
             <FormTextareaField
               {...context}
@@ -415,7 +467,11 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" size="lg" disabled={mutation.isPending || isNavigating}>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={mutation.isPending || isNavigating}
+        >
           {mutation.isPending || isNavigating ? (
             <Spinner data-icon="inline-start" />
           ) : (

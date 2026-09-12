@@ -17,7 +17,10 @@ export default function RequestsPage() {
         title="لیست مشتریان"
         description="مشتریان ثبت‌شده و فایل‌های متناسب با هر کدام را مدیریت کنید."
         action={
-          <Button nativeButton={false} render={<Link href={routes.panel.newRequest} />}>
+          <Button
+            nativeButton={false}
+            render={<Link href={routes.panel.newRequest} />}
+          >
             <Plus />
             ثبت مشتری
           </Button>

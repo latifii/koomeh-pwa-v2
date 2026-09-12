@@ -45,10 +45,14 @@ export function getCustomerOperations(
   id: string | number,
   signal?: AbortSignal,
 ) {
-  return getValidated(endpoints.operations(id), customerOperationsResponseSchema, {
-    params: { page: 1, per_page: 20 },
-    signal,
-  });
+  return getValidated(
+    endpoints.operations(id),
+    customerOperationsResponseSchema,
+    {
+      params: { page: 1, per_page: 20 },
+      signal,
+    },
+  );
 }
 
 export function getCustomerAppointments(

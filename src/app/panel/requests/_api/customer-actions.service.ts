@@ -46,10 +46,7 @@ export function sendCustomerAbsenceSms(id: string | number) {
 }
 
 /** Links a listing to the case; an existing link is reused, not duplicated. */
-export function suggestEstateToCustomer(
-  id: string | number,
-  estateId: number,
-) {
+export function suggestEstateToCustomer(id: string | number, estateId: number) {
   return postValidated(endpoints.estates(id), customerActionResponseSchema, {
     estate_id: estateId,
   });
