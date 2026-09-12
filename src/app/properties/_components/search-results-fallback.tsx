@@ -12,7 +12,7 @@ const subscribe = () => () => {};
 /**
  * The first page of results as plain, server-rendered links.
  *
- * `/properties` is the site's main search page, and on the server it always
+ * `/c/{city}` is the site's main search page, and on the server it always
  * renders the phone layout — `useMediaQuery` has no viewport to read, so it
  * answers `false`. That layout keeps its results inside a Drawer, which is a
  * portal and never renders on the server, so the HTML reached crawlers with no

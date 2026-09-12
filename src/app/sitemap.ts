@@ -5,7 +5,7 @@ import { getBlogPosts } from "@/app/articles/_api/blog.service";
 import { getBranches } from "@/app/branches/_api/branch.service";
 import { getNeighborhoods } from "@/app/neighborhoods/_api/neighborhoods.service";
 import { searchEstates } from "@/app/properties/_api/estate-search.service";
-import { routes } from "@/lib/routes";
+import { routes, slugFromApiUrl } from "@/lib/routes";
 import { absoluteUrl } from "@/lib/site-url";
 import {
   CONTENT_SHARD,
@@ -90,7 +90,11 @@ async function contentShard(): Promise<Entry[]> {
   return [
     ...staticEntries,
     ...(neighborhoods?.result.items ?? []).map((item) =>
-      entry(routes.neighborhood(item.post_id), 0.7, "monthly"),
+      entry(
+        routes.neighborhood(item.post_id, slugFromApiUrl(item.url)),
+        0.7,
+        "monthly",
+      ),
     ),
     ...(agents?.result.items ?? []).map((item) =>
       entry(routes.agent(item.id), 0.6, "weekly"),
@@ -99,7 +103,12 @@ async function contentShard(): Promise<Entry[]> {
       entry(routes.branch(item.id), 0.5, "monthly"),
     ),
     ...(posts?.result.items ?? []).map((item) =>
-      entry(routes.article(item.id), 0.6, "monthly", item.publish_date),
+      entry(
+        routes.article(item.id, slugFromApiUrl(item.url)),
+        0.6,
+        "monthly",
+        item.publish_date,
+      ),
     ),
   ];
 }
@@ -113,7 +122,9 @@ async function estateShard(shardIndex: number): Promise<Entry[]> {
     if (!response) break;
 
     for (const item of response.result.items) {
-      entries.push(entry(routes.property(item.id), 0.8, "daily"));
+      entries.push(
+        entry(routes.property(item.id, slugFromApiUrl(item.url)), 0.8, "daily"),
+      );
     }
 
     if (!response.result.has_more) break;

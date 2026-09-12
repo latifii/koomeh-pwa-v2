@@ -5,8 +5,8 @@ import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { routes } from "@/lib/routes";
 
-import { AgentsIntro } from "./_components/agents-intro";
-import { AgentsSearchServer } from "./_components/agents-search-server";
+import { AgentsIntro } from "@/app/agents/_components/agents-intro";
+import { AgentsSearchServer } from "@/app/agents/_components/agents-search-server";
 
 /**
  * The default agents catalogue changes infrequently, so render it ahead of

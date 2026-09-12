@@ -30,31 +30,86 @@ function withQuery(pathname: string, query?: RouteQuery): string {
   return search ? `${pathname}?${search}` : pathname;
 }
 
+/**
+ * The city segment of the search page. Only Qom is live; the slug is what the
+ * old site used in `/c/{city}` and the API's own `view_all_url` still points
+ * at it.
+ */
+export const DEFAULT_CITY_SLUG = "qom";
+
+/**
+ * The trailing slug of a legacy URL the API hands back for an entity —
+ * `/v/427845/آپارتمان-انسجام-قم-…` → `آپارتمان-انسجام-قم-…`.
+ *
+ * The old site built those slugs from fields this app does not always have
+ * (estate type label, district, city and title, in that order), so rather than
+ * re-deriving them the API's own value is reused. That keeps every link and
+ * canonical byte-for-byte what search engines already indexed. Absent or
+ * malformed input yields `undefined`, and the id-only path still resolves.
+ */
+export function slugFromApiUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+
+  let pathname = url;
+  try {
+    pathname = new URL(url, "https://koomeh.ir").pathname;
+  } catch {
+    return undefined;
+  }
+
+  const [, , , slug] = pathname.split("/");
+  if (!slug) return undefined;
+
+  try {
+    return decodeURIComponent(slug);
+  } catch {
+    return slug;
+  }
+}
+
+function withSlug(pathname: string, slug?: string): string {
+  return slug ? `${pathname}/${slug}` : pathname;
+}
+
+/**
+ * Public paths follow the site this app replaces, segment for segment, so the
+ * URLs search engines already hold keep resolving to the same content on the
+ * day of the switch. Legacy aliases (`/{id}.html`, `/blog/show/{id}`, `/fa/…`)
+ * are 301s in `next.config.ts`; the panel is new and keeps its own scheme.
+ */
 export const routes = {
   home: "/",
   about: "/about",
-  contact: "/contact",
+  contact: "/contactus",
 
-  properties: (query?: RouteQuery) => withQuery("/properties", query),
-  property: (id: string | number) => `/properties/${id}`,
-  propertyVirtualTour: (id: string | number) =>
-    `/properties/${id}/virtual-tour`,
+  /** `city` in the query selects the path segment; everything else stays a filter. */
+  properties: (query?: RouteQuery) => {
+    const { city, ...filters } = query ?? {};
+    const slug =
+      typeof city === "string" && city ? city : DEFAULT_CITY_SLUG;
+    return withQuery(`/c/${slug}`, filters);
+  },
+  property: (id: string | number, slug?: string) =>
+    withSlug(`/v/${id}`, slug),
+  propertyVirtualTour: (id: string | number) => `/virtual-tour/${id}`,
 
   neighborhoods: "/neighborhoods",
-  neighborhood: (id: string | number) => `/neighborhoods/${id}`,
+  neighborhood: (id: string | number, slug?: string) =>
+    withSlug(`/area/${id}`, slug),
 
-  agents: "/agents",
+  agents: "/agents/search",
   agent: (id: string | number) => `/agents/${id}`,
 
   branches: "/branches",
-  branch: (id: string | number) => `/branches/${id}`,
+  branch: (id: string | number) => `/branch/${id}`,
 
-  articles: "/articles",
-  article: (id: string | number) => `/articles/${id}`,
+  articles: "/blog",
+  article: (id: string | number, slug?: string) =>
+    withSlug(`/blog/${id}`, slug),
 
   tools: {
-    commission: "/tools/commission",
-    propertyAppraisal: "/tools/property-appraisal",
+    commission: "/commission_calculation",
+    propertyAppraisal: "/property_appraisal",
   },
 
   auth: {

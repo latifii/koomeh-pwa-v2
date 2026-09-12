@@ -35,25 +35,25 @@ import { isApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 import { breadcrumbSchema, estateListingSchema } from "@/lib/structured-data";
 
-import { DetailSection } from "../_components/detail-section";
-import { EstateActions } from "../_components/estate-actions";
-import { EstateContactCard } from "../_components/estate-contact-card";
-import { EstateDescription } from "../_components/estate-description";
+import { DetailSection } from "@/app/properties/_components/detail-section";
+import { EstateActions } from "@/app/properties/_components/estate-actions";
+import { EstateContactCard } from "@/app/properties/_components/estate-contact-card";
+import { EstateDescription } from "@/app/properties/_components/estate-description";
 import {
   EstateConditions,
   EstateFeatures,
   EstateHighlights,
   EstateSpecs,
-} from "../_components/estate-facts";
-import { EstateGallery } from "../_components/estate-gallery";
-import { EstateMapPanel } from "../_components/estate-map-panel";
-import { EstateMobileBar } from "../_components/estate-mobile-bar";
-import { EstatePriceCard } from "../_components/estate-price-card";
-import { EstateChatCard } from "../_components/estate-chat-card";
-import { EstateStaffPanel } from "../_components/estate-staff-panel";
-import { EstateTourCard } from "../_components/estate-tour-card";
-import { EstateViewTracker } from "../_components/estate-view-tracker";
-import { SimilarEstatesClient } from "../_components/similar-estates-client";
+} from "@/app/properties/_components/estate-facts";
+import { EstateGallery } from "@/app/properties/_components/estate-gallery";
+import { EstateMapPanel } from "@/app/properties/_components/estate-map-panel";
+import { EstateMobileBar } from "@/app/properties/_components/estate-mobile-bar";
+import { EstatePriceCard } from "@/app/properties/_components/estate-price-card";
+import { EstateChatCard } from "@/app/properties/_components/estate-chat-card";
+import { EstateStaffPanel } from "@/app/properties/_components/estate-staff-panel";
+import { EstateTourCard } from "@/app/properties/_components/estate-tour-card";
+import { EstateViewTracker } from "@/app/properties/_components/estate-view-tracker";
+import { SimilarEstatesClient } from "@/app/properties/_components/similar-estates-client";
 
 export const revalidate = 300;
 
@@ -122,12 +122,12 @@ export async function generateMetadata({
     return {
       title,
       description,
-      alternates: { canonical: routes.property(detail.id) },
+      alternates: { canonical: routes.property(detail.id, detail.slug) },
       openGraph: {
         type: "website",
         title,
         description,
-        url: routes.property(detail.id),
+        url: routes.property(detail.id, detail.slug),
         images: detail.media.coverImage
           ? [{ url: detail.media.coverImage, alt: detail.title }]
           : undefined,
@@ -185,7 +185,7 @@ export default async function EstatePage({
     ...(detail.location.districtName
       ? [{ label: detail.location.districtName, href: districtHref }]
       : []),
-    { label: detail.title, href: routes.property(detail.id) },
+    { label: detail.title, href: routes.property(detail.id, detail.slug) },
   ];
 
   // Derived from the same array, not written out again: Google asks that the
@@ -193,7 +193,7 @@ export default async function EstatePage({
   // are how that stops being true.
   const breadcrumb = crumbs.map((crumb) => ({
     name: crumb.label,
-    path: crumb.href ?? routes.property(detail.id),
+    path: crumb.href ?? routes.property(detail.id, detail.slug),
   }));
 
   return (

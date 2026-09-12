@@ -38,6 +38,8 @@ export type NeighborhoodArea = {
 
 export type NeighborhoodCard = {
   id: string;
+  /** The old site's slug — `/area/{id}/{slug}` — so links match what is indexed. */
+  slug?: string;
   title: string;
   summary?: string;
   image?: string;
@@ -64,6 +66,7 @@ export type NeighborhoodCounts = {
 
 export type NeighborhoodDetail = {
   id: string;
+  slug?: string;
   title: string;
   summary?: string;
   body?: string;

@@ -64,12 +64,12 @@ export async function generateMetadata({
     return {
       title,
       description,
-      alternates: { canonical: routes.neighborhood(area.id) },
+      alternates: { canonical: routes.neighborhood(area.id, area.slug) },
       openGraph: {
         type: "article",
         title,
         description,
-        url: routes.neighborhood(area.id),
+        url: routes.neighborhood(area.id, area.slug),
         images: area.image ? [{ url: area.image, alt: area.title }] : undefined,
       },
       twitter: {
@@ -135,7 +135,7 @@ export default async function AreaPage({
         data={breadcrumbSchema([
           { name: "خانه", path: routes.home },
           { name: "محلات", path: routes.neighborhoods },
-          { name: area.title, path: routes.neighborhood(area.id) },
+          { name: area.title, path: routes.neighborhood(area.id, area.slug) },
         ])}
       />
 

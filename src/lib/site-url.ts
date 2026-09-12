@@ -40,7 +40,7 @@ function resolve(): string {
 
 export const siteUrl = resolve();
 
-/** `absoluteUrl("/properties/1")` → `https://…/properties/1`. */
+/** `absoluteUrl("/v/1")` → `https://…/v/1`. */
 export function absoluteUrl(path: string): string {
   return `${siteUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }

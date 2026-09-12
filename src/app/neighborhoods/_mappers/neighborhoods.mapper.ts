@@ -13,7 +13,7 @@ import type {
   NeighborhoodEstates,
 } from "@/app/neighborhoods/_types/neighborhoods.types";
 import { toAbsoluteMediaUrl } from "@/lib/api/config";
-import { routes } from "@/lib/routes";
+import { routes, slugFromApiUrl } from "@/lib/routes";
 
 /** A post can be tied to a street, a district or a whole city. */
 const kindLabels: Record<string, string> = {
@@ -64,7 +64,7 @@ function mapArea(
 function adjacentHref(areaId: number, url: string | null | undefined): string {
   const postId = url?.match(/\/area\/(\d+)/)?.[1];
   return postId
-    ? routes.neighborhood(postId)
+    ? routes.neighborhood(postId, slugFromApiUrl(url))
     : routes.properties({ districts: areaId });
 }
 
@@ -79,11 +79,11 @@ export function mapNeighborhoodCard(
 ): NeighborhoodCard {
   return {
     id: String(dto.post_id),
+    slug: slugFromApiUrl(dto.url),
     title: dto.title.trim(),
     summary: text(dto.summary),
     image: image(dto.image),
-    // `dto.url` points at the legacy site; guides stay inside the PWA.
-    href: routes.neighborhood(dto.post_id),
+    href: routes.neighborhood(dto.post_id, slugFromApiUrl(dto.url)),
     area: mapArea(dto.area),
     estateCount: dto.area?.estate_count ?? undefined,
     avgApartment: money(dto.area?.avg_apartment),
@@ -109,6 +109,7 @@ export function mapNeighborhoodDetail(
 
   return {
     id: String(post.id),
+    slug: slugFromApiUrl(post.url),
     title: post.title.trim(),
     summary: text(post.summary),
     body: text(post.body),

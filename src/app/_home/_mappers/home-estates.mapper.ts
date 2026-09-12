@@ -6,7 +6,7 @@ import type {
   HomeVirtualTourEstateSection,
 } from "@/app/_home/_types/home-estates.types";
 import type { PropertyType } from "@/data/home";
-import { routes } from "@/lib/routes";
+import { routes, slugFromApiUrl } from "@/lib/routes";
 import { toAbsoluteMediaUrl } from "@/lib/api/config";
 import type {
   LatestRentEstatesResponse,
@@ -54,9 +54,9 @@ export function propertyTypeFrom(
 export function mapHomeEstate(dto: HomeEstateDto) {
   return {
     id: String(dto.id),
-    // `dto.url` points at the legacy site; every card stays inside the PWA and
-    // lands on our own detail route, which serves the same file from the API.
-    href: routes.property(dto.id),
+    // `dto.url` is the old site's `/v/{id}/{slug}` — the same path this app
+    // now serves, slug included, so the link matches what is indexed.
+    href: routes.property(dto.id, slugFromApiUrl(dto.url)),
     title: dto.title,
     district: dto.district?.name ?? "قم",
     locationLabel: dto.location_label,
@@ -88,9 +88,11 @@ function mapQuickFilter(filter: { title: string }): HomeQuickFilter {
   const propertyType = propertyTypeFromFilter(filter.title);
   return {
     label: filter.title,
+    // The old site's query names (`type=2`, `estateTypes=`) — they are what
+    // the indexed `/c/qom?type=…` URLs carry, and the search page reads both.
     href: routes.properties({
-      deal: "rent",
-      propertyTypes: propertyType,
+      type: 2,
+      estateTypes: propertyType,
     }),
   };
 }
@@ -104,7 +106,7 @@ export function mapLatestSaleEstates(
     eyebrow: section.eyebrow,
     title: section.title,
     subtitle: section.subtitle,
-    viewAllHref: routes.properties({ deal: "sale" }),
+    viewAllHref: routes.properties({ type: 1 }),
     total: section.total,
     items: section.items.map(mapHomeEstate),
   };
@@ -119,7 +121,7 @@ export function mapLatestRentEstates(
     eyebrow: section.eyebrow,
     title: section.title,
     subtitle: section.subtitle,
-    viewAllHref: routes.properties({ deal: "rent" }),
+    viewAllHref: routes.properties({ type: 2 }),
     total: section.total,
     quickFilters: section.quick_filters.map(mapQuickFilter),
     items: section.items.map(mapHomeEstate),
@@ -135,7 +137,7 @@ export function mapVirtualTourEstates(
     eyebrow: section.eyebrow,
     title: section.title,
     subtitle: section.subtitle,
-    viewAllHref: routes.properties({ virtualTour: true }),
+    viewAllHref: routes.properties({ vr: 1 }),
     total: section.total,
     items: section.items.map(mapHomeEstate),
   };

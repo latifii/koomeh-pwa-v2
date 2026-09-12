@@ -22,6 +22,8 @@ export type BlogCategory = {
 export type BlogArticleCard = {
   id: string;
   numericId: number;
+  /** The old site's slug — `/blog/{id}/{slug}` — so links match what is indexed. */
+  slug?: string;
   title: string;
   excerpt: string;
   image?: string;

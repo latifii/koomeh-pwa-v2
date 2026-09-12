@@ -146,6 +146,8 @@ export type EstateTourView = {
 export type EstateDetailView = {
   id: string;
   numericId: number;
+  /** The old site's slug for this file, so the canonical matches what is indexed. */
+  slug?: string;
   title: string;
   dealType: "sale" | "rent";
   dealTypeLabel: string;

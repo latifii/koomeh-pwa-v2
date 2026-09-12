@@ -43,12 +43,12 @@ import { JsonLd } from "@/components/shared/json-ld";
 import { routes } from "@/lib/routes";
 import { branchSchema, breadcrumbSchema } from "@/lib/structured-data";
 
-import { BranchShareButton } from "../_components/branch-actions";
-import { BranchContactCard } from "../_components/branch-contact-card";
-import { BranchExperts } from "../_components/branch-experts";
-import { BranchMapPanel } from "../_components/branch-map-panel";
-import { BranchSection } from "../_components/branch-section";
-import { BranchStrengths } from "../_components/branch-strengths";
+import { BranchShareButton } from "@/app/branches/_components/branch-actions";
+import { BranchContactCard } from "@/app/branches/_components/branch-contact-card";
+import { BranchExperts } from "@/app/branches/_components/branch-experts";
+import { BranchMapPanel } from "@/app/branches/_components/branch-map-panel";
+import { BranchSection } from "@/app/branches/_components/branch-section";
+import { BranchStrengths } from "@/app/branches/_components/branch-strengths";
 
 export const revalidate = 900;
 

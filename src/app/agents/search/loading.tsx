@@ -1,7 +1,7 @@
 import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 
-import { AgentsIntro } from "./_components/agents-intro";
+import { AgentsIntro } from "@/app/agents/_components/agents-intro";
 
 /** Mirrors the page's own Suspense fallback, so the two hand over invisibly. */
 export default function Loading() {

@@ -28,7 +28,7 @@ import type {
   EstateTourView,
 } from "@/app/properties/_types/estate-detail.types";
 import { toAbsoluteMediaUrl, toAbsoluteSiteUrl } from "@/lib/api/config";
-import { routes } from "@/lib/routes";
+import { routes, slugFromApiUrl } from "@/lib/routes";
 
 function text(value: string | null | undefined): string | undefined {
   const normalized = value?.trim();
@@ -226,6 +226,7 @@ export function mapEstateDetail(response: EstateDetailResponse): EstateDetailVie
   return {
     id: String(result.id),
     numericId: result.id,
+    slug: slugFromApiUrl(result.url),
     title: result.title.trim(),
     dealType: result.deal_type === 2 ? "rent" : "sale",
     dealTypeLabel: result.deal_type_label,

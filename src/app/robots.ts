@@ -9,8 +9,8 @@ import { absoluteUrl } from "@/lib/site-url";
  * the proxy redirects a signed-out visitor anyway, so crawling them only burns
  * budget that should go to listings. `/api` is disallowed for the same reason.
  *
- * The search page itself stays crawlable — it is the hub that links to every
- * listing — but its query strings are not: `?minPrice=…&districts=…` is an
+ * The search page (`/c/{city}`) itself stays crawlable — it is the hub that
+ * links to every listing — but its query strings are not: `?price=…&districts=…` is an
  * effectively unbounded set of URLs over the same inventory, which is the
  * classic way a filterable catalogue eats its own crawl budget.
  */
@@ -20,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/panel", "/auth", "/api/", "/properties?"],
+        disallow: ["/panel", "/auth", "/api/", "/c/*?"],
       },
     ],
     // Not `/sitemap.xml`: Next reserves that path and serves nothing there once

@@ -139,7 +139,7 @@ test("nothing carrying an Authorization header is touched", () => {
     false,
   );
   assert.equal(
-    intercepts("https://koomeh.ir/properties/1", {
+    intercepts("https://koomeh.ir/v/1", {
       headers: AUTHORISED,
       mode: "navigate",
     }),
@@ -177,7 +177,7 @@ test("public assets and pages are cached", () => {
     true,
   );
   assert.equal(
-    intercepts("https://koomeh.ir/properties/444520", { mode: "navigate" }),
+    intercepts("https://koomeh.ir/v/444520", { mode: "navigate" }),
     true,
   );
   assert.equal(intercepts("https://koomeh.ir/", { mode: "navigate" }), true);
@@ -195,14 +195,14 @@ test("map tiles are the only cross-origin thing kept", () => {
 
 test("build-coupled and unbounded responses are left alone", () => {
   // RSC payloads are tied to a build id; a stale one breaks navigation.
-  assert.equal(intercepts("https://koomeh.ir/properties?_rsc=abc"), false);
+  assert.equal(intercepts("https://koomeh.ir/c/qom?_rsc=abc"), false);
   assert.equal(
-    intercepts("https://koomeh.ir/properties", { headers: { RSC: "1" } }),
+    intercepts("https://koomeh.ir/c/qom", { headers: { RSC: "1" } }),
     false,
   );
   // A filtered search is an unbounded set of near-duplicate result pages.
   assert.equal(
-    intercepts("https://koomeh.ir/properties?deal=rent", { mode: "navigate" }),
+    intercepts("https://koomeh.ir/c/qom?type=2", { mode: "navigate" }),
     false,
   );
   // Partial responses cannot be cached coherently.

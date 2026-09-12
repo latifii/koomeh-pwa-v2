@@ -9,7 +9,7 @@ import type {
   BlogCategory,
 } from "@/app/articles/_types/blog.types";
 import { toAbsoluteMediaUrl, toAbsoluteSiteUrl } from "@/lib/api/config";
-import { routes } from "@/lib/routes";
+import { routes, slugFromApiUrl } from "@/lib/routes";
 
 export function mapBlogCategories(
   response: BlogCategoriesResponse,
@@ -22,12 +22,18 @@ export function mapBlogCategories(
   }));
 }
 
+/**
+ * Area and city guides (`/area/{id}/…`, `/city/{id}/…`) are posts too, and the
+ * API lists them among the rest. The slug is the API's own, so a card links
+ * to exactly the URL the old site published for that post.
+ */
 function articleHref(post: BlogPostCardDto): string {
+  const slug = slugFromApiUrl(post.url);
   if (/^\/(?:area|city)\//.test(post.url)) {
-    return routes.neighborhood(post.id);
+    return routes.neighborhood(post.id, slug);
   }
 
-  return routes.article(post.id);
+  return routes.article(post.id, slug);
 }
 
 export function mapBlogImage(value: string | null | undefined): string | undefined {
@@ -45,6 +51,7 @@ export function mapBlogPostCard(post: BlogPostCardDto): BlogArticleCard {
   return {
     id: String(post.id),
     numericId: post.id,
+    slug: slugFromApiUrl(post.url),
     title: post.title.trim(),
     excerpt: post.summary?.trim() ?? "",
     image: mapBlogImage(post.image),

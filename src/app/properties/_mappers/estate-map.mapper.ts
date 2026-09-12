@@ -3,7 +3,7 @@ import type {
   EstateMapResponse,
 } from "@/app/properties/_schemas/estate-map.schema";
 import { toAbsoluteMediaUrl } from "@/lib/api/config";
-import { routes } from "@/lib/routes";
+import { routes, slugFromApiUrl } from "@/lib/routes";
 
 export type EstateMapMarker = {
   id: string;
@@ -35,8 +35,7 @@ export function mapEstateMapMarker(dto: EstateMapMarkerDto): EstateMapMarker {
     priceLabel: dto.price_label,
     pinLabel: dto.pin_label,
     coverImage: toAbsoluteMediaUrl(dto.cover_image),
-    // `dto.url` is a legacy-site link; markers open our own detail route.
-    href: routes.property(dto.id),
+    href: routes.property(dto.id, slugFromApiUrl(dto.url)),
   };
 }
 

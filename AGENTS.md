@@ -164,6 +164,33 @@ The API has no register, OTP or password-reset service — only
 render `AuthUnavailable` instead of a form that cannot work. Wire them up when
 the services land; do not build fake flows in the meantime.
 
+# Public URLs are the old site's
+
+The app replaces `C:\wamp64\www\melk_v2` (the Laravel site at koomeh.ir), and
+its public paths are that site's, segment for segment, so nothing search
+engines hold goes dead on the switch: `/c/{city}` for search, `/v/{id}/{slug}`
+for a listing, `/virtual-tour/{id}`, `/agents/search` and `/agents/{id}`,
+`/branches` and `/branch/{id}`, `/blog` and `/blog/{id}/{slug}`,
+`/area/{id}/{slug}` for a neighbourhood guide, `/contactus`,
+`/commission_calculation`, `/property_appraisal`. The panel and `/auth` are
+new and keep their own scheme.
+
+- **Build every public link with `routes` in `src/lib/routes.ts`** — never a
+  literal path. The feature folders kept their old names (`app/properties/_*`,
+  `app/articles/_*`, `app/neighborhoods/_*`); only the route segments moved.
+- **Slugs come from the API, not from the title.** Every entity the API
+  returns carries its legacy `url`; `slugFromApiUrl` lifts the slug and the
+  `routes.*(id, slug)` helpers append it. The slug is optional in the route
+  (`[[...slug]]`), so an id-only path still resolves — but links and
+  canonicals should carry it, because that is the exact URL that is indexed.
+- **Search query names are the old ones too**: `type=1|2`, `estateTypes`,
+  `districts`, `price`, `mortgage`, `rent`, `vr=1`. `app/c/[city]/page.tsx`
+  parses them; use them in `routes.properties({...})` rather than the
+  `deal=`/`propertyTypes=` aliases it also accepts.
+- **Old aliases are 308s in `next.config.ts`** (`/{id}.html`, `/v1/…`,
+  `/blog/show/{id}`, `/fa/…`, this app's own pre-switch paths). Add there when
+  a route is renamed; do not leave two live paths for one page.
+
 # Project UI rules
 
 - Before creating any UI component, helper component, form control, or styled native element, inspect `src/components/ui` and `src/components/shared` and reuse an existing project component whenever it covers the need.

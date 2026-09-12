@@ -5,8 +5,8 @@ import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 import { routes } from "@/lib/routes";
 
-import { BlogIntro } from "./_components/blog-intro";
-import { BlogListServer } from "./_components/blog-list-server";
+import { BlogIntro } from "@/app/articles/_components/blog-intro";
+import { BlogListServer } from "@/app/articles/_components/blog-list-server";
 
 export const revalidate = 900;
 

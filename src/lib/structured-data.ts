@@ -37,7 +37,7 @@ export function websiteSchema() {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: absoluteUrl("/properties?q={search_term_string}"),
+        urlTemplate: absoluteUrl(`${routes.properties()}?q={search_term_string}`),
       },
       "query-input": "required name=search_term_string",
     },
@@ -77,7 +77,7 @@ const RESIDENCE_TYPE: Record<EstateDetailView["propertyType"], string> = {
  * inventing a price is exactly what earns a structured-data penalty.
  */
 export function estateListingSchema(detail: EstateDetailView) {
-  const url = absoluteUrl(routes.property(detail.id));
+  const url = absoluteUrl(routes.property(detail.id, detail.slug));
   const isRent = detail.dealType === "rent";
   const amount = isRent ? detail.rent?.mortgage : detail.price?.amount;
 
@@ -154,12 +154,13 @@ export function estateListingSchema(detail: EstateDetailView) {
 
 export function articleSchema(article: {
   id: string | number;
+  slug?: string;
   title: string;
   summary?: string;
   image?: string;
   publishedAt?: string;
 }) {
-  const url = absoluteUrl(routes.article(article.id));
+  const url = absoluteUrl(routes.article(article.id, article.slug));
 
   return {
     "@context": "https://schema.org",

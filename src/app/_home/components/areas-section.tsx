@@ -32,7 +32,7 @@ export function AreasSection({
         {section.items.map((area) => (
           <Link
             key={area.id}
-            href={routes.neighborhood(area.id)}
+            href={routes.neighborhood(area.id, area.slug)}
             className="group w-[38%] shrink-0 snap-start overflow-hidden rounded-2xl border bg-card sm:w-auto"
           >
             {area.image ? (

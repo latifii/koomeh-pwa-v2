@@ -107,6 +107,70 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  /**
+   * Legacy URLs, kept alive.
+   *
+   * The public routes already sit at the old site's paths (see `lib/routes`),
+   * so nothing indexed under `/v/{id}/…`, `/c/qom`, `/agents/{id}`, `/blog/…`
+   * needs redirecting at all. What is listed here is everything else the old
+   * router answered: its own aliases for the same pages (`/{id}.html`,
+   * `/v1/{id}`, `/blog/show/{id}`, `/posts/{id}`, `/branches/search`), the
+   * `/fa` and `/en` prefixes it registered every route under, and the paths
+   * this app used before it adopted the old ones — so a link shared during
+   * development does not go dead either. All permanent: these are the same
+   * pages, and a 308 lets search engines move their signals over.
+   */
+  async redirects() {
+    const id = ":id(\\d+)";
+
+    return [
+      // Old-site aliases → the canonical old-site path.
+      { source: `/${id}.html`, destination: "/v/:id", permanent: true },
+      { source: `/v1/${id}/:slug*`, destination: "/v/:id/:slug*", permanent: true },
+      { source: "/cs/:city", destination: "/c/:city", permanent: true },
+      { source: "/home/:city", destination: "/c/:city", permanent: true },
+      { source: "/cities", destination: "/c/qom", permanent: true },
+      // The old site sent a district page to the filtered search; keep that.
+      { source: `/district/${id}/:slug*`, destination: "/c/qom?districts=:id", permanent: true },
+      { source: `/city/${id}/:slug*`, destination: "/area/:id/:slug*", permanent: true },
+      { source: "/blog/list", destination: "/blog", permanent: true },
+      { source: `/blog/show/${id}`, destination: "/blog/:id", permanent: true },
+      { source: `/posts/${id}`, destination: "/blog/:id", permanent: true },
+      { source: `/blogs/${id}`, destination: "/blog/:id", permanent: true },
+      { source: "/agents_v2/:code", destination: "/agents/:code", permanent: true },
+      { source: "/:city/agents/search", destination: "/agents/search", permanent: true },
+      { source: "/branches/search", destination: "/branches", permanent: true },
+      { source: "/about-us", destination: "/about", permanent: true },
+      { source: "/contact-us", destination: "/contactus", permanent: true },
+      { source: "/login", destination: "/auth/login", permanent: true },
+      { source: "/register", destination: "/auth/register", permanent: true },
+      // Every old route was also registered under a language prefix.
+      { source: "/fa", destination: "/", permanent: true },
+      { source: "/en", destination: "/", permanent: true },
+      { source: "/fa/:path+", destination: "/:path+", permanent: true },
+      { source: "/en/:path+", destination: "/:path+", permanent: true },
+
+      // This app's own paths before it took the old site's.
+      {
+        source: "/properties",
+        has: [{ type: "query", key: "city", value: "(?<city>[a-z-]+)" }],
+        destination: "/c/:city",
+        permanent: true,
+      },
+      { source: "/properties", destination: "/c/qom", permanent: true },
+      { source: `/properties/${id}/virtual-tour`, destination: "/virtual-tour/:id", permanent: true },
+      { source: `/properties/${id}`, destination: "/v/:id", permanent: true },
+      { source: "/agents", destination: "/agents/search", permanent: true },
+      { source: "/articles", destination: "/blog", permanent: true },
+      { source: `/articles/${id}`, destination: "/blog/:id", permanent: true },
+      { source: `/branches/${id}`, destination: "/branch/:id", permanent: true },
+      { source: `/neighborhoods/${id}`, destination: "/area/:id", permanent: true },
+      { source: "/contact", destination: "/contactus", permanent: true },
+      { source: "/tools/commission", destination: "/commission_calculation", permanent: true },
+      { source: "/tools/property-appraisal", destination: "/property_appraisal", permanent: true },
+    ];
+  },
+
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

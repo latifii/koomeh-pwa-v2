@@ -10,7 +10,7 @@ import type {
 } from "@/app/_home/_types/home-content.types";
 import { mapBlogImage } from "@/app/articles/_mappers/blog.mapper";
 import { toAbsoluteMediaUrl } from "@/lib/api/config";
-import { routes } from "@/lib/routes";
+import { routes, slugFromApiUrl } from "@/lib/routes";
 
 const articleCategoryLabels: Record<number, string> = {
   3: "مجله املاک",
@@ -31,6 +31,7 @@ export function mapLatestBlogArticles(
     total: section.total,
     items: section.items.map((article) => ({
       id: String(article.id),
+      slug: slugFromApiUrl(article.url),
       title: article.title.trim(),
       excerpt: article.summary.trim(),
       category:
@@ -54,6 +55,7 @@ export function mapNeighborhoodGuideArticles(
     total: section.total,
     items: section.items.map((article) => ({
       id: String(article.id),
+      slug: slugFromApiUrl(article.url),
       name: article.title.trim(),
       description: article.summary.trim(),
       image: mapBlogImage(article.image),

@@ -37,6 +37,8 @@ export interface Estate {
 
 export interface Article {
   id: string;
+  /** The old site's slug — `/blog/{id}/{slug}` — so links match what is indexed. */
+  slug?: string;
   title: string;
   excerpt: string;
   category: string;
@@ -67,6 +69,8 @@ export interface Branch {
 
 export interface AreaGuide {
   id: string;
+  /** The old site's slug — `/area/{id}/{slug}`. */
+  slug?: string;
   name: string;
   description: string;
   image?: string;

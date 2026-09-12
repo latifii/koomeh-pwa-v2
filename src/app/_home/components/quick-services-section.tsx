@@ -13,8 +13,8 @@ import { Section } from "@/components/layout/section";
 import { routes } from "@/lib/routes";
 
 const services: { href: string; icon: StaticImageData; label: string }[] = [
-  { href: routes.properties({ deal: "sale" }), icon: iconKomision, label: "املاک فروشی" },
-  { href: routes.properties({ deal: "rent" }), icon: iconKomision, label: "املاک اجاره" },
+  { href: routes.properties({ type: 1 }), icon: iconKomision, label: "املاک فروشی" },
+  { href: routes.properties({ type: 2 }), icon: iconKomision, label: "املاک اجاره" },
   { href: routes.properties(), icon: iconKomision, label: "جستجو ملک" },
   { href: routes.tools.commission, icon: iconKomision, label: "محاسبه کمیسیون" },
   { href: routes.tools.propertyAppraisal, icon: iconKomision, label: "کارشناسی ملک" },
@@ -24,7 +24,7 @@ const services: { href: string; icon: StaticImageData; label: string }[] = [
   { href: routes.properties(), icon: iconMaps, label: "جستجو نقشه" },
   { href: "/#virtual-tour-title", icon: icon360, label: "تور مجازی" },
   { href: "https://instagram.com", icon: iconSocial, label: "شبکه اجتماعی" },
-  { href: "/contact", icon: iconGoftino, label: "پشتیبانی" },
+  { href: routes.contact, icon: iconGoftino, label: "پشتیبانی" },
 ];
 
 export function QuickServicesSection() {

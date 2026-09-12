@@ -24,7 +24,7 @@ const SW = fs.readFileSync(
   "utf8",
 );
 
-const PAGE = "https://koomeh.ir/properties/1";
+const PAGE = "https://koomeh.ir/v/1";
 
 /**
  * The worker takes its version from the `?v=` the page registers it with, so

@@ -5,11 +5,18 @@ import {
   type SortKey,
   defaultFilters,
 } from "@/data/search";
-import { routes } from "@/lib/routes";
+import { DEFAULT_CITY_SLUG, routes } from "@/lib/routes";
 
-import { SearchViewServer } from "./_components/search-view-server";
+import { SearchViewServer } from "@/app/properties/_components/search-view-server";
 
-/** Slug → display name. Extend as more cities go live. */
+/**
+ * Slug → display name. Extend as more cities go live.
+ *
+ * The slug is the path segment — `/c/qom` — exactly as the old site had it,
+ * which is what `?type=1` / `?type=2` in the indexed sitemap hang off. An
+ * unknown slug falls back to Qom rather than 404ing: the old route accepted
+ * any city name and only Qom has inventory.
+ */
 const citySlugs: Record<string, string> = {
   qom: "قم",
   tehran: "تهران",
@@ -17,14 +24,19 @@ const citySlugs: Record<string, string> = {
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
+type Params = { city: string };
+
+function cityFrom(params: Params): { slug: string; name: string } {
+  const slug = params.city in citySlugs ? params.city : DEFAULT_CITY_SLUG;
+  return { slug, name: citySlugs[slug] };
+}
 
 export async function generateMetadata({
-  searchParams,
+  params,
 }: {
-  searchParams: Promise<SearchParams>;
+  params: Promise<Params>;
 }): Promise<Metadata> {
-  const city = single((await searchParams).city) || "qom";
-  const cityName = citySlugs[city] ?? "قم";
+  const { slug, name: cityName } = cityFrom(await params);
 
   const title = `جستجوی ملک در ${cityName} | کومه`;
   const description = `خرید، فروش و اجاره ملک در ${cityName}؛ جستجو بر اساس محله، متراژ، قیمت و امکانات با فایل‌های بررسی‌شده گروه املاک کومه.`;
@@ -41,12 +53,12 @@ export async function generateMetadata({
      * linked from elsewhere can still be indexed, and without this it would be
      * indexed as its own page competing with this one.
      */
-    alternates: { canonical: routes.properties() },
+    alternates: { canonical: routes.properties({ city: slug }) },
     openGraph: {
       type: "website",
       title,
       description,
-      url: routes.properties(),
+      url: routes.properties({ city: slug }),
     },
   };
 }
@@ -113,14 +125,14 @@ function parseFilters(
 }
 
 export default async function SearchPage({
+  params,
   searchParams,
 }: {
+  params: Promise<Params>;
   searchParams: Promise<SearchParams>;
 }) {
-  const resolvedSearchParams = await searchParams;
-  const city = single(resolvedSearchParams.city) || "qom";
-  const cityName = citySlugs[city] ?? "قم";
-  const filters = parseFilters(resolvedSearchParams, cityName);
+  const { name: cityName } = cityFrom(await params);
+  const filters = parseFilters(await searchParams, cityName);
 
   return (
     // No wrapper here: the map fills the viewport edge to edge and, on phones,

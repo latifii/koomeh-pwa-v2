@@ -332,7 +332,7 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     // The search page is a different result set per query string; caching it
     // would fill storage with near-duplicates of an unbounded space.
-    if (url.pathname === "/properties" && url.search) return;
+    if (url.pathname.startsWith("/c/") && url.search) return;
 
     event.respondWith(navigationFirst(event));
   }

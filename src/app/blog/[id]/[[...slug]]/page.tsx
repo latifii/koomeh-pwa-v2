@@ -23,7 +23,7 @@ import { isApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 import { articleSchema, breadcrumbSchema } from "@/lib/structured-data";
 
-import { BlogCard, BlogRow, CategoryChip } from "../_components/blog-card";
+import { BlogCard, BlogRow, CategoryChip } from "@/app/articles/_components/blog-card";
 import { BlogActions } from "./_components/blog-actions";
 import { RichText } from "@/components/shared/rich-text";
 
@@ -67,13 +67,13 @@ export async function generateMetadata({ params }: {
       // The API can name its own canonical; fall back to this route otherwise,
       // so every article has one either way.
       alternates: {
-        canonical: article.seo.canonical ?? routes.article(article.numericId),
+        canonical: article.seo.canonical ?? routes.article(article.numericId, article.slug),
       },
       openGraph: {
         type: "article",
         title,
         description,
-        url: routes.article(article.numericId),
+        url: routes.article(article.numericId, article.slug),
         images: article.image ? [{ url: article.image, alt: article.title }] : undefined,
       },
       twitter: {
@@ -98,7 +98,7 @@ export default async function BlogPostPage({ params }: {
   ]);
   const article = mapBlogPostDetail({ status: "success", result: post });
 
-  if (article.isArea) redirect(routes.neighborhood(article.numericId));
+  if (article.isArea) redirect(routes.neighborhood(article.numericId, article.slug));
 
   const related = article.related.slice(0, 3);
   const recent = recentResponse.result.items
@@ -121,7 +121,7 @@ export default async function BlogPostPage({ params }: {
         data={breadcrumbSchema([
           { name: "خانه", path: routes.home },
           { name: "مجله املاک", path: routes.articles },
-          { name: article.title, path: routes.article(article.id) },
+          { name: article.title, path: routes.article(article.id, article.slug) },
         ])}
       />
 

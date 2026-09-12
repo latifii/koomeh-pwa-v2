@@ -1,7 +1,7 @@
 import { Container } from "@/components/layout/container";
 import { ListSkeleton } from "@/components/shared/list-skeleton";
 
-import { BlogIntro } from "./_components/blog-intro";
+import { BlogIntro } from "@/app/articles/_components/blog-intro";
 
 /**
  * Shown while the route's payload is still in flight — on a slow connection, or

@@ -45,6 +45,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import { formatToman } from "@/lib/persian-number";
+import { routes } from "@/lib/routes";
 
 type EstateStaffPanelProps = { estateId: number };
 
@@ -349,7 +350,7 @@ export function EstateStaffPanel({ estateId }: EstateStaffPanelProps) {
                 type="button"
                 size="sm"
                 variant="outline"
-                render={<a href={`/properties/${item.id}`} />}
+                render={<a href={routes.property(item.id)} />}
                 nativeButton={false}
               >
                 مشاهده

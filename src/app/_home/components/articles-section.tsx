@@ -68,7 +68,7 @@ function ArticleCard({
 }) {
   return (
     <Link
-      href={routes.article(article.id)}
+      href={routes.article(article.id, article.slug)}
       className={cn(
         "group flex flex-col overflow-hidden rounded-2xl border bg-card",
         className
@@ -100,7 +100,7 @@ function ArticleCard({
 function FeaturedArticle({ article }: { article: Article }) {
   return (
     <Link
-      href={routes.article(article.id)}
+      href={routes.article(article.id, article.slug)}
       className="group relative flex min-h-56 flex-col justify-end overflow-hidden rounded-2xl border p-4 sm:min-h-96 sm:rounded-3xl sm:p-7"
     >
       <ArticleImage
@@ -131,7 +131,7 @@ function FeaturedArticle({ article }: { article: Article }) {
 function CompactArticle({ article }: { article: Article }) {
   return (
     <Link
-      href={routes.article(article.id)}
+      href={routes.article(article.id, article.slug)}
       className="group flex h-full items-center gap-2.5 overflow-hidden rounded-2xl border bg-card p-2 transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-md sm:gap-4 sm:p-4"
     >
       <span className="relative size-20 shrink-0 overflow-hidden rounded-xl sm:size-32">
