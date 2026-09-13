@@ -108,12 +108,32 @@ export function EstateGallery({
     [],
   );
 
-  const carousel = useMemo(
-    () => ({ finite: count <= 1, preload: 2 }),
-    [count],
-  );
+  const carousel = useMemo(() => ({ finite: count <= 1, preload: 2 }), [count]);
 
   const plugins = count > 1 ? LIGHTBOX_PLUGINS : SINGLE_PHOTO_PLUGINS;
+
+  /**
+   * The desktop mosaic, by count. One photo used to fill the whole width
+   * and two or three left the thumbnail block half empty; each count now
+   * has a shape with no empty cell:
+   *
+   * - single: the photo whole, on a blurred copy of itself
+   * - pair:   two equal frames side by side
+   * - trio:   the first large, the other two stacked beside it
+   * - quad:   the first large; one wide thumb over two small ones
+   * - many:   the first large; four thumbs, the last carrying «N تصویر»
+   */
+  const mosaic =
+    count === 1
+      ? "single"
+      : count === 2
+        ? "pair"
+        : count === 3
+          ? "trio"
+          : count === 4
+            ? "quad"
+            : "many";
+  const thumbs = photos.slice(1, 5);
 
   // The mobile rail is a scroll-snap strip; derive the counter from scroll
   // position instead of wiring a carousel library for a handful of photos.
@@ -220,11 +240,16 @@ export function EstateGallery({
         )}
       </div>
 
-      {/* Desktop: hero mosaic — one large frame plus a thumbnail block */}
+      {/* Desktop: a mosaic shaped by how many photos there are — see `mosaic`.
+          One fixed height for every shape, so the page below starts at the
+          same place whether a file has one photo or thirty. */}
       <div
         className={cn(
-          "relative hidden gap-2 overflow-hidden rounded-3xl md:grid",
-          count > 1 ? "md:grid-cols-3 lg:grid-cols-4" : "md:grid-cols-1",
+          "relative hidden h-104 gap-2 overflow-hidden rounded-3xl md:grid lg:h-120",
+          mosaic === "single" && "grid-cols-1",
+          mosaic === "pair" && "grid-cols-2",
+          mosaic === "trio" && "grid-cols-3 grid-rows-2",
+          (mosaic === "quad" || mosaic === "many") && "grid-cols-4 grid-rows-2",
         )}
       >
         <button
@@ -232,19 +257,51 @@ export function EstateGallery({
           onClick={() => openAt(0)}
           aria-label={`تصویر ۱ از ${count} — نمایش تمام‌صفحه`}
           className={cn(
-            "group relative aspect-16/11 overflow-hidden rounded-2xl",
-            count > 1 ? "col-span-2" : "col-span-1",
+            "group relative min-h-0 overflow-hidden rounded-2xl bg-muted",
+            mosaic === "single" && "col-span-1",
+            mosaic === "pair" && "col-span-1",
+            (mosaic === "trio" || mosaic === "quad" || mosaic === "many") &&
+              "col-span-2 row-span-2",
           )}
         >
-          <ApiImage
-            src={photos[0].large ?? photos[0].url}
-            fallbackSrc={fallback}
-            alt={title}
-            fill
-            sizes={count > 1 ? "(min-width: 1024px) 50vw, 66vw" : "100vw"}
-            priority
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
+          {mosaic === "single" ? (
+            // A lone photo is shown whole on a blurred copy of itself, not
+            // cropped to a wide frame: the one picture a file has should not
+            // lose its top and bottom to the layout, and a portrait shot
+            // would otherwise become a strip of wall.
+            <>
+              <ApiImage
+                src={photos[0].large ?? photos[0].url}
+                fallbackSrc={fallback}
+                alt=""
+                aria-hidden
+                fill
+                sizes="40vw"
+                className="scale-110 object-cover opacity-70 blur-2xl"
+              />
+              <ApiImage
+                src={photos[0].large ?? photos[0].url}
+                fallbackSrc={fallback}
+                alt={title}
+                fill
+                sizes="(min-width: 1280px) 1152px, 100vw"
+                priority
+                className="object-contain transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+              />
+            </>
+          ) : (
+            <ApiImage
+              src={photos[0].large ?? photos[0].url}
+              fallbackSrc={fallback}
+              alt={title}
+              fill
+              sizes={
+                mosaic === "pair" ? "50vw" : "(min-width: 1280px) 576px, 50vw"
+              }
+              priority
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            />
+          )}
           <span className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/45 via-transparent to-black/25" />
 
           <span className="pointer-events-none absolute inset-x-4 top-4 flex flex-wrap gap-1.5">
@@ -268,48 +325,46 @@ export function EstateGallery({
           </Typography>
         </button>
 
-        {count > 1 && (
-          <div className="col-span-1 grid grid-rows-2 gap-2 lg:col-span-2 lg:grid-cols-2">
-            {photos.slice(1, 5).map((photo, offset) => {
-              const photoIndex = offset + 1;
-              const remaining = count - 5;
-              const showRemaining = offset === 3 && remaining > 0;
+        {thumbs.map((photo, offset) => {
+          const photoIndex = offset + 1;
+          const remaining = count - 5;
+          const showRemaining =
+            mosaic === "many" && offset === 3 && remaining > 0;
 
-              return (
-                <button
-                  key={photo.id}
-                  type="button"
-                  onClick={() => openAt(photoIndex)}
-                  aria-label={`تصویر ${photoIndex + 1} از ${count}`}
-                  className={cn(
-                    "group relative overflow-hidden rounded-2xl",
-                    // On md the thumb column only has room for two frames.
-                    offset > 1 && "hidden lg:block",
-                  )}
+          return (
+            <button
+              key={photo.id}
+              type="button"
+              onClick={() => openAt(photoIndex)}
+              aria-label={`تصویر ${photoIndex + 1} از ${count}`}
+              className={cn(
+                "group relative min-h-0 overflow-hidden rounded-2xl bg-muted",
+                // Four photos: the first thumb takes the whole top-right, the
+                // other two share the bottom — no cell is left empty.
+                mosaic === "quad" && offset === 0 && "col-span-2",
+              )}
+            >
+              <ApiImage
+                src={photo.thumbnail ?? photo.url}
+                fallbackSrc={fallback}
+                alt={`${title} — تصویر ${photoIndex + 1}`}
+                fill
+                sizes={mosaic === "pair" ? "50vw" : "25vw"}
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              {showRemaining && (
+                <Typography
+                  as="span"
+                  variant="small"
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 font-heading text-xs font-semibold text-white backdrop-blur-[2px] transition-colors group-hover:bg-black/65"
                 >
-                  <ApiImage
-                    src={photo.thumbnail ?? photo.url}
-                    fallbackSrc={fallback}
-                    alt={`${title} — تصویر ${photoIndex + 1}`}
-                    fill
-                    sizes="25vw"
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  />
-                  {showRemaining && (
-                    <Typography
-                      as="span"
-                      variant="small"
-                      className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 font-heading text-xs font-semibold text-white backdrop-blur-[2px] transition-colors group-hover:bg-black/65"
-                    >
-                      <Images className="size-5" />
-                      {count.toLocaleString("fa-IR")} تصویر
-                    </Typography>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
+                  <Images className="size-5" />
+                  {count.toLocaleString("fa-IR")} تصویر
+                </Typography>
+              )}
+            </button>
+          );
+        })}
 
         {tourHref && (
           <Link
