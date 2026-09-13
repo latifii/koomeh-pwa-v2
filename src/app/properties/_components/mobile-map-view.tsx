@@ -40,6 +40,7 @@ const SHEET_MAX_HEIGHT = "calc(100dvh - 8rem)";
 
 export function MobileMapView({
   filters,
+  inViewLabel,
   onChange,
   activeCount,
   onOpenFilters,
@@ -58,6 +59,8 @@ export function MobileMapView({
 }: {
   filters: SearchFilters;
   onChange: (patch: Partial<SearchFilters>) => void;
+  /** «۴۹۶ آگهی در محدوده‌ی نقشه», live from the map; null before it has one. */
+  inViewLabel: string | null;
   activeCount: number;
   onOpenFilters: () => void;
   onReset: () => void;
@@ -152,6 +155,11 @@ export function MobileMapView({
           {!expanded && (
             <DrawerHeader className="pb-2">
               <DrawerTitle>{countLabel}</DrawerTitle>
+              {inViewLabel && (
+                <Typography variant="small" aria-live="polite">
+                  {inViewLabel}
+                </Typography>
+              )}
             </DrawerHeader>
           )}
 

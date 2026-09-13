@@ -7,4 +7,8 @@ export const estateSearchQueryKeys = {
     [...estateSearchQueryKeys.all, "list", params] as const,
   map: (params: EstateMapParams) =>
     [...estateSearchQueryKeys.all, "map", params] as const,
+  mapPoints: (params: EstateMapParams) =>
+    [...estateSearchQueryKeys.all, "map-points", params] as const,
+  mapMarker: (id: string) =>
+    [...estateSearchQueryKeys.all, "map-marker", id] as const,
 };

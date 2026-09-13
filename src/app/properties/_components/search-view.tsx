@@ -15,7 +15,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MapPin, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 
+import apartmentImage from "@/assets/images/card/apartman.webp";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { ApiImage } from "@/components/shared/api-image";
 import { Container } from "@/components/layout/container";
 import { PropertyCard } from "@/components/features/property/property-card";
 import { Button } from "@/components/ui/button";
@@ -36,10 +38,15 @@ import {
 } from "@/data/search";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { routes } from "@/lib/routes";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { useEstateFilters } from "@/app/_lookups/_hooks/use-lookups";
+import { estateSearchQueryKeys } from "@/app/properties/_constants/estate-search-query-keys";
 import { useEstateSearch } from "@/app/properties/_hooks/use-estate-search";
-import { useEstateMap } from "@/app/properties/_hooks/use-estate-map";
-import type { EstateMapMarker } from "@/app/properties/_mappers/estate-map.mapper";
+import {
+  useEstateMapMarker,
+  useEstateMapPoints,
+} from "@/app/properties/_hooks/use-estate-map-points";
 import { mapFiltersToSearchParams } from "@/app/properties/_mappers/estate-search.mapper";
 
 import { ActiveFilters } from "./active-filters";
@@ -53,6 +60,7 @@ import {
   SHEET_SPLIT,
   type SheetSnap,
 } from "./mobile-map-view";
+import type { MapInset } from "./listings-map";
 import { LoadMoreSentinel } from "./load-more-sentinel";
 import { EmptyState, ErrorState, ResultsSkeleton } from "./result-states";
 import { SearchToolbar } from "./search-toolbar";
@@ -73,13 +81,10 @@ const ListingsMap = dynamic(
 type Status = "loading" | "ready" | "error";
 type ViewMode = "grid" | "map";
 
-/**
- * How many pins the map asks for. Every marker is a DOM node with a border, a
- * shadow and a rounded price label, so a phone pays to build and paint the
- * whole set while showing a fraction of it at a time — and the badge over the
- * map already tells the visitor when the set has been truncated.
- */
-const MAP_MARKER_LIMIT = { desktop: 500, phone: 150 } as const;
+/** The toolbar floating over the map's top edge, with its offset. */
+const DESKTOP_MAP_INSET: MapInset = { top: 72 };
+/** The search bar over the top and the results sheet at its half stop. */
+const PHONE_MAP_INSET: MapInset = { top: 72, bottomFraction: SHEET_SPLIT };
 
 export function SearchView({
   cityName,
@@ -109,6 +114,16 @@ export function SearchView({
     setSelectedId(id);
     setMapPick((current) => ({ id, n: (current?.n ?? 0) + 1 }));
   }, []);
+  /** Files inside the map's viewport right now — the clusters added up. */
+  const [inView, setInView] = useState<number | null>(null);
+  /** A row clicked in the middle column: the map flies to that pin. */
+  const [mapFocus, setMapFocus] = useState<{ id: string; n: number } | null>(
+    null,
+  );
+  const focusOnMap = useCallback((id: string) => {
+    setSelectedId(id);
+    setMapFocus((current) => ({ id, n: (current?.n ?? 0) + 1 }));
+  }, []);
   // On a phone the results sheet opens full — the list is the page, and the
   // map is a swipe down away — unless the map is what was asked for.
   const [sheetSnap, setSheetSnap] = useState<SheetSnap>(
@@ -125,13 +140,22 @@ export function SearchView({
     [deferredFilters, lookups],
   );
   const searchQuery = useEstateSearch({ ...apiParams, per_page: 12 });
-  const mapQuery = useEstateMap(
-    {
-      ...apiParams,
-      limit: isDesktop ? MAP_MARKER_LIMIT.desktop : MAP_MARKER_LIMIT.phone,
-    },
-    { enabled: !isDesktop || view === "map" },
-  );
+  // Every point of the result set, compact; the map clusters them itself.
+  const mapQuery = useEstateMapPoints(apiParams, {
+    enabled: !isDesktop || view === "map",
+  });
+  // A server without the compact format sent full markers: their details
+  // are seeded into the per-marker cache so popups open without a request.
+  const queryClient = useQueryClient();
+  const legacyMarkers = mapQuery.data?.legacyMarkers;
+  useEffect(() => {
+    for (const marker of legacyMarkers ?? []) {
+      queryClient.setQueryData(
+        estateSearchQueryKeys.mapMarker(marker.id),
+        marker,
+      );
+    }
+  }, [legacyMarkers, queryClient]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -265,11 +289,11 @@ export function SearchView({
     row?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [mapPick]);
 
-  const countLabel = `${total.toLocaleString("fa-IR")} آگهی در این محدوده`;
-  const markers = mapQuery.data?.markers ?? [];
-  const pickedMarker =
+  const countLabel = `${total.toLocaleString("fa-IR")} آگهی`;
+  const points = mapQuery.data?.points ?? [];
+  const pickedId =
     mapPick && !results.some((listing) => listing.id === mapPick.id)
-      ? (markers.find((marker) => marker.id === mapPick.id) ?? null)
+      ? mapPick.id
       : null;
   const map = mapQuery.isPending ? (
     <div className="flex size-full items-center justify-center bg-muted">
@@ -279,28 +303,28 @@ export function SearchView({
     <div className="flex size-full items-center justify-center bg-muted p-6">
       <ErrorState onRetry={() => void mapQuery.refetch()} />
     </div>
-  ) : mapQuery.data.total > 0 && markers.length === 0 ? (
+  ) : mapQuery.data.total > 0 && points.length === 0 ? (
       <div className="flex size-full items-center justify-center bg-muted p-6 text-center">
         <Typography variant="muted" className="max-w-sm">
           هیچ‌کدام از آگهی‌های این جست‌وجو مختصات قابل نمایش ندارند.
         </Typography>
       </div>
     ) : (
-      <div className="relative size-full">
-        <ListingsMap
-          markers={markers}
-          city={filters.city}
-          selectedId={selectedId}
-          onSelect={pickFromMap}
-        />
-        {mapQuery.data.truncated && (
-          <span className="absolute bottom-3 start-3 z-20 rounded-full border bg-card/95 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur">
-            نمایش {mapQuery.data.count.toLocaleString("fa-IR")} نقطه از{" "}
-            {mapQuery.data.total.toLocaleString("fa-IR")} آگهی
-          </span>
-        )}
-      </div>
+      <ListingsMap
+        points={points}
+        city={filters.city}
+        selectedId={selectedId}
+        onSelect={pickFromMap}
+        focus={mapFocus}
+        inset={isDesktop ? DESKTOP_MAP_INSET : PHONE_MAP_INSET}
+        onInViewChange={setInView}
+      />
     );
+  // Read as «۴۹۶ آگهی در این محدوده‌ی نقشه»; climbs and falls with the zoom.
+  const inViewLabel =
+    inView !== null && mapQuery.isSuccess
+      ? `${inView.toLocaleString("fa-IR")} آگهی در محدوده‌ی نقشه`
+      : null;
 
   const filtersSidebar = (
     <div className="rounded-2xl border bg-card">
@@ -385,6 +409,7 @@ export function SearchView({
       <>
         <MobileMapView
           filters={filters}
+          inViewLabel={inViewLabel}
           onChange={updateFilters}
           activeCount={activeCount}
           onOpenFilters={() => setFiltersOpen(true)}
@@ -449,16 +474,23 @@ export function SearchView({
               ref={resultsColumn}
               className="mt-3 flex w-96 shrink-0 flex-col gap-3 overflow-y-auto py-1"
             >
-              <Typography as="h2" variant="h4">
-                {status === "ready" ? countLabel : "در حال جستجو…"}
-              </Typography>
+              <div className="flex flex-col gap-0.5">
+                <Typography as="h2" variant="h4">
+                  {status === "ready" ? countLabel : "در حال جستجو…"}
+                </Typography>
+                {inViewLabel && (
+                  <Typography variant="small" aria-live="polite">
+                    {inViewLabel}
+                  </Typography>
+                )}
+              </div>
 
               {/* A pin whose file is not among the loaded rows — the map holds
-                  up to 500 points, the list a page at a time — is shown here,
-                  so the click always lands on something. */}
-              {pickedMarker && (
+                  every point, the list a page at a time — is shown here, so
+                  the click always lands on something. */}
+              {pickedId && (
                 <PickedMarkerCard
-                  marker={pickedMarker}
+                  id={pickedId}
                   onDismiss={() => setMapPick(null)}
                 />
               )}
@@ -470,7 +502,7 @@ export function SearchView({
                     listing={listing}
                     active={listing.id === selectedId}
                     onHover={setSelectedId}
-                    onSelect={setSelectedId}
+                    onSelect={focusOnMap}
                   />
                 ))}
               {status === "ready" && results.length === 0 && (
@@ -592,12 +624,52 @@ export function SearchView({
 
 /** The map's pick, as a row, when the list has not loaded that file yet. */
 function PickedMarkerCard({
-  marker,
+  id,
   onDismiss,
 }: {
-  marker: EstateMapMarker;
+  id: string;
   onDismiss: () => void;
 }) {
+  const query = useEstateMapMarker(id);
+  const marker = query.data;
+
+  if (!marker) {
+    return (
+      <div
+        aria-busy={query.isPending}
+        className="rounded-2xl border border-brand bg-card p-2.5 ring-1 ring-brand/30"
+      >
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <Typography variant="small" className="flex items-center gap-1.5">
+            <MapPin className="size-3.5 text-brand" />
+            انتخاب‌شده روی نقشه
+          </Typography>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="بستن"
+            onClick={onDismiss}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+        {query.isError ? (
+          <Typography variant="small">جزئیات این آگهی در دسترس نیست.</Typography>
+        ) : (
+          <div className="flex gap-3">
+            <Skeleton className="size-24 shrink-0 rounded-xl" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2 py-1">
+              <Skeleton className="h-3.5 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="mt-auto h-3.5 w-1/3" />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl border border-brand bg-card p-2.5 ring-1 ring-brand/30">
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -617,9 +689,18 @@ function PickedMarkerCard({
       </div>
       <Link href={marker.href} className="flex gap-3">
         <span className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-muted">
-          {marker.coverImage && (
-            <Image
+          {marker.coverImage ? (
+            <ApiImage
               src={marker.coverImage}
+              fallbackSrc={apartmentImage}
+              alt=""
+              fill
+              sizes="96px"
+              className="object-cover"
+            />
+          ) : (
+            <Image
+              src={apartmentImage}
               alt=""
               fill
               sizes="96px"
