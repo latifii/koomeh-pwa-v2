@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, Check, Share2 } from "lucide-react";
+import { Check, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * Save / share for an article. A small client island so the article page can
- * stay a server component.
+ * Share for an article — the system share sheet where there is one, the
+ * link copied where there is not. A small client island so the article page
+ * can stay a server component. (There used to be a «ذخیره» beside it that
+ * kept its state in the component and nowhere else; nothing on the backend
+ * stores a saved article, so it promised what it could not keep.)
  */
 export function BlogActions({
   title,
@@ -17,7 +20,6 @@ export function BlogActions({
   title: string;
   className?: string;
 }) {
-  const [saved, setSaved] = useState(false);
   const [shared, setShared] = useState(false);
 
   const share = async () => {
@@ -37,20 +39,6 @@ export function BlogActions({
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setSaved((value) => !value)}
-        aria-pressed={saved}
-        className={cn(saved && "border-brand text-brand")}
-      >
-        <Bookmark
-          data-icon="inline-start"
-          className={cn(saved && "fill-brand")}
-        />
-        {saved ? "ذخیره شد" : "ذخیره"}
-      </Button>
-
       <Button variant="outline" size="sm" onClick={share}>
         {shared ? (
           <Check data-icon="inline-start" className="text-brand" />

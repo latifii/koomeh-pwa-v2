@@ -2,7 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, CalendarDays, Eye, Newspaper, Tag } from "lucide-react";
+import { ArrowLeft, CalendarDays, Newspaper, Tag } from "lucide-react";
 
 import blogFallback from "@/assets/images/default/blog-default.webp";
 import {
@@ -179,14 +179,6 @@ export default async function BlogPostPage({
                   >
                     <CalendarDays className="size-3.5 text-brand/70" />
                     {article.publishedAtLabel}
-                  </Typography>
-                  <Typography
-                    as="span"
-                    variant="small"
-                    className="flex items-center gap-1"
-                  >
-                    <Eye className="size-3.5 text-brand/70" />
-                    {article.views.toLocaleString("fa-IR")} بازدید
                   </Typography>
                 </div>
                 <BlogActions title={article.title} />

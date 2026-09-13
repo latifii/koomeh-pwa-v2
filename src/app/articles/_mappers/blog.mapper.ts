@@ -58,7 +58,6 @@ export function mapBlogPostCard(post: BlogPostCardDto): BlogArticleCard {
     category: post.category
       ? { id: post.category.id, name: post.category.name.trim() }
       : undefined,
-    views: post.visit,
     publishedAtLabel: post.publish_date,
     createdAt: post.created_at,
     href: articleHref(post),

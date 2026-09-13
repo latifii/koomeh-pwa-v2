@@ -28,7 +28,6 @@ export type BlogArticleCard = {
   excerpt: string;
   image?: string;
   category?: { id: number; name: string };
-  views: number;
   publishedAtLabel: string;
   createdAt: string;
   href: string;
