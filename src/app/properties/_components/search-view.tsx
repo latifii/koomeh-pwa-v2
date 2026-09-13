@@ -42,7 +42,12 @@ import { FiltersPanel } from "./filters-panel";
 import { ListingRow } from "./listing-row";
 import { MapPromo } from "./map-promo";
 import { MapToggleButton } from "./map-toggle-button";
-import { MobileMapView, SHEET_SPLIT, type SheetSnap } from "./mobile-map-view";
+import {
+  MobileMapView,
+  SHEET_FULL,
+  SHEET_SPLIT,
+  type SheetSnap,
+} from "./mobile-map-view";
 import { EmptyState, ErrorState, ResultsSkeleton } from "./result-states";
 import { SearchToolbar } from "./search-toolbar";
 
@@ -73,15 +78,22 @@ const MAP_MARKER_LIMIT = { desktop: 500, phone: 150 } as const;
 export function SearchView({
   cityName,
   initialFilters,
+  initialView = "grid",
 }: {
   cityName: string;
   initialFilters: SearchFilters;
+  /** The list unless the link asked for the map (`?view=map`). */
+  initialView?: ViewMode;
 }) {
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
-  const [view, setView] = useState<ViewMode>("grid");
+  const [view, setView] = useState<ViewMode>(initialView);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [sheetSnap, setSheetSnap] = useState<SheetSnap>(SHEET_SPLIT);
+  // On a phone the results sheet opens full — the list is the page, and the
+  // map is a swipe down away — unless the map is what was asked for.
+  const [sheetSnap, setSheetSnap] = useState<SheetSnap>(
+    initialView === "map" ? SHEET_SPLIT : SHEET_FULL,
+  );
   const isDesktop = useMediaQuery("(min-width: 64rem)");
   const pathname = usePathname();
   const requestedCityId = Number(filters.cityId) || undefined;

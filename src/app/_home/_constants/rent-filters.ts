@@ -22,22 +22,23 @@ export const RENT_QUICK_FILTERS: readonly RentQuickFilter[] = [
   {
     key: "apartment",
     label: "آپارتمان",
-    href: routes.properties({ type: 2, estateTypes: "apartment" }),
+    href: routes.properties({ type: 2, estateTypes: 1 }),
     params: { estateType: 1 },
     propertyType: "apartment",
   },
   {
     key: "villa",
     label: "خانه ویلایی",
-    href: routes.properties({ type: 2, estateTypes: "villa" }),
+    href: routes.properties({ type: 2, estateTypes: 2 }),
     params: { estateType: 2 },
     propertyType: "villa",
   },
   {
     key: "commercial",
     label: "تجاری",
-    href: routes.properties({ type: 2, estateTypes: "commercial" }),
-    params: { estateType: 4 },
+    // مغازه is type 3; the old page's chip sent 4, which is «زمین و کلنگی».
+    href: routes.properties({ type: 2, estateTypes: 3 }),
+    params: { estateType: 3 },
     propertyType: "commercial",
   },
   {

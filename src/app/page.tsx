@@ -38,7 +38,7 @@ export default async function Home() {
   return (
     <div className="flex flex-1 flex-col" id="top">
       <Hero lookups={lookups} stats={stats} />
-      <QuickServicesSection />
+      <QuickServicesSection estateTypes={lookups?.estate_types.items} />
       {/* <QuickPaths /> */}
       {/* <TrustStrip /> */}
       {/* Virtual tours first, then the sale files — the order the client asked

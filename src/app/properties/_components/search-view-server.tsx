@@ -34,9 +34,11 @@ const PER_PAGE = 12;
 export async function SearchViewServer({
   cityName,
   filters,
+  view = "grid",
 }: {
   cityName: string;
   filters: SearchFilters;
+  view?: "grid" | "map";
 }) {
   const queryClient = createQueryClient();
   const cityId = Number(filters.cityId) || undefined;
@@ -72,7 +74,11 @@ export async function SearchViewServer({
     <HydrationBoundary state={dehydrate(queryClient)}>
       {/* Present in the HTML, gone the moment the app hydrates. */}
       <SearchResultsFallback results={firstPage?.items ?? []} />
-      <SearchView cityName={cityName} initialFilters={filters} />
+      <SearchView
+        cityName={cityName}
+        initialFilters={filters}
+        initialView={view}
+      />
     </HydrationBoundary>
   );
 }

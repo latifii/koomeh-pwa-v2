@@ -45,7 +45,7 @@ export function MapCtaSection() {
                 "relative flex size-8 items-center justify-center rounded-full shadow-lg",
                 marker.pulse
                   ? "bg-secondary text-secondary-foreground"
-                  : "bg-white/90 text-primary-deep"
+                  : "bg-white/90 text-primary-deep",
               )}
             >
               <MapPin className="size-4" />
@@ -58,18 +58,12 @@ export function MapCtaSection() {
             <Map className="size-5" />
           </span>
 
-          <Typography variant="eyebrow" light>
-            جستجو بر اساس موقعیت
-          </Typography>
-          <Typography variant="h2" light>
-            روی نقشه قم بگردید
-          </Typography>
-          <Typography variant="muted" light>
-            محله را انتخاب کنید و فایل‌های همان محدوده را ببینید.
+          <Typography variant="h2" light className="max-w-md leading-snug">
+            از روی نقشه سریع‌تر ملک دلخواه خودتان را پیدا کنید
           </Typography>
 
           <Link
-            href={routes.properties()}
+            href={routes.properties({ view: "map" })}
             className="group mt-1 flex w-fit items-center gap-2 rounded-lg bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground transition-transform hover:scale-105"
           >
             <Map className="size-4" />

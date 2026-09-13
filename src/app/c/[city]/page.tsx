@@ -134,9 +134,13 @@ export default async function SearchPage({
   const { name: cityName } = cityFrom(await params);
   const filters = parseFilters(await searchParams, cityName);
 
+  // `?view=map` — the home page's map button — opens on the map; everything
+  // else opens on the list.
+  const view = single((await searchParams).view) === "map" ? "map" : "grid";
+
   return (
     // No wrapper here: the map fills the viewport edge to edge and, on phones,
     // top to bottom — so SearchView owns its own width and padding per mode.
-    <SearchViewServer cityName={cityName} filters={filters} />
+    <SearchViewServer cityName={cityName} filters={filters} view={view} />
   );
 }

@@ -1,0 +1,129 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Building2, ChevronLeft, LayoutGrid } from "lucide-react";
+
+import type { LookupItem } from "@/app/_lookups/_schemas/lookups.schema";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Spinner } from "@/components/ui/spinner";
+import { routes, type RouteQuery } from "@/lib/routes";
+import { cn } from "@/lib/utils";
+
+/**
+ * What a deal tile stands for: the search page's query, minus the property
+ * type the sheet is about to ask for.
+ */
+export type QuickDeal = {
+  key: string;
+  title: string;
+  /** The tile's own query — `type=1`, `type=2`, or `vr=1` for the tours. */
+  query: RouteQuery;
+};
+
+/**
+ * The second question after «املاک فروشی»: which kind? A sheet from the
+ * bottom with the property types, and the answer opens the search already
+ * narrowed to both — deal and type — instead of the whole list with the
+ * filters still to be set. «همه» is first, for whoever meant the whole list.
+ */
+export function QuickDealSheet({
+  deal,
+  estateTypes,
+  onOpenChange,
+}: {
+  /** The tile that was pressed; `null` keeps the sheet closed. */
+  deal: QuickDeal | null;
+  estateTypes: LookupItem[];
+  onOpenChange: (open: boolean) => void;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [chosen, setChosen] = useState<string | null>(null);
+
+  const go = (estateType?: string) => {
+    if (!deal) return;
+    setChosen(estateType ?? "");
+    const href = routes.properties({
+      ...deal.query,
+      estateTypes: estateType || undefined,
+    });
+    startTransition(() => {
+      router.push(href);
+    });
+  };
+
+  return (
+    <Drawer open={deal !== null} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[85dvh] sm:mx-auto sm:max-w-md">
+        <DrawerHeader className="text-start">
+          <DrawerTitle>{deal?.title}</DrawerTitle>
+          <DrawerDescription>
+            چه نوع ملکی را می‌خواهید ببینید؟
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <ul className="grid grid-cols-2 gap-2 overflow-y-auto px-4 pb-6">
+          <li className="col-span-2">
+            <TypeButton
+              icon={LayoutGrid}
+              label="همه‌ی نوع‌ها"
+              busy={pending && chosen === ""}
+              disabled={pending}
+              onClick={() => go()}
+            />
+          </li>
+          {estateTypes.map((type) => (
+            <li key={type.value}>
+              <TypeButton
+                icon={Building2}
+                label={type.title}
+                busy={pending && chosen === type.value}
+                disabled={pending}
+                onClick={() => go(type.value)}
+              />
+            </li>
+          ))}
+        </ul>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+function TypeButton({
+  icon: Icon,
+  label,
+  busy,
+  disabled,
+  onClick,
+}: {
+  icon: typeof Building2;
+  label: string;
+  busy: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-xl border bg-card px-3 py-3 text-start text-sm font-medium transition-colors hover:border-brand/40 hover:bg-brand/5 disabled:opacity-60",
+        busy && "border-brand/40 bg-brand/5",
+      )}
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-brand">
+        {busy ? <Spinner className="size-4" /> : <Icon className="size-4" />}
+      </span>
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <ChevronLeft className="size-4 shrink-0 text-muted-foreground" />
+    </button>
+  );
+}
