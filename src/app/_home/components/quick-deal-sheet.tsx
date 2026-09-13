@@ -16,8 +16,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { routes, type RouteQuery } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
-/** Half the screen first, the whole of it on a drag up. */
-const SNAP_HALF = 0.5;
+/**
+ * Opens tall enough that the whole list is in view without scrolling —
+ * nine short rows — and the rest of the screen on a drag up.
+ */
+const SNAP_HALF = 0.8;
 const SNAP_POINTS: SheetSnap[] = [SNAP_HALF, 1];
 type SheetSnap = number | string;
 
@@ -96,8 +99,10 @@ export function QuickDealSheet({
           </DrawerDescription>
         </DrawerHeader>
 
-        <ul className="grid min-h-0 flex-1 grid-cols-2 content-start gap-2 overflow-y-auto overscroll-contain px-4 pb-6">
-          <li className="col-span-2">
+        {/* One type to a row, short rows: the list reads top to bottom and
+            fits the sheet without scrolling. */}
+        <ul className="grid min-h-0 flex-1 grid-cols-1 content-start gap-1.5 overflow-y-auto overscroll-contain px-4 pb-6">
+          <li>
             <TypeButton
               icon={LayoutGrid}
               label="همه‌ی نوع‌ها"
@@ -142,11 +147,11 @@ function TypeButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex w-full items-center gap-3 rounded-xl border bg-card px-3 py-3 text-start text-sm font-medium transition-colors hover:border-brand/40 hover:bg-brand/5 disabled:opacity-60",
+        "flex w-full items-center gap-2.5 rounded-lg border bg-card px-3 py-2 text-start text-sm font-medium transition-colors hover:border-brand/40 hover:bg-brand/5 disabled:opacity-60",
         busy && "border-brand/40 bg-brand/5",
       )}
     >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-brand">
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-brand">
         {busy ? <Spinner className="size-4" /> : <Icon className="size-4" />}
       </span>
       <span className="min-w-0 flex-1 truncate">{label}</span>

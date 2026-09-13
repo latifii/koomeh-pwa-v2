@@ -81,7 +81,7 @@ export function FavoritesView() {
         </TabsTrigger>
         <TabsTrigger value="agents">
           <UserRound />
-          کارشناسان
+          مشاورین
           {agentCount > 0 && (
             <span className="ms-1.5 text-xs text-muted-foreground">
               {agentCount.toLocaleString("fa-IR")}
@@ -183,20 +183,20 @@ export function FavoritesView() {
         ) : agents.isError ? (
           <EmptyState
             icon={UserRound}
-            title="کارشناسان نشان‌شده بارگذاری نشد"
+            title="مشاورین نشان‌شده بارگذاری نشد"
             description={getApiErrorMessage(agents.error)}
           />
         ) : agentCount === 0 ? (
           <EmptyState
             icon={UserRound}
-            title="هنوز کارشناسی نشان نکرده‌اید"
-            description="با دکمه‌ی قلب روی کارت هر کارشناس، او را نشان کنید تا سریع‌تر پیدایش کنید."
+            title="هنوز مشاوری نشان نکرده‌اید"
+            description="با دکمه‌ی قلب روی کارت هر مشاور، او را نشان کنید تا سریع‌تر پیدایش کنید."
             action={
               <Button
                 nativeButton={false}
                 render={<Link href={routes.agents} />}
               >
-                فهرست کارشناسان
+                فهرست مشاورین
               </Button>
             }
           />

@@ -1,6 +1,6 @@
 "use client";
 
-import { RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { RotateCcw, SlidersHorizontal } from "lucide-react";
 
 import type { AgentFiltersResponse } from "@/app/agents/_schemas/agents.schema";
 import { Button } from "@/components/ui/button";
@@ -24,11 +24,6 @@ import {
   useComboboxAnchor,
 } from "@/components/ui/combobox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -91,16 +86,22 @@ export function AgentsFiltersPanel({
   const districtOptions = toLookupOptions(options.districts);
   const branchOptions = toLookupOptions(options.branches);
   const genderOptions = toLookupOptions(options.genders);
-  const branchItems = toSelectItems([{ value: "", title: "همه" }, ...branchOptions]);
-  const genderItems = toSelectItems([{ value: "", title: "همه" }, ...genderOptions]);
+  const branchItems = toSelectItems([
+    { value: "", title: "همه" },
+    ...branchOptions,
+  ]);
+  const genderItems = toSelectItems([
+    { value: "", title: "همه" },
+    ...genderOptions,
+  ]);
 
   return (
-    <aside className="lg:sticky lg:top-20">
+    <div>
       <Card size="sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5">
             <SlidersHorizontal className="size-4 text-brand" />
-            فیلتر کارشناسان
+            فیلتر مشاورین
           </CardTitle>
           {activeCount > 0 && (
             <CardAction>
@@ -119,22 +120,7 @@ export function AgentsFiltersPanel({
 
         <CardContent>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="agent-name">نام کارشناس</FieldLabel>
-              <InputGroup size="sm">
-                <InputGroupAddon>
-                  <Search />
-                </InputGroupAddon>
-                <InputGroupInput
-                  id="agent-name"
-                  type="search"
-                  value={filters.name}
-                  onChange={(event) => onChange("name", event.target.value)}
-                  placeholder="نام یا نام خانوادگی"
-                />
-              </InputGroup>
-            </Field>
-
+            {/* The name is searched from the toolbar above the list, not here. */}
             <Field>
               <FieldLabel>نوع فعالیت</FieldLabel>
               <div className="flex flex-wrap gap-1.5">
@@ -216,9 +202,7 @@ export function AgentsFiltersPanel({
                   ))}
                   <ComboboxChipsInput
                     placeholder={
-                      filters.districts.length
-                        ? ""
-                        : "جست‌وجو و انتخاب محله"
+                      filters.districts.length ? "" : "جست‌وجو و انتخاب محله"
                     }
                   />
                 </ComboboxChips>
@@ -291,13 +275,13 @@ export function AgentsFiltersPanel({
                 }
               />
               <FieldLabel htmlFor="agents-with-estates">
-                فقط کارشناسان دارای فایل فعال
+                فقط مشاورین دارای فایل فعال
               </FieldLabel>
             </Field>
           </FieldGroup>
         </CardContent>
       </Card>
-    </aside>
+    </div>
   );
 }
 

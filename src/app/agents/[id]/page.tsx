@@ -2,7 +2,11 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { getAgentEstates, getAgentProfile, getAgents } from "@/app/agents/_api/agents.service";
+import {
+  getAgentEstates,
+  getAgentProfile,
+  getAgents,
+} from "@/app/agents/_api/agents.service";
 import {
   getCachedAgentEstates,
   getCachedAgentProfile,
@@ -29,13 +33,15 @@ export function generateStaticParams() {
 // them into one, the same way the other detail routes do.
 const getProfile = cache((id: string) => getCachedAgentProfile(id));
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { id } = await params;
 
   try {
     const { result } = await getProfile(id);
     const agent = result.agent;
-    const title = `${agent.name} | کارشناسان کومه`;
+    const title = `${agent.name} | مشاورین کومه`;
     const description = (
       agent.bio ||
       agent.title ||
@@ -52,7 +58,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title,
         description,
         url: routes.agent(agent.id),
-        images: agent.photo ? [{ url: agent.photo, alt: agent.name }] : undefined,
+        images: agent.photo
+          ? [{ url: agent.photo, alt: agent.name }]
+          : undefined,
       },
       twitter: {
         card: agent.photo ? "summary" : "summary_large_image",
@@ -101,7 +109,9 @@ export default async function AgentProfilePage({ params }: PageProps) {
       contact={profileData.result.contact}
       estateCounts={estatesData.result.counts}
       listings={estatesData.result.items.map(mapSearchEstate)}
-      otherAgents={agentsData.result.items.filter((item) => item.id !== agent.id).slice(0, 3)}
+      otherAgents={agentsData.result.items
+        .filter((item) => item.id !== agent.id)
+        .slice(0, 3)}
     />
   );
 }

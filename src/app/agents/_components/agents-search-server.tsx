@@ -1,4 +1,7 @@
-import { getCachedAgentFilters, getCachedAgents } from "@/app/agents/_cache/agents.cache";
+import {
+  getCachedAgentFilters,
+  getCachedAgents,
+} from "@/app/agents/_cache/agents.cache";
 
 import { AgentsSearch } from "./agents-search";
 
@@ -18,6 +21,9 @@ export async function AgentsSearchServer() {
   ]);
 
   return (
-    <AgentsSearch initialAgents={initialAgents} initialFilters={initialFilters} />
+    <AgentsSearch
+      initialAgents={initialAgents}
+      initialFilters={initialFilters}
+    />
   );
 }

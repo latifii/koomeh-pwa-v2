@@ -16,9 +16,9 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   alternates: { canonical: routes.agents },
-  title: "کارشناسان املاک کومه در قم | جست‌وجوی مشاور",
+  title: "مشاورین املاک کومه در قم | جست‌وجوی مشاور",
   description:
-    "لیست کارشناسان گروه املاک کومه در قم؛ بر اساس نوع فعالیت، تخصص ملک و امتیاز، مشاور مناسب خود را پیدا کنید.",
+    "لیست مشاورین گروه املاک کومه در قم؛ بر اساس نوع فعالیت، تخصص ملک و امتیاز، مشاور مناسب خود را پیدا کنید.",
 };
 
 export default function AgentsSearchPage() {

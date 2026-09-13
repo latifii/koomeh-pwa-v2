@@ -13,7 +13,7 @@ export default function AgentProfileError({ reset }: { reset: () => void }) {
       icon={TriangleAlert}
       eyebrow="اختلال موقت"
       title="خطایی در دریافت اطلاعات کارشناس رخ داد"
-      description="ارتباط با سرویس کارشناسان با مشکل روبه‌رو شده است. دوباره تلاش کنید یا به فهرست کارشناسان برگردید."
+      description="ارتباط با سرویس مشاورین با مشکل روبه‌رو شده است. دوباره تلاش کنید یا به فهرست مشاورین برگردید."
       action={
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={reset}>
@@ -26,7 +26,7 @@ export default function AgentProfileError({ reset }: { reset: () => void }) {
             render={<Link href={routes.agents} />}
           >
             <Users />
-            فهرست کارشناسان
+            فهرست مشاورین
           </Button>
         </div>
       }

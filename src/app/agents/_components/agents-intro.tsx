@@ -7,10 +7,10 @@ import { routes } from "@/lib/routes";
 export function AgentsIntro() {
   return (
     <PageIntro
-      crumbs={[{ label: "خانه", href: routes.home }, { label: "کارشناسان" }]}
+      crumbs={[{ label: "خانه", href: routes.home }, { label: "مشاورین" }]}
       icon={<Users className="size-4" />}
       eyebrow="تیم حرفه‌ای کومه"
-      title="کارشناسان املاک کومه"
+      title="مشاورین املاک کومه"
       description="بر اساس تخصص، نوع فعالیت و امتیاز، مشاور مناسب خرید، فروش یا اجاره ملک خود را در قم پیدا کنید."
     />
   );

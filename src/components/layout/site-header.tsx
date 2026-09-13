@@ -44,7 +44,7 @@ const NotificationBell = dynamic(() =>
 /** The icons are for the drawer; the desktop bar shows the words alone. */
 const navLinks: SiteNavLink[] = [
   { href: routes.properties(), label: "جستجوی ملک", icon: Search },
-  { href: routes.agents, label: "کارشناسان", icon: Users },
+  { href: routes.agents, label: "مشاورین", icon: Users },
   { href: routes.magazine, label: "مجله املاک", icon: Newspaper },
   { href: routes.tools.commission, label: "محاسبه کمیسیون", icon: Calculator },
   // { href: "/#branches", label: "شعب کومه" },

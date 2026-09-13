@@ -14,7 +14,11 @@ import type {
   AgentsSearchParams,
 } from "@/app/agents/_types/agents.types";
 import { getValidated } from "@/lib/api/http-client";
-import { csvParam, normalizedText, positiveInteger } from "@/lib/api/query-params";
+import {
+  csvParam,
+  normalizedText,
+  positiveInteger,
+} from "@/lib/api/query-params";
 
 const endpoints = {
   filters: "/api/site3/agents/filters",
@@ -47,10 +51,12 @@ export function normalizeAgentsSearchParams(
   };
 }
 
-export function getAgentFilters(options: {
-  cityId?: number;
-  signal?: AbortSignal;
-} = {}): Promise<AgentFiltersResponse> {
+export function getAgentFilters(
+  options: {
+    cityId?: number;
+    signal?: AbortSignal;
+  } = {},
+): Promise<AgentFiltersResponse> {
   return getValidated(endpoints.filters, agentFiltersResponseSchema, {
     params: { city_id: positiveInteger(options.cityId) },
     signal: options.signal,
