@@ -1,8 +1,10 @@
 "use client";
 
 import { memo, useEffect, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import L from "leaflet";
+import { ArrowLeft, BedDouble, MapPin, Ruler } from "lucide-react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
@@ -41,6 +43,22 @@ function priceIcon(marker: EstateMapMarker, active: boolean) {
   });
 }
 
+/**
+ * How far from the city centre a pin can be and still count as "in the
+ * city" when the viewport is fitted: about half a degree, which covers Qom
+ * and its outskirts. A file geotagged in another province — a wrong click on
+ * the entry form — is still drawn, but it no longer zooms the map out to
+ * show it, and the visitor lands on the city they searched.
+ */
+const CITY_REACH = { lat: 0.5, lng: 0.6 };
+
+function nearCity(marker: EstateMapMarker, center: [number, number]) {
+  return (
+    Math.abs(marker.lat - center[0]) <= CITY_REACH.lat &&
+    Math.abs(marker.lng - center[1]) <= CITY_REACH.lng
+  );
+}
+
 /** Keeps the viewport in sync when the result set or the selection changes. */
 function MapController({
   markers,
@@ -54,12 +72,13 @@ function MapController({
   const map = useMap();
 
   useEffect(() => {
-    if (markers.length === 0) {
+    const inCity = markers.filter((marker) => nearCity(marker, center));
+    if (inCity.length === 0) {
       map.setView(center, 12);
       return;
     }
     const bounds = L.latLngBounds(
-      markers.map((marker) => [marker.lat, marker.lng] as [number, number])
+      inCity.map((marker) => [marker.lat, marker.lng] as [number, number]),
     );
     map.fitBounds(bounds, { padding: [48, 48], maxZoom: 15 });
   }, [markers, map, center]);
@@ -82,6 +101,10 @@ function MapController({
  * `selectedId` handed every marker a fresh `divIcon` each time the selection
  * moved, so tapping one pin re-rendered all of them. Here only the two markers
  * whose `active` actually flipped do any work.
+ *
+ * The popup is a small card — photo, title, place, size, price — rather than
+ * three lines of text: it is the listing's first impression, and the photo
+ * is most of what decides whether anyone clicks through.
  */
 const ListingMarker = memo(function ListingMarker({
   marker,
@@ -101,17 +124,63 @@ const ListingMarker = memo(function ListingMarker({
       eventHandlers={{ click: () => onSelect(marker.id) }}
       zIndexOffset={active ? 1000 : 0}
     >
-      <Popup>
-        <div dir="rtl" className="min-w-44 font-sans text-right">
-          <Link href={marker.href} className="font-semibold text-brand">
-            {marker.title}
-          </Link>
-          <div className="mt-1 text-xs text-muted-foreground">
-            {marker.place} · {marker.area.toLocaleString("fa-IR")} متر
-            {marker.roomLabel ? ` · ${marker.roomLabel} خواب` : ""}
-          </div>
-          <div className="mt-1 font-semibold">{marker.priceLabel}</div>
-        </div>
+      <Popup className="listing-popup" closeButton={false} offset={[0, -6]}>
+        <Link
+          href={marker.href}
+          dir="rtl"
+          className="block w-60 overflow-hidden rounded-2xl bg-card font-sans text-foreground no-underline hover:no-underline"
+        >
+          <span className="relative block aspect-[16/10] w-full overflow-hidden bg-muted">
+            {marker.coverImage ? (
+              <Image
+                src={marker.coverImage}
+                alt=""
+                fill
+                sizes="240px"
+                className="object-cover"
+              />
+            ) : (
+              <span className="flex size-full items-center justify-center text-muted-foreground">
+                <MapPin className="size-6" />
+              </span>
+            )}
+            <span className="absolute top-2 inset-s-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur">
+              {marker.dealType === "rent" ? "رهن و اجاره" : "فروش"} ·{" "}
+              {marker.estateTypeLabel}
+            </span>
+          </span>
+
+          <span className="flex flex-col gap-1.5 p-3">
+            <span className="line-clamp-1 font-heading text-[13px] font-semibold">
+              {marker.title}
+            </span>
+            <span className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+              <MapPin className="size-3 shrink-0 text-brand/70" />
+              {marker.place}
+            </span>
+            <span className="flex items-center gap-3 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Ruler className="size-3 text-brand/70" />
+                {marker.area.toLocaleString("fa-IR")} متر
+              </span>
+              {marker.roomLabel && (
+                <span className="flex items-center gap-1">
+                  <BedDouble className="size-3 text-brand/70" />
+                  {marker.roomLabel} خواب
+                </span>
+              )}
+            </span>
+            <span className="mt-1 flex items-center justify-between gap-2">
+              <span className="font-heading text-xs font-bold text-brand">
+                {marker.priceLabel}
+              </span>
+              <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+                جزئیات
+                <ArrowLeft className="size-3" />
+              </span>
+            </span>
+          </span>
+        </Link>
       </Popup>
     </Marker>
   );

@@ -6,11 +6,14 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { RotateCcw, SlidersHorizontal } from "lucide-react";
+import { MapPin, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Container } from "@/components/layout/container";
@@ -35,6 +38,7 @@ import { routes } from "@/lib/routes";
 import { useEstateFilters } from "@/app/_lookups/_hooks/use-lookups";
 import { useEstateSearch } from "@/app/properties/_hooks/use-estate-search";
 import { useEstateMap } from "@/app/properties/_hooks/use-estate-map";
+import type { EstateMapMarker } from "@/app/properties/_mappers/estate-map.mapper";
 import { mapFiltersToSearchParams } from "@/app/properties/_mappers/estate-search.mapper";
 
 import { ActiveFilters } from "./active-filters";
@@ -89,6 +93,20 @@ export function SearchView({
   const [view, setView] = useState<ViewMode>(initialView);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  /**
+   * The last pin *clicked on the map*, as opposed to a row hovered in the
+   * list: only that scrolls the middle column, and when the pinned file is
+   * not among the loaded rows it is shown at the top instead. A counter, so
+   * clicking the same pin twice scrolls twice.
+   */
+  const [mapPick, setMapPick] = useState<{ id: string; n: number } | null>(
+    null,
+  );
+  const resultsColumn = useRef<HTMLDivElement>(null);
+  const pickFromMap = useCallback((id: string) => {
+    setSelectedId(id);
+    setMapPick((current) => ({ id, n: (current?.n ?? 0) + 1 }));
+  }, []);
   // On a phone the results sheet opens full — the list is the page, and the
   // map is a swipe down away — unless the map is what was asked for.
   const [sheetSnap, setSheetSnap] = useState<SheetSnap>(
@@ -237,8 +255,20 @@ export function SearchView({
 
   const retry = useCallback(() => void searchQuery.refetch(), [searchQuery]);
 
+  useEffect(() => {
+    if (!mapPick) return;
+    const row = resultsColumn.current?.querySelector<HTMLElement>(
+      `[data-listing-id="${CSS.escape(mapPick.id)}"]`,
+    );
+    row?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [mapPick]);
+
   const countLabel = `${total.toLocaleString("fa-IR")} آگهی در این محدوده`;
   const markers = mapQuery.data?.markers ?? [];
+  const pickedMarker =
+    mapPick && !results.some((listing) => listing.id === mapPick.id)
+      ? (markers.find((marker) => marker.id === mapPick.id) ?? null)
+      : null;
   const map = mapQuery.isPending ? (
     <div className="flex size-full items-center justify-center bg-muted">
       <Spinner className="size-6 text-muted-foreground" />
@@ -259,7 +289,7 @@ export function SearchView({
           markers={markers}
           city={filters.city}
           selectedId={selectedId}
-          onSelect={setSelectedId}
+          onSelect={pickFromMap}
         />
         {mapQuery.data.truncated && (
           <span className="absolute bottom-3 start-3 z-20 rounded-full border bg-card/95 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur">
@@ -413,10 +443,23 @@ export function SearchView({
               {filtersSidebar}
             </aside>
 
-            <div className="mt-3 flex w-96 shrink-0 flex-col gap-3 overflow-y-auto py-1">
+            <div
+              ref={resultsColumn}
+              className="mt-3 flex w-96 shrink-0 flex-col gap-3 overflow-y-auto py-1"
+            >
               <Typography as="h2" variant="h4">
                 {status === "ready" ? countLabel : "در حال جستجو…"}
               </Typography>
+
+              {/* A pin whose file is not among the loaded rows — the map holds
+                  up to 500 points, the list a page at a time — is shown here,
+                  so the click always lands on something. */}
+              {pickedMarker && (
+                <PickedMarkerCard
+                  marker={pickedMarker}
+                  onDismiss={() => setMapPick(null)}
+                />
+              )}
 
               {status === "ready" &&
                 results.map((listing) => (
@@ -550,6 +593,63 @@ export function SearchView({
       )}
 
       <MapToggleButton active={view === "map"} onClick={toggleView} />
+    </div>
+  );
+}
+
+/** The map's pick, as a row, when the list has not loaded that file yet. */
+function PickedMarkerCard({
+  marker,
+  onDismiss,
+}: {
+  marker: EstateMapMarker;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-brand bg-card p-2.5 ring-1 ring-brand/30">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <Typography variant="small" className="flex items-center gap-1.5">
+          <MapPin className="size-3.5 text-brand" />
+          انتخاب‌شده روی نقشه
+        </Typography>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="بستن"
+          onClick={onDismiss}
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
+      <Link href={marker.href} className="flex gap-3">
+        <span className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-muted">
+          {marker.coverImage && (
+            <Image
+              src={marker.coverImage}
+              alt=""
+              fill
+              sizes="96px"
+              className="object-cover"
+            />
+          )}
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="line-clamp-1 font-heading text-[13px] font-semibold">
+            {marker.title}
+          </span>
+          <span className="truncate text-[11px] text-muted-foreground">
+            {marker.place}
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            {marker.area.toLocaleString("fa-IR")} متر
+            {marker.roomLabel ? ` · ${marker.roomLabel} خواب` : ""}
+          </span>
+          <span className="mt-auto font-heading text-xs font-bold text-brand dark:text-white">
+            {marker.priceLabel}
+          </span>
+        </span>
+      </Link>
     </div>
   );
 }

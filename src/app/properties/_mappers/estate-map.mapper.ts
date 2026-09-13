@@ -39,9 +39,14 @@ export function mapEstateMapMarker(dto: EstateMapMarkerDto): EstateMapMarker {
   };
 }
 
+/** On the globe at all — one longitude of −669 fitted the map to the world. */
+function onGlobe(dto: EstateMapMarkerDto): boolean {
+  return Math.abs(dto.latitude) <= 90 && Math.abs(dto.longitude) <= 180;
+}
+
 export function mapEstateMap(response: EstateMapResponse) {
   return {
     ...response.result,
-    markers: response.result.markers.map(mapEstateMapMarker),
+    markers: response.result.markers.filter(onGlobe).map(mapEstateMapMarker),
   };
 }

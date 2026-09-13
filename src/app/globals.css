@@ -255,3 +255,24 @@
     display: none;
   }
 }
+
+/* The search map's marker popup is a card of its own; Leaflet's white box
+   with its padding and blue links must not show around it. */
+.listing-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: 0 12px 32px -8px rgb(0 0 0 / 0.35);
+}
+.listing-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+  line-height: inherit;
+}
+.listing-popup .leaflet-popup-content a {
+  color: inherit;
+}
+.listing-popup .leaflet-popup-tip {
+  background: var(--card);
+}
