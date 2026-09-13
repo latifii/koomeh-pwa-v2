@@ -40,6 +40,7 @@ import {
   buildingAgeOptions,
   formatToman,
 } from "@/data/search";
+import { toEnglishDigits } from "@/lib/persian-number";
 import { cn } from "@/lib/utils";
 
 import { DealTypeToggle } from "./deal-type-toggle";
@@ -251,7 +252,6 @@ export function FiltersPanel({
           maxValue={filters.maxPrice}
           onMinChange={(value) => onChange({ minPrice: value })}
           onMaxChange={(value) => onChange({ maxPrice: value })}
-          step={100_000_000}
           formatValue={(value) => `${formatToman(value)} تومان`}
           presets={filters.deal === "rent" ? mortgagePresets : salePricePresets}
         />
@@ -264,7 +264,6 @@ export function FiltersPanel({
             maxValue={filters.maxRent}
             onMinChange={(value) => onChange({ minRent: value })}
             onMaxChange={(value) => onChange({ maxRent: value })}
-            step={1_000_000}
             formatValue={(value) => `${formatToman(value)} تومان`}
             presets={rentPresets}
           />
@@ -415,7 +414,6 @@ function RangeInputs({
   maxValue,
   onMinChange,
   onMaxChange,
-  step,
   formatValue,
   presets = [],
 }: {
@@ -423,7 +421,6 @@ function RangeInputs({
   maxValue: string;
   onMinChange: (value: string) => void;
   onMaxChange: (value: string) => void;
-  step?: number;
   formatValue: (value: number) => string;
   presets?: RangePreset[];
 }) {
@@ -444,7 +441,6 @@ function RangeInputs({
           label="از"
           value={minValue}
           onChange={onMinChange}
-          step={step}
           invalid={hasInvalidRange}
         />
         <span className="pb-2 text-[11px] text-muted-foreground">-</span>
@@ -452,7 +448,6 @@ function RangeInputs({
           label="تا"
           value={maxValue}
           onChange={onMaxChange}
-          step={step}
           invalid={hasInvalidRange}
         />
       </div>
@@ -511,13 +506,11 @@ function RangeInput({
   label,
   value,
   onChange,
-  step,
   invalid,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  step?: number;
   invalid: boolean;
 }) {
   return (
@@ -525,15 +518,17 @@ function RangeInput({
       <span className="block text-[10px] font-medium text-muted-foreground">
         {label}
       </span>
+      {/* Text, not number: a number input cannot show thousands separators,
+          and a ten-digit Toman figure without them is unreadable. The stored
+          value stays bare digits; only what is shown is grouped. */}
       <div className="relative min-w-0">
         <Input
-          type="number"
-          min={0}
-          step={step}
+          type="text"
           inputMode="numeric"
-          value={value}
+          autoComplete="off"
+          value={groupDigits(value)}
           aria-invalid={invalid}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) => onChange(bareDigits(event.target.value))}
           className="min-w-0 px-2 text-xs tabular-nums"
           dir="ltr"
         />
@@ -541,6 +536,12 @@ function RangeInput({
     </label>
   );
 }
+
+/** `1500000000` → `1,500,000,000`; Persian digits and stray characters are dropped. */
+const bareDigits = (value: string): string =>
+  toEnglishDigits(value).replace(/\D/g, "");
+const groupDigits = (digits: string): string =>
+  digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 type RangePreset = {
   label: string;

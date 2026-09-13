@@ -28,8 +28,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <Loader2Icon className="size-4 animate-spin" />
         ),
       }}
+      // Sonner sets its own `font-family` (a system stack) on the toaster,
+      // so the messages came up in a different face from the page. The
+      // site's font, inline, outranks that stylesheet; the direction goes
+      // with it because the toaster is portalled beside the page.
+      dir="rtl"
       style={
         {
+          fontFamily: "var(--font-sans)",
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
@@ -38,7 +44,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast font-sans",
+          title: "font-sans",
+          description: "font-sans",
         },
       }}
       {...props}

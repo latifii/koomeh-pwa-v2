@@ -26,6 +26,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import {
@@ -52,6 +53,7 @@ import {
   SHEET_SPLIT,
   type SheetSnap,
 } from "./mobile-map-view";
+import { LoadMoreSentinel } from "./load-more-sentinel";
 import { EmptyState, ErrorState, ResultsSkeleton } from "./result-states";
 import { SearchToolbar } from "./search-toolbar";
 
@@ -474,16 +476,13 @@ export function SearchView({
               {status === "ready" && results.length === 0 && (
                 <EmptyState onReset={resetFilters} />
               )}
-              {status === "ready" && searchQuery.hasNextPage && (
-                <Button
-                  variant="outline"
-                  disabled={searchQuery.isFetchingNextPage}
-                  onClick={() => void searchQuery.fetchNextPage()}
-                >
-                  {searchQuery.isFetchingNextPage
-                    ? "در حال دریافت…"
-                    : "نمایش آگهی‌های بیشتر"}
-                </Button>
+              {status === "ready" && (
+                <LoadMoreSentinel
+                  hasMore={Boolean(searchQuery.hasNextPage)}
+                  loading={searchQuery.isFetchingNextPage}
+                  onLoadMore={() => void searchQuery.fetchNextPage()}
+                  skeleton={<ListingRowSkeleton count={3} />}
+                />
               )}
             </div>
 
@@ -572,18 +571,12 @@ export function SearchView({
                       ))}
                     </div>
 
-                    {searchQuery.hasNextPage && (
-                      <Button
-                        variant="outline"
-                        className="mx-auto w-fit"
-                        disabled={searchQuery.isFetchingNextPage}
-                        onClick={() => void searchQuery.fetchNextPage()}
-                      >
-                        {searchQuery.isFetchingNextPage
-                          ? "در حال دریافت…"
-                          : "نمایش آگهی‌های بیشتر"}
-                      </Button>
-                    )}
+                    <LoadMoreSentinel
+                      hasMore={Boolean(searchQuery.hasNextPage)}
+                      loading={searchQuery.isFetchingNextPage}
+                      onLoadMore={() => void searchQuery.fetchNextPage()}
+                      skeleton={<ResultsSkeleton count={3} />}
+                    />
                   </>
                 )}
               </div>
@@ -651,5 +644,28 @@ function PickedMarkerCard({
         </span>
       </Link>
     </div>
+  );
+}
+
+/** The map column's row, as a placeholder, while the next page arrives. */
+function ListingRowSkeleton({ count }: { count: number }) {
+  return (
+    <>
+      {Array.from({ length: count }, (_, index) => (
+        <div
+          key={index}
+          aria-hidden
+          className="flex gap-3 rounded-2xl border bg-card p-2.5"
+        >
+          <Skeleton className="size-24 shrink-0 rounded-xl" />
+          <div className="flex min-w-0 flex-1 flex-col gap-2 py-1">
+            <Skeleton className="h-3.5 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+            <Skeleton className="h-3 w-2/5" />
+            <Skeleton className="mt-auto h-3.5 w-1/3" />
+          </div>
+        </div>
+      ))}
+    </>
   );
 }

@@ -9,13 +9,13 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Typography } from "@/components/ui/typography";
-import { Button } from "@/components/ui/button";
 import type { Listing, SearchFilters } from "@/data/search";
 import type { EstateFilters } from "@/app/_lookups/_schemas/lookups.schema";
 
 import { ListingCard } from "./listing-card";
 import { MapSearchBar } from "./map-search-bar";
 import { MapToggleButton } from "./map-toggle-button";
+import { LoadMoreSentinel } from "./load-more-sentinel";
 import { EmptyState, ErrorState, ResultsSkeleton } from "./result-states";
 
 /**
@@ -190,14 +190,15 @@ export function MobileMapView({
                 results.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
-              {status === "ready" && hasMore && (
-                <Button
-                  variant="outline"
-                  disabled={isLoadingMore}
-                  onClick={onLoadMore}
-                >
-                  {isLoadingMore ? "در حال دریافت…" : "نمایش آگهی‌های بیشتر"}
-                </Button>
+              {status === "ready" && (
+                <LoadMoreSentinel
+                  hasMore={hasMore}
+                  loading={isLoadingMore}
+                  onLoadMore={onLoadMore}
+                  skeleton={
+                    <ResultsSkeleton count={2} className="sm:grid-cols-1" />
+                  }
+                />
               )}
             </div>
           </div>
