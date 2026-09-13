@@ -8,6 +8,7 @@ import apartmentImage from "@/assets/images/card/apartman.webp";
 import businessImage from "@/assets/images/card/business.webp";
 import plotImage from "@/assets/images/card/plot.webp";
 import villaImage from "@/assets/images/card/villa.webp";
+import { ApiImage } from "@/components/shared/api-image";
 import { Badge } from "@/components/ui/badge";
 import { type PropertyType, propertyTypeLabels } from "@/data/home";
 import type { Listing } from "@/data/search";
@@ -58,14 +59,28 @@ export function ListingRow({
           : "hover:border-brand/40 hover:shadow-sm"
       )}
     >
-      <span className="relative size-24 shrink-0 overflow-hidden rounded-xl">
-        <Image
-          src={propertyImages[listing.propertyType]}
-          alt={propertyTypeLabels[listing.propertyType]}
-          fill
-          sizes="96px"
-          className="object-cover"
-        />
+      {/* The file's own photo, with the type placeholder only when there is
+          none or it fails. `sizes` asks for twice the box so a retina screen
+          gets a sharp copy instead of an upscaled 96px one. */}
+      <span className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-muted">
+        {listing.coverImage ? (
+          <ApiImage
+            src={listing.coverImage}
+            fallbackSrc={propertyImages[listing.propertyType]}
+            alt={listing.title}
+            fill
+            sizes="192px"
+            className="object-cover"
+          />
+        ) : (
+          <Image
+            src={propertyImages[listing.propertyType]}
+            alt={propertyTypeLabels[listing.propertyType]}
+            fill
+            sizes="192px"
+            className="object-cover"
+          />
+        )}
         {listing.isUrgent && (
           <Badge
             variant="secondary"

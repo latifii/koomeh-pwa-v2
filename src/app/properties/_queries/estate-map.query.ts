@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 
 import {
   getEstateMap,
@@ -34,6 +34,10 @@ export function estateMapPointsQueryOptions(
     // The point set is the same for the life of a filter combination, and
     // it is fetched again for each; nothing in it goes stale in minutes.
     staleTime: 5 * 60 * 1000,
+    // A filter change must not unmount the map: the old points stay up
+    // while the new ones load, and the clusters redraw in place. Tearing
+    // Leaflet down mid-animation is also what threw `_leaflet_pos` errors.
+    placeholderData: keepPreviousData,
   });
 }
 

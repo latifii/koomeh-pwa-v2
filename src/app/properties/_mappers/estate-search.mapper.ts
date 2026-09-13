@@ -50,6 +50,7 @@ export function mapFiltersToSearchParams(
     has_video: filters.hasVideo || undefined,
     vr: filters.hasVirtualTour || undefined,
     has_agent: filters.hasAgent || undefined,
+    polygon: filters.area || undefined,
     sortBy: (sort?.sortBy as 1 | 2 | 3 | 4 | undefined) ?? 1,
     sortType: (sort?.sortType as 1 | 2 | undefined) ?? 1,
   };

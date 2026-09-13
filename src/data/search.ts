@@ -101,6 +101,12 @@ export interface SearchFilters {
   hasVirtualTour: boolean;
   hasAgent: boolean;
   sort: SortKey;
+  /**
+   * An area drawn on the map, as `lat,lng;lat,lng;…` — the API's `polygon`.
+   * Empty means no area. It is not counted among the narrowing filters: the
+   * map shows it, and removes it, itself.
+   */
+  area: string;
 }
 
 export const defaultFilters: SearchFilters = {
@@ -125,6 +131,7 @@ export const defaultFilters: SearchFilters = {
   hasVirtualTour: false,
   hasAgent: false,
   sort: "newest",
+  area: "",
 };
 
 /** Everything except `deal`, `city` and `sort` counts as a narrowing filter. */

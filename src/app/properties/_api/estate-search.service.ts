@@ -42,6 +42,7 @@ export function normalizeEstateSearchParams(
     has_video: params.has_video || undefined,
     vr: params.vr || undefined,
     has_agent: params.has_agent || undefined,
+    polygon: normalizedText(params.polygon),
     sortBy: params.sortBy && [1, 2, 3, 4].includes(params.sortBy)
       ? params.sortBy
       : 1,

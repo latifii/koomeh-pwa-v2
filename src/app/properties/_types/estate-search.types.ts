@@ -22,6 +22,8 @@ export type EstateSearchParams = {
   has_video?: boolean;
   vr?: boolean;
   has_agent?: boolean;
+  /** `lat,lng;lat,lng;…` — only files inside the drawn area. */
+  polygon?: string;
   sortBy?: 1 | 2 | 3 | 4;
   sortType?: 1 | 2;
   page?: number;

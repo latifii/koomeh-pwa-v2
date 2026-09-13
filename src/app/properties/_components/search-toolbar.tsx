@@ -22,6 +22,70 @@ import { cn } from "@/lib/utils";
 
 import { DealTypeToggle } from "./deal-type-toggle";
 
+/** The free-text box, on its own so the map layout's sidebar can hold it. */
+export function QueryInput({
+  value,
+  onChange,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  return (
+    <InputGroup className={className}>
+      <InputGroupAddon>
+        <Search />
+      </InputGroupAddon>
+      <InputGroupInput
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="جستجو بر اساس عنوان یا محله…"
+        aria-label="جستجوی آگهی"
+      />
+    </InputGroup>
+  );
+}
+
+/** The sort dropdown, likewise. */
+export function SortSelect({
+  value,
+  onChange,
+  lookups,
+  className,
+}: {
+  value: SortKey;
+  onChange: (value: SortKey) => void;
+  lookups?: EstateFilters;
+  className?: string;
+}) {
+  const sortOptions = lookups?.sort_options.items ??
+    Object.entries(sortLabels).map(([value, title]) => ({ value, title }));
+  const sortItems = Object.fromEntries(
+    sortOptions.map((item) => [item.value, item.title]),
+  );
+
+  return (
+    <Select
+      items={sortItems}
+      value={value}
+      onValueChange={(next) => onChange(next as SortKey)}
+    >
+      <SelectTrigger className={className} aria-label="مرتب‌سازی">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {sortOptions.map((item) => (
+          <SelectItem key={item.value} value={item.value}>
+            {item.title}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export function SearchToolbar({
   filters,
   onChange,
@@ -37,12 +101,6 @@ export function SearchToolbar({
   className?: string;
   lookups?: EstateFilters;
 }) {
-  const sortOptions = lookups?.sort_options.items ??
-    Object.entries(sortLabels).map(([value, title]) => ({ value, title }));
-  const sortItems = Object.fromEntries(
-    sortOptions.map((item) => [item.value, item.title]),
-  );
-
   return (
     <div
       className={cn(
@@ -59,36 +117,19 @@ export function SearchToolbar({
           className="hidden lg:flex"
         />
 
-        <InputGroup className="flex-1">
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupInput
-            type="search"
-            value={filters.query}
-            onChange={(event) => onChange({ query: event.target.value })}
-            placeholder="جستجو بر اساس عنوان یا محله…"
-            aria-label="جستجوی آگهی"
-          />
-        </InputGroup>
+        <QueryInput
+          value={filters.query}
+          onChange={(query) => onChange({ query })}
+          className="flex-1"
+        />
 
         <div className="flex items-center gap-2">
-          <Select
-            items={sortItems}
+          <SortSelect
             value={filters.sort}
-            onValueChange={(value) => onChange({ sort: value as SortKey })}
-          >
-            <SelectTrigger className="flex-1 lg:w-40" aria-label="مرتب‌سازی">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(sort) => onChange({ sort })}
+            lookups={lookups}
+            className="flex-1 lg:w-40"
+          />
 
           {/* Filters live in a drawer below `lg`, where the sidebar is hidden */}
           <Button

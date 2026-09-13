@@ -61,9 +61,16 @@ import {
   type SheetSnap,
 } from "./mobile-map-view";
 import type { MapInset } from "./listings-map";
+import {
+  parseArea,
+  pointInArea,
+  serializeArea,
+  type AreaVertex,
+} from "@/app/properties/_lib/map-area";
 import { LoadMoreSentinel } from "./load-more-sentinel";
 import { EmptyState, ErrorState, ResultsSkeleton } from "./result-states";
-import { SearchToolbar } from "./search-toolbar";
+import { QueryInput, SearchToolbar, SortSelect } from "./search-toolbar";
+import { DealTypeToggle } from "./deal-type-toggle";
 
 // Leaflet touches `window` at import time, so it can only load in the browser.
 const ListingsMap = dynamic(
@@ -81,8 +88,8 @@ const ListingsMap = dynamic(
 type Status = "loading" | "ready" | "error";
 type ViewMode = "grid" | "map";
 
-/** The toolbar floating over the map's top edge, with its offset. */
-const DESKTOP_MAP_INSET: MapInset = { top: 72 };
+/** Nothing covers the desktop map; the controls sit in the sidebar. */
+const DESKTOP_MAP_INSET: MapInset = {};
 /** The search bar over the top and the results sheet at its half stop. */
 const PHONE_MAP_INSET: MapInset = { top: 72, bottomFraction: SHEET_SPLIT };
 
@@ -290,7 +297,27 @@ export function SearchView({
   }, [mapPick]);
 
   const countLabel = `${total.toLocaleString("fa-IR")} آگهی`;
-  const points = mapQuery.data?.points ?? [];
+  /**
+   * The drawn area narrows the points here as well as on the server: the
+   * clusters and the viewport count follow the pen the moment it lifts,
+   * without waiting for the round trip — and on a server that does not
+   * know `polygon` yet, the map is still right.
+   */
+  const area = useMemo(() => parseArea(filters.area), [filters.area]);
+  const allPoints = mapQuery.data?.points;
+  const points = useMemo(() => {
+    const list = allPoints ?? [];
+    if (!area) return list;
+    return list.filter((point) => pointInArea(point.lat, point.lng, area));
+  }, [allPoints, area]);
+  const setArea = useCallback(
+    (ring: AreaVertex[] | null) =>
+      setFilters((current) => ({
+        ...current,
+        area: ring ? serializeArea(ring) : "",
+      })),
+    [],
+  );
   const pickedId =
     mapPick && !results.some((listing) => listing.id === mapPick.id)
       ? mapPick.id
@@ -317,13 +344,16 @@ export function SearchView({
         onSelect={pickFromMap}
         focus={mapFocus}
         inset={isDesktop ? DESKTOP_MAP_INSET : PHONE_MAP_INSET}
+        area={area}
+        onAreaChange={setArea}
         onInViewChange={setInView}
       />
     );
-  // Read as «۴۹۶ آگهی در این محدوده‌ی نقشه»; climbs and falls with the zoom.
+  // Read as «۴۹۶ آگهی در محدوده‌ی نقشه»; climbs and falls with the zoom, and
+  // says so when the count is of a drawn area rather than the viewport.
   const inViewLabel =
     inView !== null && mapQuery.isSuccess
-      ? `${inView.toLocaleString("fa-IR")} آگهی در محدوده‌ی نقشه`
+      ? `${inView.toLocaleString("fa-IR")} آگهی در ${area ? "محدوده‌ی ترسیمی" : "محدوده‌ی نقشه"}`
       : null;
 
   const filtersSidebar = (
@@ -346,6 +376,28 @@ export function SearchView({
         )}
       </div>
       <div className="overflow-y-auto p-4">
+        {/* In the map layout nothing floats over the map, so the deal
+            toggle, the search box and the sort live up here instead. */}
+        {view === "map" && (
+          <div className="mb-6 flex flex-col gap-3 border-b pb-6">
+            <DealTypeToggle
+              value={filters.deal}
+              onChange={(deal) => updateFilters({ deal })}
+              options={lookups?.deal_types.items}
+              className="w-full"
+            />
+            <QueryInput
+              value={filters.query}
+              onChange={(query) => updateFilters({ query })}
+            />
+            <SortSelect
+              value={filters.sort}
+              onChange={(sort) => updateFilters({ sort })}
+              lookups={lookups}
+              className="w-full"
+            />
+          </div>
+        )}
         <FiltersPanel
           filters={filters}
           onChange={updateFilters}
@@ -432,7 +484,7 @@ export function SearchView({
   }
 
   return (
-    <div className="py-section-sm">
+    <div className={view === "map" ? undefined : "py-section-sm"}>
       {/* The page header only makes sense in grid mode — map mode gives that
           vertical space to the map instead. */}
       {view === "grid" && (
@@ -461,18 +513,20 @@ export function SearchView({
 
       {view === "map" ? (
         /*
-         * Full-bleed: filters | results | map, each scrolling independently.
-         * The map has no border/radius and no end-side gutter, so it runs flush
-         * to the edge of the viewport.
+         * Filters | results | map, each scrolling independently, filling the
+         * viewport under the sticky header. A muted ground with an even
+         * gutter around the three columns, so no box's border meets another's
+         * — the bordered band that used to sit between the header and the
+         * columns is gone with it.
          */
-        <div className="flex h-[calc(100dvh-7rem)] w-full gap-3 border-t border-border ps-3">
+        <div className="flex h-[calc(100dvh-4rem)] w-full gap-3 bg-muted/40 p-3 pe-0">
             <aside className="w-72 shrink-0 overflow-y-auto">
               {filtersSidebar}
             </aside>
 
             <div
               ref={resultsColumn}
-              className="mt-3 flex w-96 shrink-0 flex-col gap-3 overflow-y-auto py-1"
+              className="flex w-96 shrink-0 flex-col gap-3 overflow-y-auto py-1"
             >
               <div className="flex flex-col gap-0.5">
                 <Typography as="h2" variant="h4">
@@ -518,16 +572,7 @@ export function SearchView({
               )}
             </div>
 
-            <div className="relative mt-3 min-w-0 flex-1 overflow-hidden">
-              <SearchToolbar
-                filters={filters}
-                onChange={updateFilters}
-                activeCount={activeCount}
-                onOpenFilters={() => setFiltersOpen(true)}
-                className="absolute inset-x-3 top-3 z-30 bg-card/95 shadow-lg backdrop-blur-md"
-                lookups={lookups}
-              />
-
+            <div className="relative min-w-0 flex-1 overflow-hidden rounded-s-2xl border border-e-0">
               {status === "error" ? (
                 <div className="flex size-full items-center justify-center p-6">
                   <ErrorState onRetry={retry} />

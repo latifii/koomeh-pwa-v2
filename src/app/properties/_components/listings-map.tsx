@@ -4,10 +4,12 @@ import { memo, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import L from "leaflet";
 import Supercluster from "supercluster";
-import { ArrowLeft, BedDouble, MapPin, Ruler } from "lucide-react";
+import { ArrowLeft, BedDouble, MapPin, PenLine, Ruler, X } from "lucide-react";
 import {
   MapContainer,
   Marker,
+  Polygon,
+  Polyline,
   Popup,
   TileLayer,
   useMap,
@@ -18,9 +20,12 @@ import "leaflet/dist/leaflet.css";
 
 import { useEstateMapMarker } from "@/app/properties/_hooks/use-estate-map-points";
 import type { EstateMapPoint } from "@/app/properties/_mappers/estate-map.mapper";
+import type { AreaVertex } from "@/app/properties/_lib/map-area";
 import apartmentImage from "@/assets/images/card/apartman.webp";
 import { ApiImage } from "@/components/shared/api-image";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Typography } from "@/components/ui/typography";
 import { cityCenters } from "@/data/search";
 
 /*
@@ -78,9 +83,11 @@ function escapeHtml(value: string): string {
  * paths that bundlers cause.
  */
 function priceIcon(pinLabel: string, active: boolean) {
+  // The brand's secondary for every pin; the selected one flips to the
+  // primary so it stands out from its neighbours instead of blending in.
   const className = active
-    ? "bg-secondary text-secondary-foreground border-secondary"
-    : "bg-card text-foreground border-border hover:border-brand";
+    ? "bg-primary text-primary-foreground border-primary"
+    : "bg-secondary text-secondary-foreground border-secondary hover:border-primary";
 
   return L.divIcon({
     className: "!bg-transparent !border-0",
@@ -91,9 +98,9 @@ function priceIcon(pinLabel: string, active: boolean) {
 }
 
 /**
- * A red circle with the count in it, larger for larger clusters — the size
- * is the second thing the eye reads after the number, so 600 files are a
- * visibly bigger circle than 6.
+ * A circle in the brand colour with the count in it, larger for larger
+ * clusters — the size is the second thing the eye reads after the number,
+ * so 600 files are a visibly bigger circle than 6.
  */
 function clusterIcon(count: number) {
   const size = count >= 1000 ? 60 : count >= 100 ? 52 : count >= 10 ? 44 : 36;
@@ -103,7 +110,7 @@ function clusterIcon(count: number) {
     className: "!bg-transparent !border-0",
     // Theme tokens only: the built-in palette is switched off in this
     // project, so a `bg-red-600` here would render as nothing at all.
-    html: `<span class="flex size-full cursor-pointer items-center justify-center rounded-full bg-destructive font-heading ${text} font-bold text-white shadow-lg ring-6 ring-destructive/25 transition-transform hover:scale-105">${count.toLocaleString("fa-IR")}</span>`,
+    html: `<span class="flex size-full cursor-pointer items-center justify-center rounded-full bg-secondary font-heading ${text} font-bold text-secondary-foreground shadow-lg ring-6 ring-secondary/30 transition-transform hover:scale-105">${count.toLocaleString("fa-IR")}</span>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -444,6 +451,119 @@ function MarkerPopupCard({ id }: { id: string }) {
 }
 
 /**
+ * Freehand drawing: while it is on, the map stops panning and the pointer
+ * draws instead — press, drag around the neighbourhood, release. The trail
+ * is simplified in screen space (Douglas–Peucker, a 4px tolerance) so a
+ * shaky hand does not become two hundred vertices in the query string, and
+ * closed into a polygon on release. Fewer than three vertices is a tap, not
+ * a shape, and is ignored.
+ */
+const SIMPLIFY_TOLERANCE_PX = 4;
+const MIN_STEP_PX = 3;
+
+function DrawLayer({
+  active,
+  onDrawn,
+}: {
+  active: boolean;
+  onDrawn: (ring: AreaVertex[]) => void;
+}) {
+  const map = useMap();
+  const [draft, setDraft] = useState<L.LatLng[]>([]);
+
+  useEffect(() => {
+    if (!active) return;
+
+    const container = map.getContainer();
+    const handlers = [
+      map.dragging,
+      map.touchZoom,
+      map.doubleClickZoom,
+      map.scrollWheelZoom,
+      map.boxZoom,
+      map.keyboard,
+    ];
+    const wasEnabled = handlers.map((handler) => handler.enabled());
+    handlers.forEach((handler) => handler.disable());
+    map.closePopup();
+    const previousCursor = container.style.cursor;
+    const previousTouchAction = container.style.touchAction;
+    container.style.cursor = "crosshair";
+    container.style.touchAction = "none";
+
+    let drawing = false;
+    let trail: L.LatLng[] = [];
+    let lastPoint: L.Point | null = null;
+
+    const down = (event: PointerEvent) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      event.preventDefault();
+      drawing = true;
+      trail = [map.mouseEventToLatLng(event)];
+      lastPoint = map.mouseEventToContainerPoint(event);
+      container.setPointerCapture(event.pointerId);
+      setDraft(trail.slice());
+    };
+    const move = (event: PointerEvent) => {
+      if (!drawing) return;
+      event.preventDefault();
+      const point = map.mouseEventToContainerPoint(event);
+      if (lastPoint && point.distanceTo(lastPoint) < MIN_STEP_PX) return;
+      lastPoint = point;
+      trail.push(map.mouseEventToLatLng(event));
+      setDraft(trail.slice());
+    };
+    const up = (event: PointerEvent) => {
+      if (!drawing) return;
+      drawing = false;
+      if (container.hasPointerCapture(event.pointerId)) {
+        container.releasePointerCapture(event.pointerId);
+      }
+      const simplified = L.LineUtil.simplify(
+        trail.map((latlng) => map.latLngToContainerPoint(latlng)),
+        SIMPLIFY_TOLERANCE_PX,
+      ).map((point) => map.containerPointToLatLng(point));
+      setDraft([]);
+      if (simplified.length >= 3) {
+        onDrawn(simplified.map((latlng) => [latlng.lat, latlng.lng]));
+      }
+    };
+
+    container.addEventListener("pointerdown", down);
+    container.addEventListener("pointermove", move);
+    container.addEventListener("pointerup", up);
+    container.addEventListener("pointercancel", up);
+
+    return () => {
+      container.removeEventListener("pointerdown", down);
+      container.removeEventListener("pointermove", move);
+      container.removeEventListener("pointerup", up);
+      container.removeEventListener("pointercancel", up);
+      handlers.forEach((handler, index) => {
+        if (wasEnabled[index]) handler.enable();
+      });
+      container.style.cursor = previousCursor;
+      container.style.touchAction = previousTouchAction;
+      setDraft([]);
+    };
+  }, [active, map, onDrawn]);
+
+  if (draft.length < 2) return null;
+  return (
+    <Polyline
+      positions={draft}
+      pathOptions={{
+        className: "stroke-primary",
+        weight: 3,
+        dashArray: "6 6",
+        fill: false,
+      }}
+      interactive={false}
+    />
+  );
+}
+
+/**
  * Memoised: the search view rebuilds this element on every keystroke in the
  * filter bar, and re-rendering it walks the whole point set.
  */
@@ -454,6 +574,8 @@ export const ListingsMap = memo(function ListingsMap({
   onSelect,
   focus = null,
   inset = NO_INSET,
+  area,
+  onAreaChange,
   onInViewChange,
 }: {
   points: EstateMapPoint[];
@@ -463,6 +585,9 @@ export const ListingsMap = memo(function ListingsMap({
   /** A row clicked in the list — the map flies to its pin. */
   focus?: { id: string; n: number } | null;
   inset?: MapInset;
+  /** The area drawn with «ترسیم محدوده», or none. */
+  area: AreaVertex[] | null;
+  onAreaChange: (area: AreaVertex[] | null) => void;
   /**
    * How many files the viewport holds, live — the clusters' counts added
    * up. The layouts show it beside the result count, where the visitor is
@@ -471,6 +596,8 @@ export const ListingsMap = memo(function ListingsMap({
   onInViewChange: (count: number) => void;
 }) {
   const center = cityCenters[city] ?? cityCenters["قم"];
+  const [drawing, setDrawing] = useState(false);
+  const controlsTop = (inset.top ?? 0) + 12;
 
   const index = useMemo(() => {
     const supercluster = new Supercluster<PointProperties>({
@@ -492,33 +619,107 @@ export const ListingsMap = memo(function ListingsMap({
   // as high as 1000) inside their own stacking context, so drawers, modals and
   // cards elsewhere on the page still layer above the map.
   return (
-    <MapContainer
-      center={center}
-      zoom={12}
-      maxZoom={TILE_MAX_ZOOM}
-      scrollWheelZoom
-      className="isolate z-0 size-full [&_.leaflet-container]:font-sans"
-      style={{ background: "var(--muted)" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maxZoom={TILE_MAX_ZOOM}
-      />
-
-      <ViewportController
-        points={points}
+    <div className="relative size-full">
+      <MapContainer
         center={center}
-        focus={focus}
-        inset={inset}
-      />
+        zoom={12}
+        maxZoom={TILE_MAX_ZOOM}
+        scrollWheelZoom
+        className="isolate z-0 size-full [&_.leaflet-container]:font-sans"
+        style={{ background: "var(--muted)" }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={TILE_MAX_ZOOM}
+        />
 
-      <ClusterLayer
-        index={index}
-        selectedId={selectedId}
-        onSelect={onSelect}
-        onInViewChange={onInViewChange}
-      />
-    </MapContainer>
+        <ViewportController
+          points={points}
+          center={center}
+          focus={focus}
+          inset={inset}
+        />
+
+        <ClusterLayer
+          index={index}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          onInViewChange={onInViewChange}
+        />
+
+        {area && (
+          <Polygon
+            positions={area}
+            pathOptions={{
+              className: "stroke-primary fill-primary",
+              weight: 2,
+              fillOpacity: 0.08,
+            }}
+            interactive={false}
+          />
+        )}
+
+        <DrawLayer
+          active={drawing}
+          onDrawn={(ring) => {
+            setDrawing(false);
+            onAreaChange(ring);
+          }}
+        />
+      </MapContainer>
+
+      {/* «ترسیم محدوده»: draw, and while drawing the one line of guidance
+          the tool needs; with an area on, the way to drop it. Placed on the
+          start side, clear of Leaflet's zoom control on the other. */}
+      <div
+        className="absolute start-3 z-20 flex flex-col items-end gap-2"
+        style={{ top: controlsTop }}
+      >
+        {drawing ? (
+          <div className="flex max-w-xs items-center gap-2 rounded-xl border border-primary/30 bg-card/95 p-2 ps-3 shadow-lg backdrop-blur">
+            <PenLine className="size-4 shrink-0 text-primary" />
+            <Typography variant="small" className="text-foreground">
+              دور محدوده‌ای می‌خواهید آگهی‌های املاک را در آن ببینید، خط بکشید
+            </Typography>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setDrawing(false)}
+            >
+              انصراف
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            {area && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onAreaChange(null)}
+                className="bg-card/95 shadow-md backdrop-blur"
+              >
+                <X data-icon="inline-start" />
+                حذف محدوده
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant={area ? "outline" : "secondary"}
+              size="sm"
+              onClick={() => setDrawing(true)}
+              className={
+                area ? "bg-card/95 shadow-md backdrop-blur" : "shadow-md"
+              }
+            >
+              <PenLine data-icon="inline-start" />
+              {area ? "ترسیم دوباره" : "ترسیم محدوده"}
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 });
