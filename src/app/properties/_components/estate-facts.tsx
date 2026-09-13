@@ -115,7 +115,8 @@ export function EstateSpecs({ detail }: { detail: EstateDetailView }) {
   rows.push({
     key: "code",
     label: "کد آگهی",
-    value: detail.numericId.toLocaleString("fa-IR"),
+    // An id, not a quantity: no thousands separators.
+    value: detail.numericId.toLocaleString("fa-IR", { useGrouping: false }),
   });
 
   return (

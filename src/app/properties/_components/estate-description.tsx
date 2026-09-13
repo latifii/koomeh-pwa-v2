@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,34 @@ import { cn } from "@/lib/utils";
  * one flattened blob under `line-clamp` — clamping by line count (not a fixed
  * pixel height) is what makes the before/after states visibly different
  * regardless of how long any given paragraph happens to be.
+ *
+ * The «ادامه توضیحات» button only appears when the clamp actually cuts
+ * something off: a two-line description had the same button as a two-page
+ * one, promising more where there was none. Whether it cuts is measured on
+ * the clamped element itself and re-measured when its width changes, since
+ * the same text takes more lines on a narrower screen.
  */
 export function EstateDescription({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
+  const [clipped, setClipped] = useState(false);
+  const clampedRef = useRef<HTMLParagraphElement>(null);
+
   const paragraphs = text.split("\n\n");
   const flattened = paragraphs.join(" ");
+
+  useEffect(() => {
+    const element = clampedRef.current;
+    if (!element) return;
+
+    const measure = () =>
+      setClipped(element.scrollHeight > element.clientHeight + 1);
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+    // The clamped element only exists while collapsed; re-run when that flips.
+  }, [expanded, text]);
 
   return (
     <div>
@@ -30,24 +53,30 @@ export function EstateDescription({ text }: { text: string }) {
           ))}
         </div>
       ) : (
-        <Typography variant="muted" className="line-clamp-4 leading-7">
+        <Typography
+          ref={clampedRef}
+          variant="muted"
+          className="line-clamp-4 leading-7"
+        >
           {flattened}
         </Typography>
       )}
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setExpanded((value) => !value)}
-        aria-expanded={expanded}
-        className="mt-1 text-brand"
-      >
-        {expanded ? "بستن توضیحات" : "ادامه توضیحات"}
-        <ChevronDown
-          data-icon="inline-end"
-          className={cn("transition-transform", expanded && "rotate-180")}
-        />
-      </Button>
+      {(clipped || expanded) && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={expanded}
+          className="mt-1 text-brand"
+        >
+          {expanded ? "بستن توضیحات" : "ادامه توضیحات"}
+          <ChevronDown
+            data-icon="inline-end"
+            className={cn("transition-transform", expanded && "rotate-180")}
+          />
+        </Button>
+      )}
     </div>
   );
 }

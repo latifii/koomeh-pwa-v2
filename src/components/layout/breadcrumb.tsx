@@ -55,16 +55,23 @@ export function Breadcrumb({
     <Wrapper className={cn(inContainer && "pt-section-sm pb-4", className)}>
       <nav aria-label="مسیر صفحه">
         {/*
-         * Long titles are common in the last crumb, so the trail scrolls
-         * sideways instead of wrapping — the scrollbar itself is hidden because
-         * it would sit over the page content on desktop.
+         * Long titles are common in the last crumb. The ones before it keep
+         * their full text; the last takes whatever width is left and ends
+         * in an ellipsis — so on a phone a long listing title never pushes
+         * the trail into a sideways scroll or squeezes the crumbs together.
          */}
-        <ol className="flex items-center gap-1 overflow-x-auto overflow-y-hidden text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ol className="flex items-center gap-1 overflow-hidden text-muted-foreground">
           {items.map((item, index) => {
             const isLast = index === items.length - 1;
 
             return (
-              <li key={`${item.label}-${index}`} className="flex items-center gap-1">
+              <li
+                key={`${item.label}-${index}`}
+                className={cn(
+                  "flex items-center gap-1",
+                  isLast ? "min-w-0" : "shrink-0",
+                )}
+              >
                 {index > 0 && (
                   <ChevronLeft aria-hidden className="size-3.5 shrink-0" />
                 )}
@@ -90,7 +97,7 @@ export function Breadcrumb({
                       // with no link of its own (a section heading, say) is
                       // still context, not where you are.
                       isLast
-                        ? "truncate font-medium text-foreground"
+                        ? "block min-w-0 truncate font-medium text-foreground"
                         : "shrink-0",
                     )}
                   >

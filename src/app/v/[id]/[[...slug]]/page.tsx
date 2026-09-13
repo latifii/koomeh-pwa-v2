@@ -197,9 +197,10 @@ export default async function EstatePage({
   }));
 
   return (
-    // The mobile action bar and the global bottom nav both float over the page,
-    // so the last section needs room to clear them.
-    <div className="pb-40 lg:pb-16">
+    // Exactly the height of the two bars floating over a phone's bottom (the
+    // action bar at 60px over the 60px nav), so the last section clears them
+    // and no more; a desktop has nothing floating and needs nothing.
+    <div className="pb-32 lg:pb-6">
       <JsonLd data={estateListingSchema(detail)} />
       <JsonLd data={breadcrumbSchema(breadcrumb)} />
 
@@ -248,7 +249,10 @@ export default async function EstatePage({
                 className="flex items-center gap-1"
               >
                 <Hash className="size-3.5 text-brand/70" />
-                کد آگهی {detail.numericId.toLocaleString("fa-IR")}
+                کد آگهی{" "}
+                {detail.numericId.toLocaleString("fa-IR", {
+                  useGrouping: false,
+                })}
               </Typography>
               {detail.publishedLabel && (
                 <Typography
@@ -289,6 +293,12 @@ export default async function EstatePage({
             className="shrink-0"
           />
         </header>
+
+        {/* On a phone the price comes first — before the size and rooms —
+            since it is what decides whether the rest is read at all. */}
+        <div className="mt-4 lg:hidden">
+          <EstatePriceCard detail={detail} />
+        </div>
 
         <div className="mt-4">
           <EstateHighlights facts={detail.facts} />
@@ -401,9 +411,9 @@ export default async function EstatePage({
           </aside>
         </div>
 
-        {/* Below `lg` the rail unstacks and lands here, after the content. */}
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:hidden">
-          <EstatePriceCard detail={detail} />
+        {/* Below `lg` the contact card lands here, after the content; the
+            price is already up top. */}
+        <div className="mt-4 lg:hidden">
           <EstateContactCard
             estateId={detail.id}
             agent={detail.agent}
