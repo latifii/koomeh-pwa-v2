@@ -33,13 +33,16 @@ const linkGroups = [
       { href: routes.properties({ type: 2 }), label: "رهن و اجاره" },
       { href: routes.panel.newProperty, label: "ثبت ملک" },
       { href: routes.panel.newRequest, label: "ثبت درخواست" },
-      { href: routes.tools.propertyAppraisal, label: "کارشناسی قیمت" },
+      // «کارشناسی قیمت» (routes.tools.propertyAppraisal) is parked — the
+      // page and its code stay; the footer no longer offers it, and the
+      // legal magazine takes its slot.
+      { href: routes.legalMagazine, label: "مجله حقوقی" },
     ],
   },
   {
     title: "منابع",
     links: [
-      { href: routes.articles, label: "مجله املاک" },
+      { href: routes.magazine, label: "مجله املاک" },
       { href: routes.neighborhoods, label: "راهنمای محلات" },
       { href: "/#faq", label: "پرسش‌های متداول" },
     ],

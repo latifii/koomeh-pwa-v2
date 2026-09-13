@@ -52,7 +52,7 @@ const services: Service[] = [
     label: "کارشناسی ملک",
   },
   { href: routes.neighborhoods, icon: iconMohalat, label: "محلات" },
-  { href: routes.articles, icon: iconBlog, label: "مجله کومه" },
+  { href: routes.magazine, icon: iconBlog, label: "مجله کومه" },
   { href: "/#branches", icon: iconBranch, label: "معرفی شعب" },
   { href: "https://instagram.com", icon: iconSocial, label: "شبکه اجتماعی" },
 ];

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { LoaderCircle, Newspaper, RotateCcw, Search } from "lucide-react";
 
 import { useBlogPosts } from "@/app/articles/_hooks/use-blog-posts";
@@ -11,15 +12,21 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { routes } from "@/lib/routes";
 
 import { BlogCard } from "./blog-card";
 import { FeaturedPost } from "./featured-post";
 
-export function BlogList({ initialPosts, categories }: {
+export function BlogList({
+  initialPosts,
+  categories,
+  categoryId,
+}: {
   initialPosts: BlogPostsResponse;
   categories: BlogCategory[];
+  /** The category this page is about (`/blogs/{id}`); none on `/blog`. */
+  categoryId?: number;
 }) {
-  const [categoryId, setCategoryId] = useState<number>();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -37,7 +44,8 @@ export function BlogList({ initialPosts, categories }: {
     }),
     [categoryId, debouncedQuery],
   );
-  const isDefaultView = !categoryId && !debouncedQuery;
+  // What the server already rendered: this category (or all), unsearched.
+  const isDefaultView = !debouncedQuery;
   const postsQuery = useBlogPosts(
     params,
     isDefaultView ? initialPosts : undefined,
@@ -48,7 +56,6 @@ export function BlogList({ initialPosts, categories }: {
   const listPosts = featured ? posts.slice(1) : posts;
 
   const reset = () => {
-    setCategoryId(undefined);
     setQuery("");
     setDebouncedQuery("");
   };
@@ -59,24 +66,26 @@ export function BlogList({ initialPosts, categories }: {
 
       <div className={featured ? "mt-8" : undefined}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          {/* Links, not buttons: every category is a page of its own — the
+              old site's `/blogs/{id}` — so it has a URL to index and share. */}
           <div className="-mx-page flex gap-2 overflow-x-auto overflow-y-hidden px-page pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
             <Button
-              type="button"
               size="lg"
               variant={categoryId === undefined ? "default" : "outline"}
-              onClick={() => setCategoryId(undefined)}
-              aria-pressed={categoryId === undefined}
+              aria-current={categoryId === undefined ? "page" : undefined}
+              nativeButton={false}
+              render={<Link href={routes.articles} />}
             >
               همه
             </Button>
             {categories.map((category) => (
               <Button
                 key={category.id}
-                type="button"
                 size="lg"
                 variant={categoryId === category.id ? "default" : "outline"}
-                onClick={() => setCategoryId(category.id)}
-                aria-pressed={categoryId === category.id}
+                aria-current={categoryId === category.id ? "page" : undefined}
+                nativeButton={false}
+                render={<Link href={routes.articlesCategory(category.id)} />}
               >
                 {category.name}
                 <span className="opacity-60">({category.postCount.toLocaleString("fa-IR")})</span>

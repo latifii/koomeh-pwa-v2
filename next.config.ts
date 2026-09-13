@@ -136,7 +136,6 @@ const nextConfig: NextConfig = {
       { source: "/blog/list", destination: "/blog", permanent: true },
       { source: `/blog/show/${id}`, destination: "/blog/:id", permanent: true },
       { source: `/posts/${id}`, destination: "/blog/:id", permanent: true },
-      { source: `/blogs/${id}`, destination: "/blog/:id", permanent: true },
       { source: "/agents_v2/:code", destination: "/agents/:code", permanent: true },
       { source: "/:city/agents/search", destination: "/agents/search", permanent: true },
       { source: "/branches/search", destination: "/branches", permanent: true },

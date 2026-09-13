@@ -27,7 +27,7 @@ export function mapLatestBlogArticles(
     eyebrow: section.eyebrow,
     title: section.title,
     subtitle: section.subtitle ?? undefined,
-    viewAllHref: routes.articles,
+    viewAllHref: routes.magazine,
     total: section.total,
     items: section.items.map((article) => ({
       id: String(article.id),

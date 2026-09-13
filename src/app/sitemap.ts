@@ -72,6 +72,8 @@ const staticEntries: Entry[] = [
   entry(routes.agents, 0.7, "weekly"),
   entry(routes.branches, 0.6, "monthly"),
   entry(routes.articles, 0.6, "daily"),
+  entry(routes.magazine, 0.7, "daily"),
+  entry(routes.legalMagazine, 0.6, "weekly"),
   entry(routes.tools.commission, 0.5, "monthly"),
   entry(routes.tools.propertyAppraisal, 0.5, "monthly"),
   entry(routes.about, 0.3, "yearly"),

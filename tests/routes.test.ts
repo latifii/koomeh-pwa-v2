@@ -20,6 +20,11 @@ test("public paths match the old site's", () => {
   assert.equal(routes.agent(17583), "/agents/17583");
   assert.equal(routes.branch(19), "/branch/19");
   assert.equal(routes.articles, "/blog");
+  // The old site's category index — a list, not a post; /blogs/3 must never
+  // become /blog/3.
+  assert.equal(routes.articlesCategory(3), "/blogs/3");
+  assert.equal(routes.magazine, "/blogs/3");
+  assert.equal(routes.legalMagazine, "/blogs/4");
   assert.equal(routes.article(594), "/blog/594");
   assert.equal(routes.neighborhood(273), "/area/273");
   assert.equal(routes.contact, "/contactus");

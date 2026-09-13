@@ -10,8 +10,8 @@ import { cachedFetch } from "@/lib/server-cache";
 
 export const getCachedBlogPosts = cachedFetch(
   ["articles", "list"],
-  (page: number, perPage: number) =>
-    getBlogPosts({ page, per_page: perPage, sort: 1 }),
+  (page: number, perPage: number, categoryId?: number) =>
+    getBlogPosts({ page, per_page: perPage, sort: 1, category_id: categoryId }),
   {
     revalidate: cacheTtl.articles,
     tags: [cacheTags.articles.all, cacheTags.articles.list],

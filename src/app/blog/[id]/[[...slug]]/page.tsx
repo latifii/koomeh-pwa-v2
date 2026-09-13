@@ -23,7 +23,11 @@ import { isApiError } from "@/lib/api/api-error";
 import { routes } from "@/lib/routes";
 import { articleSchema, breadcrumbSchema } from "@/lib/structured-data";
 
-import { BlogCard, BlogRow, CategoryChip } from "@/app/articles/_components/blog-card";
+import {
+  BlogCard,
+  BlogRow,
+  CategoryChip,
+} from "@/app/articles/_components/blog-card";
 import { BlogActions } from "./_components/blog-actions";
 import { RichText } from "@/components/shared/rich-text";
 
@@ -51,7 +55,9 @@ async function resolveBlogPost(id: string) {
   }
 }
 
-export async function generateMetadata({ params }: {
+export async function generateMetadata({
+  params,
+}: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
@@ -67,14 +73,18 @@ export async function generateMetadata({ params }: {
       // The API can name its own canonical; fall back to this route otherwise,
       // so every article has one either way.
       alternates: {
-        canonical: article.seo.canonical ?? routes.article(article.numericId, article.slug),
+        canonical:
+          article.seo.canonical ??
+          routes.article(article.numericId, article.slug),
       },
       openGraph: {
         type: "article",
         title,
         description,
         url: routes.article(article.numericId, article.slug),
-        images: article.image ? [{ url: article.image, alt: article.title }] : undefined,
+        images: article.image
+          ? [{ url: article.image, alt: article.title }]
+          : undefined,
       },
       twitter: {
         card: "summary_large_image",
@@ -88,7 +98,9 @@ export async function generateMetadata({ params }: {
   }
 }
 
-export default async function BlogPostPage({ params }: {
+export default async function BlogPostPage({
+  params,
+}: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
@@ -98,13 +110,21 @@ export default async function BlogPostPage({ params }: {
   ]);
   const article = mapBlogPostDetail({ status: "success", result: post });
 
-  if (article.isArea) redirect(routes.neighborhood(article.numericId, article.slug));
+  if (article.isArea)
+    redirect(routes.neighborhood(article.numericId, article.slug));
 
   const related = article.related.slice(0, 3);
   const recent = recentResponse.result.items
     .filter((item) => item.id !== article.numericId)
     .map(mapBlogPostCard)
     .slice(0, 4);
+
+  const parent = article.category
+    ? {
+        name: article.category.name,
+        path: routes.articlesCategory(article.category.id),
+      }
+    : { name: "مجله", path: routes.articles };
 
   return (
     <div className="pb-16">
@@ -117,18 +137,23 @@ export default async function BlogPostPage({ params }: {
           publishedAt: article.createdAt,
         })}
       />
+      {/* The trail goes through the post's own category — «مجله حقوقی» for
+          a legal note — which is the page the reader most likely came from. */}
       <JsonLd
         data={breadcrumbSchema([
           { name: "خانه", path: routes.home },
-          { name: "مجله املاک", path: routes.articles },
-          { name: article.title, path: routes.article(article.id, article.slug) },
+          { name: parent.name, path: parent.path },
+          {
+            name: article.title,
+            path: routes.article(article.id, article.slug),
+          },
         ])}
       />
 
       <Breadcrumb
         items={[
           { label: "خانه", href: routes.home },
-          { label: "مجله املاک", href: routes.articles },
+          { label: parent.name, href: parent.path },
           { label: article.title },
         ]}
       />
@@ -138,16 +163,28 @@ export default async function BlogPostPage({ params }: {
           <article className="min-w-0 lg:col-span-2">
             <header className="flex flex-col gap-3">
               <CategoryChip category={article.category} />
-              <Typography variant="h2" as="h1" className="leading-snug">{article.title}</Typography>
-              {article.excerpt && <Typography variant="lead">{article.excerpt}</Typography>}
+              <Typography variant="h2" as="h1" className="leading-snug">
+                {article.title}
+              </Typography>
+              {article.excerpt && (
+                <Typography variant="lead">{article.excerpt}</Typography>
+              )}
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-y py-3">
                 <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-                  <Typography as="span" variant="small" className="flex items-center gap-1">
+                  <Typography
+                    as="span"
+                    variant="small"
+                    className="flex items-center gap-1"
+                  >
                     <CalendarDays className="size-3.5 text-brand/70" />
                     {article.publishedAtLabel}
                   </Typography>
-                  <Typography as="span" variant="small" className="flex items-center gap-1">
+                  <Typography
+                    as="span"
+                    variant="small"
+                    className="flex items-center gap-1"
+                  >
                     <Eye className="size-3.5 text-brand/70" />
                     {article.views.toLocaleString("fa-IR")} بازدید
                   </Typography>
@@ -168,15 +205,27 @@ export default async function BlogPostPage({ params }: {
               />
             </div>
 
-            <div className="mt-6"><RichText html={article.body} /></div>
+            <div className="mt-6">
+              <RichText html={article.body} />
+            </div>
 
             {article.tags.length > 0 && (
               <div className="mt-6 flex flex-wrap items-center gap-2">
-                <Typography as="span" variant="small" className="flex items-center gap-1">
-                  <Tag className="size-3.5" />برچسب‌ها:
+                <Typography
+                  as="span"
+                  variant="small"
+                  className="flex items-center gap-1"
+                >
+                  <Tag className="size-3.5" />
+                  برچسب‌ها:
                 </Typography>
                 {article.tags.map((tag) => (
-                  <Typography as="span" variant="small" key={tag.id} className="rounded-full border bg-muted/50 px-2.5 py-1 font-medium">
+                  <Typography
+                    as="span"
+                    variant="small"
+                    key={tag.id}
+                    className="rounded-full border bg-muted/50 px-2.5 py-1 font-medium"
+                  >
                     {tag.name}
                   </Typography>
                 ))}
@@ -187,16 +236,31 @@ export default async function BlogPostPage({ params }: {
               <section className="mt-8">
                 <div className="mb-4 flex items-end justify-between gap-3">
                   <div>
-                    <Typography variant="h3" as="h2">مقالات مرتبط</Typography>
-                    <Typography variant="small" className="mt-0.5">ادامه مطالعه در همین موضوع</Typography>
+                    <Typography variant="h3" as="h2">
+                      مقالات مرتبط
+                    </Typography>
+                    <Typography variant="small" className="mt-0.5">
+                      ادامه مطالعه در همین موضوع
+                    </Typography>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-brand" nativeButton={false} render={<Link href={routes.articles} />}>
-                    همه مقالات<ArrowLeft data-icon="inline-end" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-brand"
+                    nativeButton={false}
+                    render={<Link href={parent.path} />}
+                  >
+                    همه مقالات
+                    <ArrowLeft data-icon="inline-end" />
                   </Button>
                 </div>
                 <div className="-mx-page flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
                   {related.map((item) => (
-                    <BlogCard key={item.id} post={item} className="w-[70vw] shrink-0 snap-start sm:w-auto" />
+                    <BlogCard
+                      key={item.id}
+                      post={item}
+                      className="w-[70vw] shrink-0 snap-start sm:w-auto"
+                    />
                   ))}
                 </div>
               </section>
@@ -206,22 +270,45 @@ export default async function BlogPostPage({ params }: {
           <aside className="grid gap-4 lg:sticky lg:top-20">
             {recent.length > 0 && (
               <div className="rounded-2xl border bg-card p-4">
-                <Typography variant="h4" as="h2" className="mb-3 flex items-center gap-1.5">
-                  <Newspaper className="size-4 text-brand" />جدیدترین مقالات
+                <Typography
+                  variant="h4"
+                  as="h2"
+                  className="mb-3 flex items-center gap-1.5"
+                >
+                  <Newspaper className="size-4 text-brand" />
+                  جدیدترین مقالات
                 </Typography>
                 <ul className="grid gap-1.5">
-                  {recent.map((item) => <li key={item.id}><BlogRow post={item} /></li>)}
+                  {recent.map((item) => (
+                    <li key={item.id}>
+                      <BlogRow post={item} />
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
 
             <div className="overflow-hidden rounded-2xl border bg-primary p-5 text-primary-foreground">
-              <Typography variant="h4" as="p" light>دنبال ملک مناسب هستید؟</Typography>
-              <Typography as="p" variant="small" light className="mt-1.5 leading-6 text-white/75">
+              <Typography variant="h4" as="p" light>
+                دنبال ملک مناسب هستید؟
+              </Typography>
+              <Typography
+                as="p"
+                variant="small"
+                light
+                className="mt-1.5 leading-6 text-white/75"
+              >
                 هزاران فایل بررسی‌شده در قم را در کومه جست‌وجو کنید.
               </Typography>
-              <Button size="lg" variant="secondary" nativeButton={false} render={<Link href={routes.properties()} />} className="mt-3 w-full">
-                جست‌وجوی ملک<ArrowLeft data-icon="inline-end" />
+              <Button
+                size="lg"
+                variant="secondary"
+                nativeButton={false}
+                render={<Link href={routes.properties()} />}
+                className="mt-3 w-full"
+              >
+                جست‌وجوی ملک
+                <ArrowLeft data-icon="inline-end" />
               </Button>
             </div>
           </aside>

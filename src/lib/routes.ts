@@ -103,7 +103,18 @@ export const routes = {
   branches: "/branches",
   branch: (id: string | number) => `/branch/${id}`,
 
+  /**
+   * The old site's two blog indexes, both kept for what is indexed: `/blog`
+   * is every post — announcements and office notes included — and
+   * `/blogs/{id}` is one category. The links people are given go to the
+   * categories that are actually reading matter.
+   */
   articles: "/blog",
+  articlesCategory: (id: string | number) => `/blogs/${id}`,
+  /** «مجله املاک», the category the home page and the menus point at. */
+  magazine: "/blogs/3",
+  /** «مجله حقوقی». */
+  legalMagazine: "/blogs/4",
   article: (id: string | number, slug?: string) =>
     withSlug(`/blog/${id}`, slug),
 
