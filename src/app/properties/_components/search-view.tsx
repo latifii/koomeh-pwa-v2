@@ -296,7 +296,6 @@ export function SearchView({
     row?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [mapPick]);
 
-  const countLabel = `${total.toLocaleString("fa-IR")} آگهی`;
   /**
    * The drawn area narrows the points here as well as on the server: the
    * clusters and the viewport count follow the pen the moment it lifts,
@@ -318,6 +317,13 @@ export function SearchView({
       })),
     [],
   );
+  // One line for the count. With the map up it is what the map shows —
+  // the viewport's files, or the drawn area's — and it moves with the
+  // zoom; without it, the search total.
+  const shownCount = inView !== null && mapQuery.isSuccess ? inView : total;
+  const countLabel = `${shownCount.toLocaleString("fa-IR")} آگهی در ${
+    area ? "محدوده‌ی ترسیمی" : "این محدوده"
+  }`;
   const pickedId =
     mapPick && !results.some((listing) => listing.id === mapPick.id)
       ? mapPick.id
@@ -349,12 +355,6 @@ export function SearchView({
         onInViewChange={setInView}
       />
     );
-  // Read as «۴۹۶ آگهی در محدوده‌ی نقشه»; climbs and falls with the zoom, and
-  // says so when the count is of a drawn area rather than the viewport.
-  const inViewLabel =
-    inView !== null && mapQuery.isSuccess
-      ? `${inView.toLocaleString("fa-IR")} آگهی در ${area ? "محدوده‌ی ترسیمی" : "محدوده‌ی نقشه"}`
-      : null;
 
   const filtersSidebar = (
     <div className="rounded-2xl border bg-card">
@@ -461,7 +461,7 @@ export function SearchView({
       <>
         <MobileMapView
           filters={filters}
-          inViewLabel={inViewLabel}
+          countLabel={countLabel}
           onChange={updateFilters}
           activeCount={activeCount}
           onOpenFilters={() => setFiltersOpen(true)}
@@ -469,7 +469,6 @@ export function SearchView({
           onRetry={retry}
           status={status}
           results={results}
-          total={total}
           hasMore={Boolean(searchQuery.hasNextPage)}
           isLoadingMore={searchQuery.isFetchingNextPage}
           onLoadMore={() => void searchQuery.fetchNextPage()}
@@ -528,16 +527,9 @@ export function SearchView({
               ref={resultsColumn}
               className="flex w-96 shrink-0 flex-col gap-3 overflow-y-auto py-1"
             >
-              <div className="flex flex-col gap-0.5">
-                <Typography as="h2" variant="h4">
-                  {status === "ready" ? countLabel : "در حال جستجو…"}
-                </Typography>
-                {inViewLabel && (
-                  <Typography variant="small" aria-live="polite">
-                    {inViewLabel}
-                  </Typography>
-                )}
-              </div>
+              <Typography as="h2" variant="h4" aria-live="polite">
+                {status === "ready" ? countLabel : "در حال جستجو…"}
+              </Typography>
 
               {/* A pin whose file is not among the loaded rows — the map holds
                   every point, the list a page at a time — is shown here, so

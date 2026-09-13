@@ -707,7 +707,7 @@ export const ListingsMap = memo(function ListingsMap({
             )}
             <Button
               type="button"
-              variant={area ? "outline" : "secondary"}
+              variant={area ? "outline" : "default"}
               size="sm"
               onClick={() => setDrawing(true)}
               className={

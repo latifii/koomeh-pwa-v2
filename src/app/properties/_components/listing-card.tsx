@@ -7,6 +7,7 @@ import apartmentImage from "@/assets/images/card/apartman.webp";
 import businessImage from "@/assets/images/card/business.webp";
 import plotImage from "@/assets/images/card/plot.webp";
 import villaImage from "@/assets/images/card/villa.webp";
+import { ApiImage } from "@/components/shared/api-image";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { type PropertyType, propertyTypeLabels } from "@/data/home";
@@ -42,14 +43,27 @@ export const ListingCard = memo(function ListingCard({
   return (
     <Card className="group relative gap-0 overflow-hidden rounded-2xl py-0 ring-border">
       <div className={cn("flex gap-3 p-2.5", className)}>
-        <div className="relative size-28 shrink-0 overflow-hidden rounded-xl">
-          <Image
-            src={propertyImages[listing.propertyType]}
-            alt={propertyTypeLabels[listing.propertyType]}
-            fill
-            sizes="112px"
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-107"
-          />
+        <div className="relative size-28 shrink-0 overflow-hidden rounded-xl bg-muted">
+          {/* The file's own photo; the type placeholder only when there is
+              none or it fails to load. Twice the box, for retina screens. */}
+          {listing.coverImage ? (
+            <ApiImage
+              src={listing.coverImage}
+              fallbackSrc={propertyImages[listing.propertyType]}
+              alt={listing.title}
+              fill
+              sizes="224px"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-107"
+            />
+          ) : (
+            <Image
+              src={propertyImages[listing.propertyType]}
+              alt={propertyTypeLabels[listing.propertyType]}
+              fill
+              sizes="224px"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-107"
+            />
+          )}
           {listing.isUrgent && (
             <Badge
               variant="secondary"

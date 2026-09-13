@@ -40,7 +40,7 @@ const SHEET_MAX_HEIGHT = "calc(100dvh - 8rem)";
 
 export function MobileMapView({
   filters,
-  inViewLabel,
+  countLabel,
   onChange,
   activeCount,
   onOpenFilters,
@@ -48,7 +48,6 @@ export function MobileMapView({
   onRetry,
   status,
   results,
-  total,
   hasMore,
   isLoadingMore,
   onLoadMore,
@@ -59,15 +58,14 @@ export function MobileMapView({
 }: {
   filters: SearchFilters;
   onChange: (patch: Partial<SearchFilters>) => void;
-  /** «۴۹۶ آگهی در محدوده‌ی نقشه», live from the map; null before it has one. */
-  inViewLabel: string | null;
+  /** «۴۹۶ آگهی در این محدوده» — the map's count, moving with the zoom. */
+  countLabel: string;
   activeCount: number;
   onOpenFilters: () => void;
   onReset: () => void;
   onRetry: () => void;
   status: "loading" | "ready" | "error";
   results: Listing[];
-  total: number;
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
@@ -89,10 +87,7 @@ export function MobileMapView({
     />
   );
 
-  const countLabel =
-    status === "ready"
-      ? `${total.toLocaleString("fa-IR")} آگهی در این محدوده`
-      : "در حال جستجو…";
+  const title = status === "ready" ? countLabel : "در حال جستجو…";
 
   return (
     // `data-viewport-shell` tells the layout this screen is the whole viewport:
@@ -154,12 +149,7 @@ export function MobileMapView({
         >
           {!expanded && (
             <DrawerHeader className="pb-2">
-              <DrawerTitle>{countLabel}</DrawerTitle>
-              {inViewLabel && (
-                <Typography variant="small" aria-live="polite">
-                  {inViewLabel}
-                </Typography>
-              )}
+              <DrawerTitle aria-live="polite">{title}</DrawerTitle>
             </DrawerHeader>
           )}
 
@@ -179,7 +169,7 @@ export function MobileMapView({
               <>
                 {searchBar}
                 <Typography as="h2" variant="h4" className="px-4 pt-3">
-                  {countLabel}
+                  {title}
                 </Typography>
               </>
             )}
