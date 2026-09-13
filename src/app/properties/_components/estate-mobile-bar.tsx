@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { CalendarDays, Phone } from "lucide-react";
 
+import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { useEstateContact } from "@/app/properties/_hooks/use-estate-contact";
 import type { EstateDetailView } from "@/app/properties/_types/estate-detail.types";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,8 @@ export function EstateMobileBar({ detail }: { detail: EstateDetailView }) {
   const { data, isLoading, reveal } = useEstateContact(detail.id);
   const phone = data?.[0];
   const requestVisitHref = detail.links.request_visit;
+  const user = useSessionStore((state) => state.session?.user);
+  const isStaff = Boolean(user?.isExpert || user?.isAdmin);
 
   return (
     <div className="fixed inset-x-0 bottom-[60px] z-30 border-t bg-background/95 px-page py-2.5 backdrop-blur-md lg:hidden">
@@ -36,19 +40,13 @@ export function EstateMobileBar({ detail }: { detail: EstateDetailView }) {
           </Typography>
         </div>
 
-        {requestVisitHref && (
+        {requestVisitHref && isStaff && (
           <Button
             variant="outline"
             size="icon-lg"
             aria-label="درخواست بازدید"
             nativeButton={false}
-            render={
-              <a
-                href={requestVisitHref}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
-            }
+            render={<Link href={requestVisitHref} />}
           >
             <CalendarDays />
           </Button>

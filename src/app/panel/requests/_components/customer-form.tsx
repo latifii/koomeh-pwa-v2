@@ -35,6 +35,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
+import { getEstateDetail } from "@/app/properties/_api/estate-detail.service";
 import { routes } from "@/lib/routes";
 
 const numericLabels: Record<string, string> = {
@@ -53,7 +54,17 @@ const numericLabels: Record<string, string> = {
  * `customers/form-options`; groups the installation left empty are skipped
  * rather than rendered as a select with nothing in it.
  */
-export function CustomerForm({ customerId }: { customerId?: string }) {
+export function CustomerForm({
+  customerId,
+  estateId,
+}: {
+  customerId?: string;
+  /**
+   * The file a «درخواست بازدید» came from: the demand starts from its deal
+   * type, property type and district, and says which file it is about.
+   */
+  estateId?: string;
+}) {
   const router = useRouter();
   // The mutation stops being pending the moment the API answers, but the
   // navigation that follows is a dynamic panel route and takes its own time.
@@ -103,6 +114,32 @@ export function CustomerForm({ customerId }: { customerId?: string }) {
 
   const { reset } = form;
   const current = existing.data;
+
+  // The file behind a visit request — only for a new demand, and only what
+  // the API says about it; the visitor's own details stay for the agent.
+  const sourceEstate = useQuery({
+    queryKey: ["estates", "detail", estateId] as const,
+    queryFn: async ({ signal }) =>
+      (await getEstateDetail(estateId ?? "", { signal })).result,
+    enabled: !isEdit && Boolean(estateId),
+    staleTime: 10 * 60 * 1_000,
+  });
+  const estate = sourceEstate.data;
+
+  useEffect(() => {
+    if (!estate || isEdit) return;
+    reset({
+      ...form.getValues(),
+      request_type: estate.deal_type === 2 ? "2" : "1",
+      estate_type: String(estate.estate_type),
+      districts: estate.location.district?.id
+        ? [String(estate.location.district.id)]
+        : [],
+      description: `درخواست بازدید فایل ${estate.id} — ${estate.title.trim()}`,
+    });
+    // `form` is stable; only the fetched file should re-run this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estate, isEdit, reset]);
 
   useEffect(() => {
     if (!current) return;

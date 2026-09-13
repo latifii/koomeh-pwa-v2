@@ -422,10 +422,14 @@ export default async function EstatePage({
           />
         </div>
 
-        <EstateChatCard estateId={detail.numericId} />
+        {/* Each in its own frame with the page's gap around it; either may
+            render nothing (signed out, not staff) and the grid drops it. */}
+        <div className="mt-4 grid gap-4">
+          <EstateChatCard estateId={detail.numericId} />
 
-        {/* Renders nothing — and calls nothing — unless the viewer is staff. */}
-        <EstateStaffPanel estateId={detail.numericId} />
+          {/* Renders nothing — and calls nothing — unless the viewer is staff. */}
+          <EstateStaffPanel estateId={detail.numericId} />
+        </div>
 
         {/*
           Loaded in the browser, not here. `/similar` takes ~3.6s and this route

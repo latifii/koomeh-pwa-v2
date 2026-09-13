@@ -209,8 +209,17 @@ function mapFeatureGroups(
     .filter((group) => group.items.length > 0);
 }
 
-function mapLinks(links: EstateDetailDto["links"]): Record<string, string> {
+function mapLinks(
+  links: EstateDetailDto["links"],
+  estateId: number,
+): Record<string, string> {
   const entries = Object.entries(links).flatMap(([key, value]) => {
+    // The old site sent «درخواست بازدید» to its customer form with the
+    // file's id (`/customers/create?estate_id=…`); here that form is the
+    // panel's own, which prefills from the same parameter.
+    if (key === "request_visit" && value) {
+      return [[key, `${routes.panel.newRequest}?estate_id=${estateId}`] as const];
+    }
     const href = toAbsoluteSiteUrl(value ?? null);
     return href ? [[key, href] as const] : [];
   });
@@ -293,6 +302,6 @@ export function mapEstateDetail(response: EstateDetailResponse): EstateDetailVie
     publishedLabel: text(result.dates?.created_at_jalali),
     updatedDaysAgo: result.dates?.updated_days_ago ?? undefined,
     isSpecial: result.flags?.is_special ?? false,
-    links: mapLinks(result.links),
+    links: mapLinks(result.links, result.id),
   };
 }

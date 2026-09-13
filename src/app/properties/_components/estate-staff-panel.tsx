@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,8 +10,11 @@ import {
   BriefcaseBusiness,
   CalendarCheck,
   ClipboardList,
+  Eye,
+  EyeOff,
   History,
   Home,
+  Pencil,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -44,6 +48,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Typography } from "@/components/ui/typography";
 import { getApiErrorMessage } from "@/lib/api/api-error";
+import { cn } from "@/lib/utils";
 import { formatToman } from "@/lib/persian-number";
 import { routes } from "@/lib/routes";
 
@@ -65,7 +70,10 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Empty({ text }: { text: string }) {
   return (
-    <Typography variant="small" className="py-6 text-center text-muted-foreground">
+    <Typography
+      variant="small"
+      className="py-6 text-center text-muted-foreground"
+    >
       {text}
     </Typography>
   );
@@ -77,21 +85,38 @@ function Empty({ text }: { text: string }) {
  * Everything under here is a separate staff-only endpoint that answers 403 to
  * anyone else, so the whole block renders nothing at all unless the session
  * says the viewer is an expert or an admin — no requests, no empty cards.
+ *
+ * Within staff, the old page's rules by role:
+ *
+ * - «ویرایش ملک»: an administrator always; an agent when the file is their
+ *   own, or assigned to them and not expired, or has no live agent at all.
+ *   The API works this out as `can_change_confirmation`, the same test the
+ *   old page used for its edit button.
+ * - «تاریخچه ویرایش» (the old /profile/editsEstate link): administrators
+ *   only; the endpoint answers 403 to an agent, so the tab is not offered.
+ * - «خریداران متناسب»: every agent, but a customer who is not theirs comes
+ *   with the name masked — the API decides, the badge says so.
+ * - Logging an operation: every agent.
  */
 export function EstateStaffPanel({ estateId }: EstateStaffPanelProps) {
   const user = useSessionStore((state) => state.session?.user);
-  const isStaff = Boolean(user?.isExpert || user?.isAdmin);
+  const isAdmin = Boolean(user?.isAdmin);
+  const isStaff = Boolean(user?.isExpert || isAdmin);
   const queryClient = useQueryClient();
 
   const management = useQuery(estateManagementQueryOptions(estateId, isStaff));
-  const operations = useQuery(estateOperationsQueryOptions(estateId, 1, isStaff));
+  const operations = useQuery(
+    estateOperationsQueryOptions(estateId, 1, isStaff),
+  );
   const operationTypes = useQuery(estateOperationTypesQueryOptions(isStaff));
   const matched = useQuery(matchedCustomersQueryOptions(estateId, 1, isStaff));
   const appointments = useQuery(
     estateAppointmentsQueryOptions(estateId, 1, isStaff),
   );
   const ownerEstates = useQuery(ownerEstatesQueryOptions(estateId, 1, isStaff));
-  const editHistory = useQuery(estateEditHistoryQueryOptions(estateId, isStaff));
+  const editHistory = useQuery(
+    estateEditHistoryQueryOptions(estateId, isAdmin),
+  );
 
   const form = useForm<EstateOperationFormValues>({
     resolver: zodResolver(estateOperationFormSchema),
@@ -121,12 +146,33 @@ export function EstateStaffPanel({ estateId }: EstateStaffPanelProps) {
     errors: form.formState.errors,
   };
 
+  const info = management.data;
+  const canEdit = info?.can_change_confirmation ?? false;
+  const hidden = info?.visibility === 0;
+
   return (
     <DetailSection
       id="staff"
       title="پنل مدیریت آگهی"
       icon={ShieldCheck}
-      action={<Badge variant="secondary">فقط کارشناسان</Badge>}
+      action={
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="hidden sm:inline-flex">
+            {isAdmin ? "مدیر" : "کارشناس"}
+          </Badge>
+          {canEdit && (
+            <Button
+              size="sm"
+              variant="outline"
+              nativeButton={false}
+              render={<Link href={routes.panel.editProperty(estateId)} />}
+            >
+              <Pencil data-icon="inline-start" />
+              ویرایش آگهی
+            </Button>
+          )}
+        </div>
+      }
     >
       {management.isPending && <Skeleton className="h-40 rounded-xl" />}
 
@@ -136,46 +182,98 @@ export function EstateStaffPanel({ estateId }: EstateStaffPanelProps) {
         </Typography>
       )}
 
-      {management.isSuccess && (
-        <div className="mb-5 grid gap-x-6 sm:grid-cols-2">
-          <Row label="وضعیت تأیید" value={management.data.confirmation_label} />
-          <Row label="سهم کارشناس" value={
-            management.data.percent_expert === null ||
-            management.data.percent_expert === undefined
-              ? null
-              : `${management.data.percent_expert}٪`
-          } />
-          <Row label="ثبت" value={management.data.dates?.created_at} />
-          <Row label="آخرین بروزرسانی" value={management.data.dates?.updated_at} />
-          <Row
-            label="آخرین ویرایشگر"
-            value={
-              management.data.last_editor?.name
-                ? `${management.data.last_editor.name} · ${management.data.last_editor.date ?? ""}`
-                : null
-            }
-          />
-          <Row
-            label="مالک"
-            value={
-              management.data.owner?.name
-                ? `${management.data.owner.name} · ${management.data.owner.username ?? ""}`
-                : null
-            }
-          />
-          <Row
-            label="بازدید کاربران"
-            value={management.data.stats?.visit_count}
-          />
-          <Row
-            label="بازدید کارشناسان"
-            value={management.data.stats?.agent_visit_count}
-          />
-        </div>
+      {info && (
+        <>
+          {/* The state of the file at a glance, before the details. */}
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {info.confirmation_label && (
+              <Badge
+                className={cn(
+                  info.confirmation === "verified"
+                    ? "bg-success/15 text-success"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {info.confirmation_label}
+              </Badge>
+            )}
+            <Badge variant="outline" className="gap-1">
+              {hidden ? (
+                <EyeOff className="size-3" />
+              ) : (
+                <Eye className="size-3" />
+              )}
+              {hidden ? "مخفی از سایت" : "قابل نمایش"}
+            </Badge>
+            {info.owner?.is_bongah && (
+              <Badge variant="outline">مالک همکار است</Badge>
+            )}
+            {!canEdit && (
+              <Typography variant="small" className="text-muted-foreground">
+                این فایل به کارشناس دیگری اختصاص دارد؛ ویرایش با اوست.
+              </Typography>
+            )}
+          </div>
+
+          <div className="mb-5 grid gap-x-6 rounded-xl border px-3 sm:grid-cols-2">
+            <Row
+              label="وضعیت تأیید"
+              value={management.data.confirmation_label}
+            />
+            <Row
+              label="سهم کارشناس"
+              value={
+                management.data.percent_expert === null ||
+                management.data.percent_expert === undefined
+                  ? null
+                  : `${management.data.percent_expert}٪`
+              }
+            />
+            <Row label="ثبت" value={management.data.dates?.created_at} />
+            <Row
+              label="آخرین بروزرسانی"
+              value={management.data.dates?.updated_at}
+            />
+            <Row
+              label="آخرین ویرایشگر"
+              value={
+                management.data.last_editor?.name
+                  ? `${management.data.last_editor.name} · ${management.data.last_editor.date ?? ""}`
+                  : null
+              }
+            />
+            <Row
+              label="مالک"
+              value={
+                management.data.owner?.name
+                  ? `${management.data.owner.name} · ${management.data.owner.username ?? ""}`
+                  : null
+              }
+            />
+            <Row
+              label="بازدید کاربران"
+              value={management.data.stats?.visit_count}
+            />
+            <Row
+              label="بازدید کارشناسان"
+              value={management.data.stats?.agent_visit_count}
+            />
+            <Row
+              label="آخرین نردبان"
+              value={management.data.dates?.show_date}
+            />
+            <Row
+              label="پایان اختصاص به مشاور"
+              value={management.data.expiretime_expert}
+            />
+          </div>
+        </>
       )}
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="mb-4 flex-wrap">
+        {/* One row that scrolls sideways on a phone, instead of wrapping
+            into a ragged block of five buttons. */}
+        <TabsList className="mb-4 w-full justify-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsTrigger value="operations">
             <ClipboardList className="size-4" />
             عملکردها
@@ -192,16 +290,20 @@ export function EstateStaffPanel({ estateId }: EstateStaffPanelProps) {
             <Home className="size-4" />
             فایل‌های همین مالک
           </TabsTrigger>
-          <TabsTrigger value="history">
-            <History className="size-4" />
-            تاریخچه ویرایش
-          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="history">
+              <History className="size-4" />
+              تاریخچه ویرایش
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="operations" className="space-y-4">
           <form
-            onSubmit={form.handleSubmit((values) => logOperation.mutate(values))}
-            className="space-y-3 rounded-xl border p-3"
+            onSubmit={form.handleSubmit((values) =>
+              logOperation.mutate(values),
+            )}
+            className="space-y-3 rounded-xl border bg-muted/30 p-3"
           >
             <FormSelectField
               {...context}
@@ -276,18 +378,25 @@ export function EstateStaffPanel({ estateId }: EstateStaffPanelProps) {
                 <Typography as="span" variant="body" className="font-medium">
                   {item.name}
                 </Typography>
-                {item.is_name_masked && <Badge variant="outline">محدودشده</Badge>}
+                {item.is_name_masked && (
+                  <Badge variant="outline">محدودشده</Badge>
+                )}
                 {item.request_type_label && (
                   <Badge variant="secondary">{item.request_type_label}</Badge>
                 )}
               </div>
-              <Typography variant="small" className="mt-1 text-muted-foreground">
+              <Typography
+                variant="small"
+                className="mt-1 text-muted-foreground"
+              >
                 {[
                   item.estate_type_label,
                   item.districts.length ? item.districts.join("، ") : null,
                   item.area_min ? `از ${item.area_min} متر` : null,
                   item.price_max ? `تا ${formatToman(item.price_max)}` : null,
-                  item.rent_max ? `اجاره تا ${formatToman(item.rent_max)}` : null,
+                  item.rent_max
+                    ? `اجاره تا ${formatToman(item.rent_max)}`
+                    : null,
                 ]
                   .filter(Boolean)
                   .join(" · ")}
@@ -372,7 +481,10 @@ export function EstateStaffPanel({ estateId }: EstateStaffPanelProps) {
               <Typography as="span" variant="small" className="font-medium">
                 {item.field}
               </Typography>
-              <Typography variant="small" className="mt-1 text-muted-foreground">
+              <Typography
+                variant="small"
+                className="mt-1 text-muted-foreground"
+              >
                 {`${item.from ?? "—"} ← ${item.to ?? "—"}`}
               </Typography>
               <Typography variant="small" className="text-muted-foreground">
@@ -383,10 +495,10 @@ export function EstateStaffPanel({ estateId }: EstateStaffPanelProps) {
         </TabsContent>
       </Tabs>
 
-      <div className="mt-4 flex items-center gap-2 text-muted-foreground">
-        <BriefcaseBusiness className="size-4" />
-        <Typography as="span" variant="small">
-          این بخش برای بازدیدکنندگان عادی نمایش داده نمی‌شود.
+      <div className="mt-4 flex items-center gap-2 border-t pt-3 text-muted-foreground">
+        <BriefcaseBusiness className="size-3.5" />
+        <Typography as="span" variant="small" className="text-[11px]">
+          این بخش فقط برای کارشناسان و مدیران نمایش داده می‌شود.
         </Typography>
       </div>
     </DetailSection>

@@ -9,6 +9,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { useEstateContact } from "@/app/properties/_hooks/use-estate-contact";
 import type {
   EstateAgentView,
@@ -37,6 +38,8 @@ export function EstateContactCard({
   contact?: EstateContactSummary;
   requestVisitHref?: string;
 }) {
+  const user = useSessionStore((state) => state.session?.user);
+  const isStaff = Boolean(user?.isExpert || user?.isAdmin);
   const { data, isLoading, isError, error, requested, reveal } =
     useEstateContact(estateId);
 
@@ -130,19 +133,15 @@ export function EstateContactCard({
           </Typography>
         )}
 
-        {requestVisitHref && (
+        {/* Staff only, as the old site's customer form was: it opens the
+            panel's «ثبت تقاضا» with this file already filled in. */}
+        {requestVisitHref && isStaff && (
           <Button
             variant="outline"
             size="lg"
             className="w-full"
             nativeButton={false}
-            render={
-              <a
-                href={requestVisitHref}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
-            }
+            render={<Link href={requestVisitHref} />}
           >
             <CalendarDays data-icon="inline-start" />
             درخواست بازدید حضوری
