@@ -6,6 +6,7 @@ import { Building2, Home, Key, MapPin, Ruler, Search, Wallet } from "lucide-reac
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PriceRangeField } from "@/app/_home/components/price-range-field";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Select,
@@ -29,21 +30,6 @@ const fallbackEstateTypeItems: Record<string, string> = {
   "2": "خانه ویلایی",
   "4": "زمین",
   "3": "تجاری",
-};
-
-// The search page filters on a min/max range, not a named bucket, so each
-// option here carries the bounds it stands for.
-const priceRangeBuckets: Record<string, { min?: number; max?: number }> = {
-  "1": { max: 3_000_000_000 },
-  "2": { min: 3_000_000_000, max: 6_000_000_000 },
-  "3": { min: 6_000_000_000 },
-};
-
-const priceRangeItems: Record<string, string> = {
-  "": "بدون محدودیت",
-  "1": "تا ۳ میلیارد",
-  "2": "۳ تا ۶ میلیارد",
-  "3": "بیش از ۶ میلیارد",
 };
 
 const fieldTrigger =
@@ -111,12 +97,12 @@ export function HeroSearchForm({
     const propertyType = data.get("estateTypes");
     if (propertyType) params.set("propertyTypes", String(propertyType));
 
-    const bucket = priceRangeBuckets[String(data.get("priceRange") ?? "")];
-    if (bucket?.min) params.set("minPrice", String(bucket.min));
-    if (bucket?.max) params.set("maxPrice", String(bucket.max));
+    // `PriceRangeField` keeps its bounds in hidden inputs, in Toman.
+    const minPrice = data.get("minPrice");
+    if (minPrice) params.set("minPrice", String(minPrice));
+    const maxPrice = data.get("maxPrice");
+    if (maxPrice) params.set("maxPrice", String(maxPrice));
 
-    const minArea = data.get("minArea");
-    if (minArea) params.set("minArea", String(minArea));
     const maxArea = data.get("maxArea");
     if (maxArea) params.set("maxArea", String(maxArea));
 
@@ -232,43 +218,26 @@ export function HeroSearchForm({
               !compact && "md:flex-1 md:border-e md:border-border/70 ps-1 py-0"
             )}
           >
-            <Select name="priceRange" defaultValue="" items={priceRangeItems}>
-              <SelectTrigger className={trigger}>
-                <SelectValue placeholder="بدون محدودیت" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">بدون محدودیت</SelectItem>
-                <SelectItem value="1">تا ۳ میلیارد</SelectItem>
-                <SelectItem value="2">۳ تا ۶ میلیارد</SelectItem>
-                <SelectItem value="3">بیش از ۶ میلیارد</SelectItem>
-              </SelectContent>
-            </Select>
+            <PriceRangeField triggerClassName={trigger} />
           </Field>
 
           <Field
             icon={Ruler}
             label="متراژ"
             compact={compact}
-            className={cn("col-span-2", !compact && "md:flex-[1.1] ps-1 py-0")}
+            className={cn("col-span-2", !compact && "md:flex-[0.9] ps-1 py-0")}
           >
             <div className="flex items-center gap-1.5">
-              <Input
-                name="minArea"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="حداقل"
-                className={cn(trigger, "min-w-0 placeholder:font-normal")}
-              />
               <span className="shrink-0 text-xs text-muted-foreground">تا</span>
               <Input
                 name="maxArea"
                 type="number"
                 inputMode="numeric"
                 min={0}
-                placeholder="حداکثر"
+                placeholder="حداکثر متراژ"
                 className={cn(trigger, "min-w-0 placeholder:font-normal")}
               />
+              <span className="shrink-0 text-xs text-muted-foreground">متر</span>
             </div>
           </Field>
         </div>

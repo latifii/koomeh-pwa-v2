@@ -16,6 +16,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { routes, type RouteQuery } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
+/** Half the screen first, the whole of it on a drag up. */
+const SNAP_HALF = 0.5;
+const SNAP_POINTS: SheetSnap[] = [SNAP_HALF, 1];
+type SheetSnap = number | string;
+
 /**
  * What a deal tile stands for: the search page's query, minus the property
  * type the sheet is about to ask for.
@@ -46,6 +51,9 @@ export function QuickDealSheet({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [chosen, setChosen] = useState<string | null>(null);
+  // Opens at the half stop — the first few types are in reach of a thumb —
+  // and a drag up gives the whole list. Reset for the next tile.
+  const [snap, setSnap] = useState<SheetSnap>(SNAP_HALF);
 
   const go = (estateType?: string) => {
     if (!deal) return;
@@ -60,8 +68,27 @@ export function QuickDealSheet({
   };
 
   return (
-    <Drawer open={deal !== null} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85dvh] sm:mx-auto sm:max-w-md">
+    <Drawer
+      open={deal !== null}
+      onOpenChange={(open) => {
+        if (!open) setSnap(SNAP_HALF);
+        onOpenChange(open);
+      }}
+      showSwipeHandle
+      snapPoints={SNAP_POINTS}
+      snapToSequentialPoints
+      snapPoint={snap}
+      onSnapPointChange={(next) => setSnap(next ?? SNAP_HALF)}
+    >
+      {/* A snapped drawer keeps its full height and is translated down, so
+          the part below the fold is real layout: padding the popup by that
+          offset keeps the list's end reachable at the half stop. */}
+      <DrawerContent
+        style={
+          { "--drawer-content-max-height": "92dvh" } as React.CSSProperties
+        }
+        className="pb-[max(0px,var(--drawer-snap-point-offset,0px))] transition-[transform,height,opacity,filter,padding-bottom] sm:mx-auto sm:max-w-md"
+      >
         <DrawerHeader className="text-start">
           <DrawerTitle>{deal?.title}</DrawerTitle>
           <DrawerDescription>
@@ -69,7 +96,7 @@ export function QuickDealSheet({
           </DrawerDescription>
         </DrawerHeader>
 
-        <ul className="grid grid-cols-2 gap-2 overflow-y-auto px-4 pb-6">
+        <ul className="grid min-h-0 flex-1 grid-cols-2 content-start gap-2 overflow-y-auto overscroll-contain px-4 pb-6">
           <li className="col-span-2">
             <TypeButton
               icon={LayoutGrid}

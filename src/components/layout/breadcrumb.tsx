@@ -30,7 +30,9 @@ export function Breadcrumb({
   /**
    * Set to false where the caller already sits inside a `Container` — nesting
    * two would double the page gutter, and overriding `px-page` from the outside
-   * is the kind of fix that quietly stops working.
+   * is the kind of fix that quietly stops working. The caller then owns the
+   * spacing too: give the wrapper `py-section-sm` so the page starts where
+   * every other page starts.
    */
   inContainer = true,
 }: {
@@ -42,8 +44,15 @@ export function Breadcrumb({
 
   const Wrapper = inContainer ? Container : "div";
 
+  /*
+   * The breadcrumb is the first thing under the site header on every inner
+   * page, so the gap between the two is decided here, once. It used to be
+   * `py-3` here and `py-section-sm` on the pages that laid themselves out
+   * (the search page, for one), which is why some pages started 12px under
+   * the header and others 40px. Same token as those pages now.
+   */
   return (
-    <Wrapper className={cn(inContainer && "py-3", className)}>
+    <Wrapper className={cn(inContainer && "pt-section-sm pb-4", className)}>
       <nav aria-label="مسیر صفحه">
         {/*
          * Long titles are common in the last crumb, so the trail scrolls
