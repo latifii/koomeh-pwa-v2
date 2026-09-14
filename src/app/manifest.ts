@@ -68,7 +68,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "پنل کاربری",
         short_name: "پنل",
-        url: routes.panel.dashboard,
+        url: routes.panel.root,
         icons: [{ src: "/icon-192x192.png", sizes: "192x192" }],
       },
     ],

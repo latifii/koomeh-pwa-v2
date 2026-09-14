@@ -38,9 +38,10 @@ type MenuEntry = { href: string; label: string; icon: LucideIcon };
 
 /**
  * The old header's dropdown, entry for entry, by role: an agent or an
- * administrator got «داشبورد من، تقویم کاری، لیست املاک، لیست مشتریان»,
- * everyone else «لیست املاک، لیست تقاضاها»; then «ویرایش مشخصات» and
- * «موردعلاقه‌ها» for both, and «خروج» under a rule.
+ * administrator got «داشبورد من، تقویم کاری، لیست املاک، لیست مشتریان»;
+ * everyone else «لیست املاک» and a way to file a demand (the old «لیست
+ * تقاضاها» is the customer list, which a regular member no longer has);
+ * then «ویرایش مشخصات» and «موردعلاقه‌ها» for both, and «خروج» under a rule.
  */
 const STAFF_ENTRIES: MenuEntry[] = [
   { href: routes.panel.dashboard, label: "داشبورد من", icon: LayoutDashboard },
@@ -51,7 +52,7 @@ const STAFF_ENTRIES: MenuEntry[] = [
 
 const MEMBER_ENTRIES: MenuEntry[] = [
   { href: routes.panel.properties, label: "لیست املاک", icon: Building2 },
-  { href: routes.panel.requests, label: "لیست تقاضاها", icon: ClipboardList },
+  { href: routes.panel.newRequest, label: "ثبت تقاضا", icon: ClipboardList },
 ];
 
 const COMMON_ENTRIES: MenuEntry[] = [

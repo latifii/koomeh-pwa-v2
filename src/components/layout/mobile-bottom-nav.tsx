@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, Home, type LucideIcon, PlusCircle, Search, User } from "lucide-react";
+import {
+  Heart,
+  Home,
+  type LucideIcon,
+  PlusCircle,
+  Search,
+  User,
+} from "lucide-react";
 
 import { useSessionStore } from "@/app/auth/_stores/auth.store";
 import { LinkPending } from "@/components/shared/link-pending";
@@ -19,7 +26,12 @@ type NavItem = {
 const items: NavItem[] = [
   { href: routes.home, label: "خانه", icon: Home },
   { href: routes.properties(), label: "جستجو", icon: Search },
-  { href: routes.panel.newProperty, label: "ثبت ملک", icon: PlusCircle, accent: true },
+  {
+    href: routes.panel.newProperty,
+    label: "ثبت ملک",
+    icon: PlusCircle,
+    accent: true,
+  },
   { href: routes.panel.favorites, label: "علاقه‌مندی", icon: Heart },
 ];
 
@@ -27,10 +39,10 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const status = useSessionStore((state) => state.status);
 
-  // Signed in, the account tab is the panel; signed out it is the login screen.
+  // Signed in, the account tab is the panel — its root sends each role to its
+  // own first page; signed out it is the login screen.
   const account: NavItem = {
-    href:
-      status === "authenticated" ? routes.panel.dashboard : routes.auth.login,
+    href: status === "authenticated" ? routes.panel.root : routes.auth.login,
     label: "حساب",
     icon: User,
   };
@@ -71,7 +83,7 @@ export function MobileBottomNav() {
               href={item.href}
               className={cn(
                 "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium",
-                active ? "text-brand" : "text-muted-foreground"
+                active ? "text-brand" : "text-muted-foreground",
               )}
             >
               <LinkPending className="size-5">

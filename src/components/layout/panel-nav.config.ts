@@ -107,7 +107,7 @@ export const PANEL_PRIMARY_LINKS: PanelNavItem[] = [
     href: routes.panel.dashboard,
     label: "داشبورد",
     icon: LayoutDashboard,
-    audience: "member",
+    audience: "staff",
   },
   {
     href: routes.panel.conversations,
@@ -181,7 +181,7 @@ export const PANEL_NAV_GROUPS: PanelNavGroup[] = [
         href: routes.panel.requests,
         label: "لیست مشتریان",
         icon: ClipboardList,
-        audience: "member",
+        audience: "staff",
       },
       // Also the second quick action above the menu, for the same reason
       // «ثبت ملک» is listed twice.

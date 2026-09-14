@@ -101,9 +101,21 @@ const PANEL_ROUTE_ACCESS: ReadonlyArray<readonly [string, PanelAudience]> = [
   [routes.panel.matches, "staff"],
   [routes.panel.activities, "staff"],
   [routes.panel.properties, "member"],
-  [routes.panel.requests, "member"],
-  [routes.panel.dashboard, "member"],
+  // A regular member may file a demand but not browse the customer list or
+  // the staff dashboard — the old site's non-agent account had neither.
+  // The form's route sits under the list's prefix, so it is listed first.
+  [routes.panel.newRequest, "member"],
+  [routes.panel.requests, "staff"],
+  [routes.panel.dashboard, "staff"],
 ];
+
+/**
+ * Where a signed-in visitor lands in the panel: staff on the dashboard,
+ * everyone else on their files — the first page of theirs that exists.
+ */
+export function panelHomeFor(viewer: PanelViewer): string {
+  return viewer.isStaff ? routes.panel.dashboard : routes.panel.properties;
+}
 
 /**
  * Routes that exist in the code but are not offered to anyone yet.

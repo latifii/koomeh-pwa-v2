@@ -96,7 +96,7 @@ export function PanelBreadcrumb() {
       className="mb-4"
       items={[
         { label: "خانه", href: routes.home },
-        { label: "پنل کاربری", href: routes.panel.dashboard },
+        { label: "پنل کاربری", href: routes.panel.root },
         ...(groupLabel ? [{ label: groupLabel }] : []),
         // On a record's own page the list it came from is a step in the trail,
         // and a step you can take back — without it the only way out of a

@@ -12,8 +12,12 @@ export const AUTH_ROUTES = [
   routes.auth.resetPassword,
 ] as const;
 
-/** Where a signed-in visitor lands when there is no `callbackUrl` to honour. */
-export const AFTER_SIGN_IN = routes.panel.dashboard;
+/**
+ * Where a signed-in visitor lands when there is no `callbackUrl` to honour:
+ * the panel's root, which sends each role to its own first page — staff to
+ * the dashboard, a regular member to their files.
+ */
+export const AFTER_SIGN_IN = routes.panel.root;
 
 export const CALLBACK_PARAM = "callbackUrl";
 

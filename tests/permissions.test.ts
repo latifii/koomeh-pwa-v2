@@ -7,6 +7,7 @@ import {
   PANEL_AUDIENCE_CAP,
   PARKED_PANEL_ROUTES,
   panelAudienceFor,
+  panelHomeFor,
   parkedPanelRedirect,
 } from "@/lib/auth/panel-access";
 import { routes } from "@/lib/routes";
@@ -35,7 +36,10 @@ import {
  * pure agent, the short-let landlord.
  */
 
-function user(roles: string[], flags: { isAdmin?: boolean; isExpert?: boolean } = {}) {
+function user(
+  roles: string[],
+  flags: { isAdmin?: boolean; isExpert?: boolean } = {},
+) {
   return {
     roles,
     isAdmin: flags.isAdmin ?? false,
@@ -50,7 +54,11 @@ test("the secretary counts as admin and expert but is not the head of the office
   assert.equal(viewer.isAdmin, true, "half the panel hangs off isAdmin()");
   assert.equal(viewer.isExpert, true, "the everyday half hangs off isExpert()");
   assert.equal(isManager(secretary), true);
-  assert.equal(isAdminReal(secretary), false, "no authority over money or roles");
+  assert.equal(
+    isAdminReal(secretary),
+    false,
+    "no authority over money or roles",
+  );
   assert.equal(roleLabel(secretary), "منشی");
 });
 
@@ -65,7 +73,11 @@ test("a plain agent is staff but not an admin", () => {
   assert.equal(roleLabel(expert), "مشاور");
 
   assert.equal(canAccess("staff", viewer), true);
-  assert.equal(canAccess("admin", viewer), false, "the SMS module is admin only");
+  assert.equal(
+    canAccess("admin", viewer),
+    false,
+    "the SMS module is admin only",
+  );
 });
 
 /**
@@ -102,8 +114,16 @@ test("parked pages are never in the menu and always redirect somewhere live", ()
   for (const [href, target] of PARKED_PANEL_ROUTES) {
     assert.equal(offered.has(href), false, `${href} is parked but listed`);
     assert.equal(parkedPanelRedirect(href), target);
-    assert.equal(parkedPanelRedirect(`${href}/12`), target, "detail paths park too");
-    assert.equal(parkedPanelRedirect(target), undefined, `${target} must itself be live`);
+    assert.equal(
+      parkedPanelRedirect(`${href}/12`),
+      target,
+      "detail paths park too",
+    );
+    assert.equal(
+      parkedPanelRedirect(target),
+      undefined,
+      `${target} must itself be live`,
+    );
   }
 
   assert.equal(parkedPanelRedirect(routes.panel.dashboard), undefined);
@@ -126,7 +146,11 @@ test("renter-only is the one account the panel lists turn away", () => {
 
   const viewer = panelViewer(renter);
   assert.equal(canAccess("member", viewer), false);
-  assert.equal(canAccess("everyone", viewer), true, "favourites are still theirs");
+  assert.equal(
+    canAccess("everyone", viewer),
+    true,
+    "favourites are still theirs",
+  );
   assert.equal(roleLabel(renter), "موجر");
 });
 
@@ -160,7 +184,9 @@ test("every menu entry's route resolves to the audience the menu filtered it by"
 
 test("a group with nothing visible in it is not rendered", () => {
   const plain = visibleGroups(panelViewer(user(["user"])));
-  const admin = visibleGroups(panelViewer(user(["administrator"], { isAdmin: true, isExpert: true })));
+  const admin = visibleGroups(
+    panelViewer(user(["administrator"], { isAdmin: true, isExpert: true })),
+  );
 
   assert.equal(
     plain.some((group) => group.id === "system"),
@@ -191,18 +217,32 @@ test("the panel is capped at the agent's audience, administrators included", () 
   assert.equal(isCapped("admin"), true);
   assert.equal(isCapped("staff"), false);
 
-  const admin = panelViewer(user(["administrator"], { isAdmin: true, isExpert: true }));
+  const admin = panelViewer(
+    user(["administrator"], { isAdmin: true, isExpert: true }),
+  );
   const agent = panelViewer(user(["expert"], { isExpert: true }));
 
   // Same menu for both.
   assert.deepEqual(
-    visibleGroups(admin).map((group) => [group.id, group.items.map((item) => item.href)]),
-    visibleGroups(agent).map((group) => [group.id, group.items.map((item) => item.href)]),
+    visibleGroups(admin).map((group) => [
+      group.id,
+      group.items.map((item) => item.href),
+    ]),
+    visibleGroups(agent).map((group) => [
+      group.id,
+      group.items.map((item) => item.href),
+    ]),
   );
 
   // And the admin pages answer the same way for both at the proxy.
-  for (const item of PANEL_NAV_ITEMS.filter((entry) => entry.audience === "admin")) {
-    assert.equal(canAccess(panelAudienceFor(item.href), admin), false, item.href);
+  for (const item of PANEL_NAV_ITEMS.filter(
+    (entry) => entry.audience === "admin",
+  )) {
+    assert.equal(
+      canAccess(panelAudienceFor(item.href), admin),
+      false,
+      item.href,
+    );
   }
 
   // The in-page extras are not the cap's business: the viewer still knows.
@@ -259,5 +299,28 @@ test("every menu entry goes somewhere", () => {
 test("detail routes inherit their list's audience", () => {
   assert.equal(panelAudienceFor("/panel/properties/406431/manage"), "member");
   assert.equal(panelAudienceFor("/panel/conversations/12"), "everyone");
-  assert.equal(panelAudienceFor("/panel/requests/9/edit"), "member");
+  assert.equal(panelAudienceFor("/panel/requests/9/edit"), "staff");
+});
+
+test("a member may file a demand but not browse the customer list", () => {
+  // The old site's non-agent account had no dashboard and no customer
+  // list; the form's route sits under the list's prefix and is the one
+  // exception, so it must be matched before the list.
+  const member = panelViewer(user(["member"]));
+  assert.equal(panelAudienceFor("/panel/requests/new"), "member");
+  assert.equal(panelAudienceFor("/panel/requests"), "staff");
+  assert.equal(panelAudienceFor("/panel/dashboard"), "staff");
+  assert.equal(
+    canAccess(panelAudienceFor("/panel/requests/new"), member),
+    true,
+  );
+  assert.equal(canAccess(panelAudienceFor("/panel/requests"), member), false);
+  assert.equal(canAccess(panelAudienceFor("/panel/dashboard"), member), false);
+  assert.equal(panelHomeFor(member), "/panel/properties");
+  assert.equal(
+    panelHomeFor(
+      panelViewer(user(["expert"], { isAdmin: false, isExpert: true })),
+    ),
+    "/panel/dashboard",
+  );
 });

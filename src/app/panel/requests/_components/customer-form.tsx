@@ -29,6 +29,7 @@ import {
   SEARCHABLE_FROM,
   type FormContext,
 } from "@/components/shared/form";
+import { usePanelAccess } from "@/app/panel/_admin/_components/admin-gate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,6 +71,7 @@ export function CustomerForm({
   // navigation that follows is a dynamic panel route and takes its own time.
   // Without this the button re-enables mid-flight and invites a second submit.
   const [isNavigating, startNavigation] = useTransition();
+  const { viewer } = usePanelAccess("staff");
   const queryClient = useQueryClient();
   const isEdit = Boolean(customerId);
 
@@ -278,6 +280,10 @@ export function CustomerForm({
 
   const result = options.data;
   const canAssignAgent = result.permissions?.can_assign_agent ?? false;
+  // The «جزئیات» box — the extra option fields, the description and the
+  // opening note — is the agent's record-keeping; a regular member files a
+  // demand with who they are and what they want.
+  const showDetails = viewer.isStaff;
   // Several groups have no options on this installation; skip them entirely.
   const optionFields = result.fields.filter(
     (field) => field.options.length > 0,
@@ -438,70 +444,72 @@ export function CustomerForm({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="size-4 text-brand" />
-            جزئیات
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-5">
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {showDetails && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="size-4 text-brand" />
+              جزئیات
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 gap-5">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {optionFields
+                .filter((field) => !field.multiple)
+                .map((field) => (
+                  <LookupSelect
+                    key={field.key}
+                    control={form.control}
+                    name={`fields.${field.key}`}
+                    label={field.label}
+                    options={field.options}
+                    allowEmpty
+                    searchable={field.options.length >= SEARCHABLE_FROM}
+                  />
+                ))}
+
+              {result.numeric_fields.map((key) => (
+                <FormTextField
+                  key={key}
+                  {...context}
+                  name={`numbers.${key}`}
+                  label={numericLabels[key] ?? key}
+                  inputMode="numeric"
+                />
+              ))}
+            </div>
+
             {optionFields
-              .filter((field) => !field.multiple)
+              .filter((field) => field.multiple)
               .map((field) => (
-                <LookupSelect
+                <MultiSelectField
                   key={field.key}
                   control={form.control}
                   name={`fields.${field.key}`}
                   label={field.label}
                   options={field.options}
-                  allowEmpty
-                  searchable={field.options.length >= SEARCHABLE_FROM}
+                  dedupeTitles
                 />
               ))}
 
-            {result.numeric_fields.map((key) => (
-              <FormTextField
-                key={key}
-                {...context}
-                name={`numbers.${key}`}
-                label={numericLabels[key] ?? key}
-                inputMode="numeric"
-              />
-            ))}
-          </div>
-
-          {optionFields
-            .filter((field) => field.multiple)
-            .map((field) => (
-              <MultiSelectField
-                key={field.key}
-                control={form.control}
-                name={`fields.${field.key}`}
-                label={field.label}
-                options={field.options}
-                dedupeTitles
-              />
-            ))}
-
-          <FormTextareaField
-            {...context}
-            name="description"
-            label="توضیحات"
-            rows={3}
-          />
-          {!isEdit && (
             <FormTextareaField
               {...context}
-              name="note"
-              label="یادداشت اولیه"
-              rows={2}
-              placeholder="اختیاری — به‌عنوان اولین یادداشت پرونده ثبت می‌شود"
+              name="description"
+              label="توضیحات"
+              rows={3}
             />
-          )}
-        </CardContent>
-      </Card>
+            {!isEdit && (
+              <FormTextareaField
+                {...context}
+                name="note"
+                label="یادداشت اولیه"
+                rows={2}
+                placeholder="اختیاری — به‌عنوان اولین یادداشت پرونده ثبت می‌شود"
+              />
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button

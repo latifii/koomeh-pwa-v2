@@ -11,6 +11,7 @@ import {
 import {
   canAccess,
   panelAudienceFor,
+  panelHomeFor,
   parkedPanelRedirect,
 } from "@/lib/auth/panel-access";
 import { panelViewer } from "@/lib/auth/permissions";
@@ -39,7 +40,11 @@ import { routes } from "@/lib/routes";
  * request, not from the request store.
  */
 
-function redirect(request: NextRequest, pathname: string, callbackUrl?: string) {
+function redirect(
+  request: NextRequest,
+  pathname: string,
+  callbackUrl?: string,
+) {
   const url = request.nextUrl.clone();
   url.pathname = pathname;
   url.search = "";
@@ -117,7 +122,10 @@ export async function proxy(request: NextRequest) {
       // the page renders with the token it has and the browser's interceptor
       // retries the refresh on the first 401. Signing someone out because the
       // backend was briefly down is the one outcome this must never produce.
-      console.error("[auth] refresh unavailable in proxy; keeping the session:", error);
+      console.error(
+        "[auth] refresh unavailable in proxy; keeping the session:",
+        error,
+      );
     }
   }
 
@@ -135,11 +143,9 @@ export async function proxy(request: NextRequest) {
     const viewer = panelViewer(current.user);
 
     if (!canAccess(panelAudienceFor(pathname), viewer)) {
-      const fallback = canAccess(
-        panelAudienceFor(routes.panel.dashboard),
-        viewer,
-      )
-        ? routes.panel.dashboard
+      const home = panelHomeFor(viewer);
+      const fallback = canAccess(panelAudienceFor(home), viewer)
+        ? home
         : routes.home;
 
       const denied = redirect(request, fallback);
