@@ -10,33 +10,48 @@ import { AuthShell } from "../_components/auth-shell";
 import { LoginForm } from "../_components/login-form";
 
 export const metadata: Metadata = {
-  title: "ورود به حساب | کومه",
-  description: "ورود به حساب کاربری گروه املاک کومه.",
+  title: "ورود یا ثبت‌نام | کومه",
+  description: "ورود به حساب کاربری گروه املاک کومه با شماره همراه.",
   // Nothing here should be indexed or followed into.
   robots: { index: false, follow: false },
 };
 
-export default function LoginPage() {
+/**
+ * Sign-in and sign-up are one door: the number first, then the password or
+ * a texted code, and a number the site has never seen gets an account on
+ * the spot. `?forgot=1` — where the old «فراموشی رمز» page sends — starts
+ * the same flow with a recovery code instead of the password.
+ */
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ forgot?: string }>;
+}) {
+  const forgotPassword = (await searchParams).forgot === "1";
+
   return (
     <AuthShell
-      title="ورود به حساب کومه"
-      description="با شماره همراه و رمزی که از دفتر کومه گرفته‌اید وارد شوید."
+      title={forgotPassword ? "بازیابی رمز عبور" : "ورود یا ثبت‌نام"}
+      description={
+        forgotPassword
+          ? "شماره همراه را وارد کنید تا کد بازیابی پیامک شود؛ بعد از ورود رمز تازه‌ای می‌گذارید."
+          : "شماره همراه را وارد کنید؛ با رمز عبور یا کد پیامکی وارد می‌شوید."
+      }
       footer={
         <Typography variant="small" className="leading-6">
-          حساب ندارید؟{" "}
+          مشکلی در ورود دارید؟{" "}
           <Link
             href={routes.contact}
             className="font-medium text-brand hover:underline"
           >
             با ما تماس بگیرید
-          </Link>{" "}
-          — حساب‌ها توسط دفاتر کومه ساخته می‌شوند.
+          </Link>
         </Typography>
       }
     >
       {/* The form reads `callbackUrl` from the query string. */}
       <Suspense fallback={<Skeleton className="h-56 w-full rounded-xl" />}>
-        <LoginForm />
+        <LoginForm forgotPassword={forgotPassword} />
       </Suspense>
     </AuthShell>
   );

@@ -2,9 +2,13 @@ import {
   meResponseSchema,
   siteSessionResponseSchema,
   tokenPairSchema,
+  verifyCodeResponseSchema,
+  verifyMobileResponseSchema,
   type AuthUserDto,
   type SiteSessionResponse,
   type TokenPairDto,
+  type VerifyCodeDto,
+  type VerifyMobileDto,
 } from "@/app/auth/_schemas/auth.schema";
 import { ApiError, isApiError } from "@/lib/api/api-error";
 import { apiConfig } from "@/lib/api/config";
@@ -19,6 +23,8 @@ import { apiConfig } from "@/lib/api/config";
 
 const endpoints = {
   login: "/api/login",
+  verifyMobile: "/api/verify-mobile",
+  verifyCode: "/api/verify-code",
   refresh: "/api/refresh",
   logout: "/api/logout",
   me: "/api/me",
@@ -54,8 +60,8 @@ function messageFrom(payload: unknown): string | undefined {
 
 function errorFor(status: number, payload: unknown): ApiError {
   const fallback =
-    status === 400
-      ? "شماره همراه یا رمز عبور درست نیست."
+    status === 400 || status === 422
+      ? "اطلاعات واردشده درست نیست."
       : status === 401
         ? "نشست شما معتبر نیست. دوباره وارد شوید."
         : status === 429
@@ -131,6 +137,51 @@ export async function login(
 }
 
 /**
+ * Step one of the two-step sign-in: the number. The API answers with what
+ * step two must be — the password (`login_type` 1) when the account has one
+ * and was not asked for a code, otherwise a code it has just texted — and
+ * creates the account on the spot for a number it has never seen.
+ */
+export async function verifyMobile(
+  mobile: string,
+  options: { loginType?: 1 | 2; forgetPass?: boolean } = {},
+): Promise<VerifyMobileDto> {
+  return verifyMobileResponseSchema.parse(
+    await request(endpoints.verifyMobile, {
+      method: "POST",
+      body: {
+        mobile,
+        login_type: options.loginType ?? 1,
+        forget_pass: options.forgetPass ? 1 : 0,
+      },
+    }),
+  );
+}
+
+/**
+ * Step two: the password (`loginType` 1) or the texted code (`loginType` 2).
+ * `forgetPass` is sent again because this client keeps no cookie session
+ * with the API: the flag has to travel with the request.
+ */
+export async function verifyCode(
+  mobile: string,
+  code: string,
+  options: { loginType: 1 | 2; forgetPass?: boolean },
+): Promise<VerifyCodeDto> {
+  return verifyCodeResponseSchema.parse(
+    await request(endpoints.verifyCode, {
+      method: "POST",
+      body: {
+        mobile,
+        code,
+        login_type: options.loginType,
+        forget_pass: options.forgetPass ? 1 : 0,
+      },
+    }),
+  );
+}
+
+/**
  * Rotating: the token passed in is invalidated the moment this succeeds, so a
  * refresh token may only ever be spent once.
  */
@@ -167,7 +218,9 @@ export async function logout(token: string, allDevices = false): Promise<void> {
 }
 
 export async function me(token: string): Promise<AuthUserDto> {
-  const payload = meResponseSchema.parse(await request(endpoints.me, { token }));
+  const payload = meResponseSchema.parse(
+    await request(endpoints.me, { token }),
+  );
   if ("user" in payload) return payload.user;
   if ("result" in payload) return payload.result;
   return payload;

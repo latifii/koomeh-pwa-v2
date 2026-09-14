@@ -1,17 +1,11 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { AuthShell } from "../_components/auth-shell";
-import { AuthUnavailable } from "../_components/auth-unavailable";
+import { routes } from "@/lib/routes";
 
-export const metadata: Metadata = { title: "بازیابی رمز عبور | کومه" };
-
+/**
+ * Recovery is the sign-in flow with a code instead of the password: the
+ * code signs the account in and sends it to set a new password.
+ */
 export default function ForgotPasswordPage() {
-  return (
-    <AuthShell
-      title="بازیابی رمز عبور"
-      description="بازیابی خودکار رمز عبور هنوز فعال نشده است."
-    >
-      <AuthUnavailable note="برای بازنشانی رمز عبور با کارشناس شعبه خود تماس بگیرید. اگر وارد حساب هستید، می‌توانید رمز را از بخش «امنیت حساب» در پنل تغییر دهید." />
-    </AuthShell>
-  );
+  redirect(`${routes.auth.login}?forgot=1`);
 }

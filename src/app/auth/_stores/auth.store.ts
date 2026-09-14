@@ -2,10 +2,7 @@
 
 import { create } from "zustand";
 
-import type {
-  ClientSession,
-  SessionStatus,
-} from "@/lib/auth/session.types";
+import type { ClientSession, SessionStatus } from "@/lib/auth/session.types";
 import { setAccessToken } from "@/lib/api/access-token";
 import { clearServiceWorkerCaches } from "@/lib/service-worker";
 
@@ -34,7 +31,10 @@ export function seedSession(session: ClientSession | null): void {
   const current = state.session;
 
   // Called on every render of the provider, so only write when it changes.
-  if (current?.accessToken === session?.accessToken && state.status !== "loading") {
+  if (
+    current?.accessToken === session?.accessToken &&
+    state.status !== "loading"
+  ) {
     return;
   }
 
@@ -52,8 +52,7 @@ export function seedSession(session: ClientSession | null): void {
  * appearing for a second on an administrator's own page.
  */
 type SessionRead =
-  | { read: true; session: ClientSession | null }
-  | { read: false };
+  { read: true; session: ClientSession | null } | { read: false };
 
 async function fetchSession(): Promise<SessionRead> {
   try {

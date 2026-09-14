@@ -16,7 +16,10 @@ function text(value: string | null | undefined): string | undefined {
  * date is preferred, but a client clock that disagrees with the server would
  * make it useless, so the duration is the fallback.
  */
-function expiryFrom(isoDate: string | null | undefined, seconds: number): number {
+function expiryFrom(
+  isoDate: string | null | undefined,
+  seconds: number,
+): number {
   const parsed = isoDate ? Date.parse(isoDate) : Number.NaN;
   if (Number.isFinite(parsed)) return parsed;
   return Date.now() + seconds * 1000;

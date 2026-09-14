@@ -51,7 +51,30 @@ export const siteSessionResponseSchema = z.object({
 });
 
 export type AuthUserDto = z.infer<typeof authUserSchema>;
+/**
+ * `/api/verify-mobile` — step one of the two-step sign-in. Says which step
+ * two follows: 1 = the password, 2 = a code that has just been texted.
+ */
+export const verifyMobileResponseSchema = z.object({
+  status: z.boolean(),
+  login_type: z.union([z.literal(1), z.literal(2)]),
+  register: z.coerce.number().int().default(0),
+  forget_status: z.coerce.number().int().default(0),
+  has_password: z.coerce.number().int().default(0),
+  message: z.string().optional(),
+});
+
+/** `/api/verify-code` — step two; the token pair plus the change-password flag. */
+export const verifyCodeResponseSchema = tokenPairSchema.extend({
+  login_type: z.union([z.literal(1), z.literal(2)]).optional(),
+  has_password: z.coerce.number().int().optional(),
+  must_change_password: z.boolean().default(false),
+  message: z.string().optional(),
+});
+
 export type TokenPairDto = z.infer<typeof tokenPairSchema>;
+export type VerifyMobileDto = z.infer<typeof verifyMobileResponseSchema>;
+export type VerifyCodeDto = z.infer<typeof verifyCodeResponseSchema>;
 export type SiteSessionResponse = z.infer<typeof siteSessionResponseSchema>;
 
 /* --------------------------------------------------------------- form input */
@@ -76,12 +99,26 @@ export const signInSchema = z.object({
     .string()
     .transform((value) => toEnglishDigits(value).replace(/[\s-]/g, ""))
     .pipe(
-      z
-        .string()
-        .regex(/^09\d{9}$/, "شماره همراه باید ۱۱ رقم و با ۰۹ شروع شود"),
+      z.string().regex(/^09\d{9}$/, "شماره همراه باید ۱۱ رقم و با ۰۹ شروع شود"),
     ),
   password: z.string().min(1, "رمز عبور را وارد کنید"),
 });
 
 export type SignInValues = z.input<typeof signInSchema>;
 export type SignInModel = z.output<typeof signInSchema>;
+
+/** The mobile alone — step one of the two-step flow. */
+export const mobileSchema = signInSchema.pick({ username: true });
+export type MobileValues = z.input<typeof mobileSchema>;
+
+/** Step two: the number that step one confirmed, and the password or code. */
+export const verifyStepSchema = z.object({
+  mobile: z.string().regex(/^09\d{9}$/),
+  code: z
+    .string()
+    .transform((value) => toEnglishDigits(value).trim())
+    .pipe(z.string().min(1, "این فیلد را پر کنید")),
+  loginType: z.union([z.literal(1), z.literal(2)]),
+  forgetPass: z.boolean().default(false),
+});
+export type VerifyStepValues = z.input<typeof verifyStepSchema>;

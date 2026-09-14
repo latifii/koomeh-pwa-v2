@@ -1,6 +1,9 @@
 import { me, siteSession } from "@/app/auth/_api/auth.service";
 import type { TokenPairDto } from "@/app/auth/_schemas/auth.schema";
-import { mapSessionUser, mapUserSession } from "@/app/auth/_mappers/auth.mapper";
+import {
+  mapSessionUser,
+  mapUserSession,
+} from "@/app/auth/_mappers/auth.mapper";
 import type { SessionUser, UserSession } from "@/lib/auth/session.types";
 
 /**

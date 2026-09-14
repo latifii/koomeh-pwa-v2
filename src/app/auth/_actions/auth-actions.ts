@@ -1,9 +1,20 @@
 "use server";
 
 import { buildSession } from "@/app/auth/_api/build-session";
-import { login, logout, me, siteSession } from "@/app/auth/_api/auth.service";
+import {
+  logout,
+  me,
+  siteSession,
+  verifyCode,
+  verifyMobile,
+} from "@/app/auth/_api/auth.service";
 import { mapSessionUser } from "@/app/auth/_mappers/auth.mapper";
-import { signInSchema, type SignInValues } from "@/app/auth/_schemas/auth.schema";
+import {
+  mobileSchema,
+  verifyStepSchema,
+  type MobileValues,
+  type VerifyStepValues,
+} from "@/app/auth/_schemas/auth.schema";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 import {
   clearSessionCookie,
@@ -17,14 +28,66 @@ import { toClientSession, type ClientSession } from "@/lib/auth/session.types";
 /**
  * Credentials never reach the browser's network tab and the tokens never leave
  * the server unencrypted: the form posts to these actions, which talk to the
- * API and write the signed session cookie.
+ * API and write the signed session cookie. Sign-in is the API's two steps —
+ * the number, then the password or a texted code; the one-shot /api/login
+ * is still there in the service for anything that has both at once.
  */
 
 export type ActionResult = { ok: true } | { ok: false; message: string };
 
-export async function signInAction(values: SignInValues): Promise<ActionResult> {
-  const parsed = signInSchema.safeParse(values);
+/** What step one settled: how step two is done, and whether the account is new. */
+export type StartSignInResult =
+  | {
+      ok: true;
+      mobile: string;
+      loginType: 1 | 2;
+      isNewAccount: boolean;
+      hasPassword: boolean;
+      message?: string;
+    }
+  | { ok: false; message: string };
 
+/**
+ * Step one of the two-step sign-in. With `loginType` 2 a code is requested
+ * even for an account that has a password («ورود با کد»); with
+ * `forgetPass` the code also puts the account into change-password mode.
+ */
+export async function startSignInAction(
+  values: MobileValues,
+  options: { loginType?: 1 | 2; forgetPass?: boolean } = {},
+): Promise<StartSignInResult> {
+  const parsed = mobileSchema.safeParse(values);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "شماره همراه معتبر نیست.",
+    };
+  }
+
+  try {
+    const step = await verifyMobile(parsed.data.username, options);
+    return {
+      ok: true,
+      mobile: parsed.data.username,
+      loginType: step.login_type,
+      isNewAccount: step.register === 1,
+      hasPassword: step.has_password === 1,
+      message: step.message,
+    };
+  } catch (error) {
+    console.error("[auth] verify-mobile failed:", error);
+    return { ok: false, message: getApiErrorMessage(error) };
+  }
+}
+
+export type CompleteSignInResult =
+  { ok: true; mustChangePassword: boolean } | { ok: false; message: string };
+
+/** Step two: the password or the code; on success the session cookie is set. */
+export async function completeSignInAction(
+  values: VerifyStepValues,
+): Promise<CompleteSignInResult> {
+  const parsed = verifyStepSchema.safeParse(values);
   if (!parsed.success) {
     return {
       ok: false,
@@ -33,13 +96,13 @@ export async function signInAction(values: SignInValues): Promise<ActionResult> 
   }
 
   try {
-    const tokens = await login(parsed.data.username, parsed.data.password);
+    const tokens = await verifyCode(parsed.data.mobile, parsed.data.code, {
+      loginType: parsed.data.loginType,
+      forgetPass: parsed.data.forgetPass,
+    });
     await setSessionCookie(await buildSession(tokens));
-    return { ok: true };
+    return { ok: true, mustChangePassword: tokens.must_change_password };
   } catch (error) {
-    // A missing signing key is a deployment problem, not a bad password, and
-    // must not be reported as one. The detail goes to the server log where an
-    // operator will actually see it.
     if (error instanceof AuthConfigError) {
       console.error("[auth] sign-in blocked by configuration:", error.message);
       return {
@@ -47,8 +110,7 @@ export async function signInAction(values: SignInValues): Promise<ActionResult> 
         message: "سرویس ورود پیکربندی نشده است. با مدیر سامانه تماس بگیرید.",
       };
     }
-
-    console.error("[auth] sign-in failed:", error);
+    console.error("[auth] verify-code failed:", error);
     return { ok: false, message: getApiErrorMessage(error) };
   }
 }
@@ -84,9 +146,7 @@ export async function syncSessionUserAction(): Promise<ClientSession | null> {
   }
 }
 
-export async function signOutAction(
-  allDevices = false,
-): Promise<ActionResult> {
+export async function signOutAction(allDevices = false): Promise<ActionResult> {
   const session = await getSession();
 
   // The cookie goes regardless of what the API says — a user who asked to leave

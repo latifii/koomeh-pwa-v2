@@ -1,17 +1,8 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { AuthShell } from "../_components/auth-shell";
-import { AuthUnavailable } from "../_components/auth-unavailable";
+import { routes } from "@/lib/routes";
 
-export const metadata: Metadata = { title: "تأیید شماره همراه | کومه" };
-
+/** The code step lives inside the sign-in flow now. */
 export default function VerifyPage() {
-  return (
-    <AuthShell
-      title="تأیید شماره همراه"
-      description="تأیید شماره با کد پیامکی هنوز فعال نشده است."
-    >
-      <AuthUnavailable note="ورود در حال حاضر با شماره همراه و رمز عبور انجام می‌شود و به کد تأیید نیازی ندارد." />
-    </AuthShell>
-  );
+  redirect(routes.auth.login);
 }

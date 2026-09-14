@@ -1,17 +1,11 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { AuthShell } from "../_components/auth-shell";
-import { AuthUnavailable } from "../_components/auth-unavailable";
+import { routes } from "@/lib/routes";
 
-export const metadata: Metadata = { title: "تغییر رمز عبور | کومه" };
-
+/**
+ * A new password is set in the panel after signing in with a recovery
+ * code; the flow sends people there itself. The old address follows.
+ */
 export default function ResetPasswordPage() {
-  return (
-    <AuthShell
-      title="انتخاب رمز عبور جدید"
-      description="بازنشانی رمز با کد بازیابی هنوز فعال نشده است."
-    >
-      <AuthUnavailable note="تغییر رمز عبور در حال حاضر فقط از بخش «امنیت حساب» و پس از ورود به حساب امکان‌پذیر است." />
-    </AuthShell>
-  );
+  redirect(`${routes.panel.profile}#password`);
 }
