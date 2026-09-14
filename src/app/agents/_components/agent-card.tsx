@@ -105,42 +105,46 @@ export function AgentCard({
           )}
         </span>
 
-        {agent.branch?.name && (
-          <Typography
-            as="span"
-            variant="small"
-            className="mt-2 flex items-center gap-1"
-          >
-            <MapPin className="size-3.5 text-brand/70" />
-            شعبه {agent.branch.name}
-          </Typography>
-        )}
+        {/* Reserved even without a branch, for the same reason as below. */}
+        <Typography
+          as="span"
+          variant="small"
+          className="mt-2 flex min-h-5 items-center gap-1"
+        >
+          {agent.branch?.name && (
+            <>
+              <MapPin className="size-3.5 text-brand/70" />
+              شعبه {agent.branch.name}
+            </>
+          )}
+        </Typography>
 
-        {specialties.length > 0 && (
-          <span className="mt-2.5 flex flex-wrap items-center justify-center gap-1">
-            {specialties.map((type) => (
-              <Typography
-                key={type.id}
-                as="span"
-                variant="small"
-                className="rounded-md bg-muted px-2 py-0.5 text-[11px]"
-              >
-                {type.label}
-              </Typography>
-            ))}
-            {remaining > 0 && (
-              <Typography
-                as="span"
-                variant="small"
-                className="rounded-md bg-muted px-2 py-0.5 text-[11px]"
-              >
-                +{remaining.toLocaleString("fa-IR")}
-              </Typography>
-            )}
-          </span>
-        )}
+        {/* Always rendered, at a fixed height: a consultant without listed
+            specialities keeps the same card as one with, so a row of cards
+            lines up. */}
+        <span className="mt-2.5 flex min-h-6 flex-wrap items-center justify-center gap-1">
+          {specialties.map((type) => (
+            <Typography
+              key={type.id}
+              as="span"
+              variant="small"
+              className="rounded-md bg-muted px-2 py-0.5 text-[11px]"
+            >
+              {type.label}
+            </Typography>
+          ))}
+          {remaining > 0 && (
+            <Typography
+              as="span"
+              variant="small"
+              className="rounded-md bg-muted px-2 py-0.5 text-[11px]"
+            >
+              +{remaining.toLocaleString("fa-IR")}
+            </Typography>
+          )}
+        </span>
 
-        <dl className="mt-4 grid w-full grid-cols-3 divide-x divide-x-reverse divide-border rounded-xl border bg-muted/40 py-2">
+        <dl className="mt-auto pt-4 grid w-full grid-cols-3 divide-x divide-x-reverse divide-border rounded-xl border bg-muted/40 py-2">
           <Stat icon={Home} value={agent.estate_count} label="فایل فعال" />
           <Stat icon={Building2} value={agent.sale_count} label="فروش" />
           <Stat icon={KeyRound} value={agent.rent_count} label="اجاره" />

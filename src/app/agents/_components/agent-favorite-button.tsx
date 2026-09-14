@@ -24,7 +24,7 @@ export function AgentFavoriteButton({
   className?: string;
 }) {
   const { isSaved, isPending, toggle } = useAgentFavorite(agentId);
-  const label = isSaved ? "برداشتن از نشان‌شده‌ها" : "نشان کردن کارشناس";
+  const label = isSaved ? "برداشتن از نشان‌شده‌ها" : "نشان کردن مشاور";
 
   if (variant === "labelled") {
     return (
@@ -34,10 +34,9 @@ export function AgentFavoriteButton({
         disabled={isPending}
         onClick={toggle}
         aria-pressed={isSaved}
-        className={cn(
-          "border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white",
-          className,
-        )}
+        // A plain outline: it sits on the profile's light card, where the
+        // white-on-dark styling it used to carry made it disappear.
+        className={cn(isSaved && "border-destructive/40 text-destructive", className)}
       >
         <Heart
           data-icon="inline-start"

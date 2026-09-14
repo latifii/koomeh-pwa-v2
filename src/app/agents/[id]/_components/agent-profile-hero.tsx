@@ -27,9 +27,9 @@ import { cn } from "@/lib/utils";
 type Contact = AgentProfileResponse["result"]["contact"];
 
 /**
- * The top of a consultant's page: a brand band with the portrait breaking
- * out of it, the name and role, where they work, and the two ways to reach
- * them; under it, the figures — files, sales, rentals, years — as tiles.
+ * The top of a consultant's page: one card on a soft brand wash — the
+ * portrait, the name and role, where they work, and the ways to reach
+ * them — and under a rule the figures: files, sales, rentals, years.
  */
 export function AgentProfileHero({
   agent,
@@ -42,16 +42,12 @@ export function AgentProfileHero({
   const photo = toAbsoluteMediaUrl(agent.photo ?? null);
   const phone = contact?.phone ?? agent.phone;
   const imageClass =
-    "size-28 rounded-full object-cover ring-4 ring-card shadow-lg sm:size-32";
+    "size-24 shrink-0 rounded-2xl object-cover ring-4 ring-card shadow-md sm:size-32";
 
   return (
     <Container>
       <section className="overflow-hidden rounded-3xl border bg-card">
-        <div className="h-28 bg-linear-to-l from-primary via-primary-deep to-primary sm:h-32">
-          <div className="h-full w-full bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_40%)]" />
-        </div>
-
-        <div className="-mt-14 flex flex-col gap-4 px-5 pb-5 sm:-mt-16 sm:flex-row sm:items-end sm:px-6">
+        <div className="flex flex-col gap-4 bg-linear-to-l from-brand/10 via-card to-secondary/15 p-5 sm:flex-row sm:items-center sm:p-6">
           {photo ? (
             <ApiImage
               src={photo}
@@ -73,7 +69,7 @@ export function AgentProfileHero({
             />
           )}
 
-          <div className="min-w-0 flex-1 sm:pb-1">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <Typography variant="h2" as="h1" className="leading-tight">
                 {agent.name}
@@ -110,7 +106,7 @@ export function AgentProfileHero({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 sm:pb-1">
+          <div className="flex flex-wrap gap-2 sm:flex-col sm:items-stretch">
             {phone && (
               <Button
                 nativeButton={false}

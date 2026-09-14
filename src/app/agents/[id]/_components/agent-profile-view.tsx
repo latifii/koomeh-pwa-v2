@@ -233,8 +233,11 @@ function Listings({
           </Typography>
         </div>
       </div>
+      {/* The phone scroller needs a little vertical room, or the cards'
+          borders and hover lift are clipped by the scroll box; from `sm` it
+          is a plain grid with nothing to clip. */}
       {listings.length ? (
-        <div className="-mx-page flex gap-3 overflow-x-auto overflow-y-hidden px-page pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0">
+        <div className="-mx-page flex gap-3 overflow-x-auto px-page py-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:py-0">
           {listings.map((listing) => (
             <PropertyCard
               key={listing.id}
